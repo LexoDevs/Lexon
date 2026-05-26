@@ -10,7 +10,8 @@ class Render {
     public:
     void createSyncObjects(LogicalDevice device);
     void destroyFences(LogicalDevice logicaldevice);
-    void drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain swapchain, GraphicsPipeline pipeline);
+    void drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain swapchain, GraphicsPipeline pipeline,
+                        WindowSurface windowsurface, PhysicalDevice physicaldevice, Window window);
 
     private:
     VkSemaphore imageAvailableSemaphore;   // "presentComplete"

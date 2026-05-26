@@ -1,13 +1,24 @@
 #pragma once
 
-
 #include "Vulkan/Render.h"
+
+struct infoDraw{
+    LogicalDevice logicaldevicesstr;
+    Pool ComandPoolstr;
+    Swapchain swapchainstr;
+    GraphicsPipeline pipelinestr; 
+    Render renderstr;
+	WindowSurface windowsurfacestr;
+	PhysicalDevice physicaldevicestr;
+	Window windowstr;
+
+};
 
 class Engine {
 public:
 	void runEngine();
 
-	void StartDrawFrame(LogicalDevice logicaldevices, Pool ComandPool, Swapchain swapchain, GraphicsPipeline pipeline, Render render);
+	void StartDrawFrame(infoDraw structureDraw);
 
 private:
 
@@ -28,5 +39,5 @@ private:
 };
 
 
-static Engine masterengine = {};
+//static Engine masterengine = {};
 

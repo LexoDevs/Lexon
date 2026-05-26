@@ -1,6 +1,7 @@
 #include "Swapchain.h"
 
 
+
 void Swapchain::CreateSwapChain(WindowSurface windowsurface, PhysicalDevice physicaldevice, Window  window, LogicalDevice logicaldevice) {
     std::cout << "[!] Creando cadena de intercambio...";
 
@@ -11,6 +12,8 @@ void Swapchain::CreateSwapChain(WindowSurface windowsurface, PhysicalDevice phys
     //Seleccion del formato de superficie
     uint32_t pSurfaceFormatCount;
     std::vector<VkSurfaceFormatKHR> availableFormats = windowsurface.getSurfaceFormats(physicaldevice, pSurfaceFormatCount);
+        std::cout<<"Hola\n";
+
     swapChainSurfaceFormat = windowsurface.chooseSwapSurfaceFormat(availableFormats, pSurfaceFormatCount);
    
     //Seleccion del modo de presentacion
@@ -54,33 +57,41 @@ void Swapchain::CreateSwapChain(WindowSurface windowsurface, PhysicalDevice phys
         swapChainCreateInfo.pQueueFamilyIndices = nullptr;
     }
 
-    if (vkCreateSwapchainKHR(logicaldevice.GetLogicalDevice(), &swapChainCreateInfo, nullptr, &swapChain) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create swap chain!");
-    }
+    std::cout<<"Buscando error: "<<logicaldevice.GetLogicalDevice()<<std::endl; 
+    std::cout<<"Buscando error: "<<&swapChainCreateInfo<<std::endl; 
+    std::cout<<"Buscando error: "<<&swapChain<<std::endl; 
+
+        if (vkCreateSwapchainKHR(logicaldevice.GetLogicalDevice(), &swapChainCreateInfo, nullptr, &swapChain) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create swap chain!");
+        }
+    
+
+        std::cout<<"Swapchain creada en: " <<swapChain <<"\n";
+
 
     vkGetSwapchainImagesKHR(logicaldevice.GetLogicalDevice(), swapChain, &imageCount, nullptr);
     getSwapchainImages().resize(imageCount);
     vkGetSwapchainImagesKHR(logicaldevice.GetLogicalDevice(), swapChain, &imageCount, getSwapchainImages().data());
+
 
     swapChainImageFormat = windowsurface.chooseSwapSurfaceFormat(availableFormats, pSurfaceFormatCount).format;
     swapChainExtent = windowsurface.chooseSwapExtent(surfaceCapabilities, window);
     
 };
 
-void Swapchain::CreateImageView(LogicalDevice logicaldevice) {
+void Swapchain::CreateImageView(LogicalDevice logicaldevice)
+{
+    swapChainImageViews.resize(swapchainImages.size());
 
 
-    assert(swapChainImageViews.empty());
 
-
-    for (size_t i = 0; i < getSwapchainImages().size(); i++) {
-
+    for (size_t i = 0; i < swapchainImages.size(); i++) {
         VkImageViewCreateInfo imageViewCreateInfo{};
         imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 
         imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         imageViewCreateInfo.format = swapChainSurfaceFormat.format;
-        imageViewCreateInfo.image = getSwapchainImages()[i];
+        imageViewCreateInfo.image = swapchainImages[i];
         imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
         imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
         imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -92,9 +103,42 @@ void Swapchain::CreateImageView(LogicalDevice logicaldevice) {
         imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         imageViewCreateInfo.subresourceRange.layerCount = 1;
 
+        std::cout<<"Hola: "<<&getSwapchainImageView()[i+1]<<"\n";
+
+
         if (vkCreateImageView(logicaldevice.GetLogicalDevice(), &imageViewCreateInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create image views!");
         }
     }
+};
+
+void Swapchain::cleanSwapchain(){
+    swapChainImageViews.clear();
+    swapChain = nullptr;
+}
+
+
+void Swapchain::destroySwapchain(LogicalDevice logicaldevice){
+    
+
+    for (auto imageView : swapChainImageViews) {
+            vkDestroyImageView(logicaldevice.GetLogicalDevice(), imageView, nullptr);
+        }
+    vkDestroySwapchainKHR(logicaldevice.GetLogicalDevice(), swapChain, nullptr);
+
+
+
 
 };
+
+void Swapchain::RecreateSwapchain(LogicalDevice logicaldevices,WindowSurface windowsurface,PhysicalDevice physicaldevice,Window window){
+
+    vkDeviceWaitIdle(logicaldevices.GetLogicalDevice());
+
+    cleanSwapchain();
+
+    CreateSwapChain(windowsurface, physicaldevice, window, logicaldevices);
+	CreateImageView(logicaldevices);
+
+};
+

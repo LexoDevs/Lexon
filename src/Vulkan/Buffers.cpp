@@ -48,6 +48,7 @@ void transition_image_layout(
         Swapchain swapchain,
          VkCommandBuffer         commandBuffer) 
 {
+
 		VkImageMemoryBarrier2 barrier = {};
 		    barrier.srcStageMask        = src_stage_mask;
 		    barrier.srcAccessMask       = src_access_mask;
@@ -57,7 +58,12 @@ void transition_image_layout(
 		    barrier.newLayout           = new_layout;
 		    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            
+
+
 		    barrier.image               = swapchain.getSwapchainImages()[imageIndex];
+
+
 		    barrier.subresourceRange    = {
 		           .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT ,
 		           .baseMipLevel   = 0,
@@ -69,7 +75,7 @@ void transition_image_layout(
 		    dependency_info.dependencyFlags         = {};
 		    dependency_info.imageMemoryBarrierCount = 1;
 		    dependency_info.pImageMemoryBarriers    = &barrier;
-    
+
     vkCmdPipelineBarrier2(commandBuffer, &dependency_info);
 }
 
@@ -83,6 +89,7 @@ void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, Graphic
         if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
             throw std::runtime_error("failed to begin recording command buffer!");
         }
+    
 
     // Before starting rendering, transition the swapchain image to vk::ImageLayout::eColorAttachmentOptimal
     transition_image_layout(

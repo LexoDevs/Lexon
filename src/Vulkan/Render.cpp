@@ -24,12 +24,21 @@ void Render::destroyFences(LogicalDevice logicaldevice) {
 
 }
 
-void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain swapchain, GraphicsPipeline pipeline)
+void Render::drawFrame( LogicalDevice logicaldevice, Pool pool, Swapchain swapchain, GraphicsPipeline pipeline,
+                        WindowSurface windowsurface, PhysicalDevice physicaldevice, Window window)
 {
-    // PASO 1: Esperar a que el frame anterior termine (CPU-GPU sync)
-    std::cout<<"Intentando cargar el logical device:" <<logicaldevice.GetLogicalDevice() <<"\n";
+
     vkWaitForFences(logicaldevice.GetLogicalDevice(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(logicaldevice.GetLogicalDevice(), 1, &inFlightFence);
+
+
+
+    // PASO 1: Esperar a que el frame anterior termine (CPU-GPU sync)
+    //std::cout<<"Intentando cargar el logical device:" <<logicaldevice.GetLogicalDevice() <<"\n";
+    //std::cout<<"Intentando cargar el comand buffer:" <<pool.getCommandBuffer() <<"\n";
+    //std::cout<<"Intentando cargar el swapchain:" <<swapchain.getSwapchain() <<"\n";
+    //std::cout<<"Intentando cargar el pipeline:" <<pipeline.getGrapicsPipeline() <<"\n";
+
+
 
     // PASO 2: Adquirir la siguiente imagen del swapchain
     uint32_t imageIndex;
@@ -41,12 +50,16 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain swapcha
         VK_NULL_HANDLE,
         &imageIndex);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 
-        //return;
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        swapchain.RecreateSwapchain(logicaldevice, windowsurface, physicaldevice, window);
+        return;
     } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
+
+        vkResetFences(logicaldevice.GetLogicalDevice(), 1, &inFlightFence);
+
 
     // PASO 3: Grabar los comandos en el command buffer
     pool.recordCommandBuffer(imageIndex,swapchain, pipeline);
@@ -84,6 +97,7 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain swapcha
     result = vkQueuePresentKHR(logicaldevice.getPresentQueue(), &presentInfo);
 
         frameIndex = (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
+    //std::cout<<"Intentando cargar el logical device:" <<logicaldevice.GetLogicalDevice() <<"\n";
 
         
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {

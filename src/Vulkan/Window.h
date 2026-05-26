@@ -1,12 +1,25 @@
 #pragma once
 
-#include <cstdint> // Necessary for uint32_t
-#include <limits> // Necessary for std::numeric_limits
-#include <algorithm> // Necessary for std::clamp
+#include <cstdint> //uint32_t
+#include <limits> //std::numeric_limits
+#include <algorithm> //std::clamp
 
 
 
 #include "Devices.h"
+
+
+//############## Funcion Callback de Inputs ################//
+
+static void GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+
+    if ((key == GLFW_KEY_ESCAPE) && (action == GLFW_PRESS)) {
+
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+
+    }
+}
+
 
 
 constexpr uint32_t WIDTH = 800;
@@ -21,7 +34,8 @@ public:
 	void CrearVentana(const char* name);
 	//void ActualizarVentanas(LogicalDevice logicaldevices, Pool ComandPool, Swapchain swapchain, GraphicsPipeline pipeline, Render render);
 	void LimpiarVentanas();
-	GLFWwindow* GetWindows(int i) { return GestorVentanas[0]; }
+	GLFWwindow* GetWindows(int i) { return GestorVentanas[i]; }
+	std::vector<GLFWwindow*>& getListaVentanas() {return GestorVentanas;};
 
 private:
 	std::vector<GLFWwindow*> GestorVentanas;

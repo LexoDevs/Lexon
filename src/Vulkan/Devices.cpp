@@ -2,27 +2,6 @@
 
 //############## Funcion Callback de Capas de Validacion ################//
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData)
-{
-    if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-        std::cerr << "\033[1;31m[VALIDATION ERROR] \033[0m" << pCallbackData->pMessage << std::endl;
-    
-    else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-        std::cout << "\033[1;33m[VALIDATION WARNING] \033[0m" << pCallbackData->pMessage << std::endl;
-    
-    else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
-        std::cout << "\033[1;36m[VALIDATION INFO] \033[0m" << pCallbackData->pMessage << std::endl;
-    
-    else
-        std::cout << "\033[1;90m[VALIDATION VERBOSE] \033[0m" << pCallbackData->pMessage << std::endl;
-
-    return VK_FALSE;
-}
-
 const std::vector<char const*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
 };
@@ -351,12 +330,19 @@ void LogicalDevice::CreateLogicalDevice(PhysicalDevice physicaldevice) {
 	DynamicRenderingFeature.pNext = NULL;
 	DynamicRenderingFeature.dynamicRendering = VK_TRUE;
 
+	VkPhysicalDeviceSynchronization2FeaturesKHR Synchronization2Feature = {};
+	Synchronization2Feature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR;
+	Synchronization2Feature.synchronization2 = VK_TRUE;
+
+	DynamicRenderingFeature.pNext = &Synchronization2Feature;
+	Synchronization2Feature.pNext = nullptr;
+
 	VkDeviceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	createInfo.pNext = &DynamicRenderingFeature;
 	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 	createInfo.pQueueCreateInfos = queueCreateInfos.data();
-	createInfo.pEnabledFeatures = &deviceFeatures;
+	createInfo.pEnabledFeatures = nullptr;
 
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()); //requiredExtensions
 	createInfo.ppEnabledExtensionNames = deviceExtensions.data();

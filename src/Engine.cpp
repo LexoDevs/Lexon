@@ -29,29 +29,40 @@ void Engine::MainLoopEngine() {
 
 	//window.ActualizarVentanas(logicaldevices, ComandPool, swapchain, pipeline, render);
 
+    
+    infoDraw info = {logicaldevices, ComandPool, swapchain, pipeline, render, windowsurface, physicaldevice, window};
 
-    while (!glfwWindowShouldClose(window.GetWindows(0))){
-        
-        std::cout<<"en bucle" <<"\n";
 
-        glfwPollEvents();
-        StartDrawFrame(logicaldevices, ComandPool, swapchain, pipeline, render);
 
-    }
-    vkDeviceWaitIdle(logicaldevices.GetLogicalDevice());
+
+        while (!glfwWindowShouldClose(window.GetWindows(0))){
+
+            glfwSetKeyCallback(window.GetWindows(0), GLFW_KeyCallback);
+
+            glfwPollEvents();
+            StartDrawFrame(info);
+            
+        }
+        vkDeviceWaitIdle(logicaldevices.GetLogicalDevice());
+
+    
+
 
         
 };
 
 
-void Engine::StartDrawFrame(LogicalDevice logicaldevices, Pool ComandPool, Swapchain swapchain, GraphicsPipeline pipeline, Render render){
+void Engine::StartDrawFrame(infoDraw structureDraw){
 
-            render.drawFrame(logicaldevices, ComandPool, swapchain, pipeline);
+            render.drawFrame(structureDraw.logicaldevicesstr, structureDraw.ComandPoolstr, structureDraw.swapchainstr, 
+                structureDraw.pipelinestr,structureDraw.windowsurfacestr,structureDraw.physicaldevicestr,structureDraw.windowstr);
 
 };
 
 void Engine::CleanEngine() {
 	
+    swapchain.destroySwapchain(logicaldevices);
+
     render.destroyFences(logicaldevices);
 
     ComandPool.destroyCommandPool(logicaldevices);

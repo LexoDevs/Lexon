@@ -1,6 +1,8 @@
 
 #include "Window.h"
 
+
+
 const char* FormatToString(VkFormat format) {
     switch (format) {
     case 44:              return "VK_FORMAT_B8G8R8A8_UNORM";
@@ -27,17 +29,9 @@ const char* PresentModeToString(VkPresentModeKHR presentmode) {
     }
 }
 
-//############## Funcion Callback de Inputs ################//
 
 
-void GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
-    if ((key == GLFW_KEY_ESCAPE) && (action == GLFW_PRESS)) {
-
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-
-    }
-}
 
 //############## Clase Window ################//
  
@@ -59,10 +53,16 @@ void Window::CrearVentana(const char* name) {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
 
+
+
     //Creacion de ventana
     std::cout << "[!] Creando ventana..."<<"\n";
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, name, nullptr, nullptr);
     std::cout <<"\t" << name << " guardada en " << window << "\n";
+
+    //Cambiar icono de ventana
+    GLFWimage iconwindow;
+
 
     //Se incluye en la lista de ventanas creadas
     GestorVentanas.push_back(window);

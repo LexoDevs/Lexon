@@ -8,8 +8,12 @@ public:
 
 	void CreateSwapChain(WindowSurface windowsurface, PhysicalDevice physicaldevice, Window window, LogicalDevice logicaldevice);
 	void CreateImageView(LogicalDevice logicaldevice);
-	std::vector<VkImage> getSwapchainImages() { return swapchainImages; }
-	std::vector<VkImageView> getSwapchainImageView() { return swapChainImageViews; }
+	void cleanSwapchain();
+	void destroySwapchain(LogicalDevice logicaldevice);
+
+	void RecreateSwapchain(LogicalDevice logicaldevices,WindowSurface windowsurface,PhysicalDevice physicaldevice,Window window);
+	std::vector<VkImage>& getSwapchainImages() { return swapchainImages; } 
+	std::vector<VkImageView>& getSwapchainImageView() { return swapChainImageViews; }
 	VkSwapchainKHR getSwapchain() { return swapChain; }
 
 	VkExtent2D getExtentSwapchain() { return swapChainExtent; }
