@@ -1,83 +1,71 @@
 #include "Swapchain.h"
 
+void Swapchain::CreateSwapChain(WindowSurface windowsurface, PhysicalDevice physicaldevice, 
+                                Window window, LogicalDevice logicaldevice) 
+{
+    std::cout << "[!] Creando cadena de intercambio...\n";
 
-
-void Swapchain::CreateSwapChain(WindowSurface windowsurface, PhysicalDevice physicaldevice, Window  window, LogicalDevice logicaldevice) {
-    std::cout << "[!] Creando cadena de intercambio...";
-
-    //Seleccion de capabilities
     VkSurfaceCapabilitiesKHR surfaceCapabilities = windowsurface.GetSurfaceCapabilities(physicaldevice);
     swapChainExtent = windowsurface.chooseSwapExtent(surfaceCapabilities, window);
-    
-    //Seleccion del formato de superficie
+
+    // Formato
     uint32_t pSurfaceFormatCount;
     std::vector<VkSurfaceFormatKHR> availableFormats = windowsurface.getSurfaceFormats(physicaldevice, pSurfaceFormatCount);
-        std::cout<<"Hola\n";
-
     swapChainSurfaceFormat = windowsurface.chooseSwapSurfaceFormat(availableFormats, pSurfaceFormatCount);
-   
-    //Seleccion del modo de presentacion
-    VkPresentModeKHR presentationmode =  windowsurface.GetSurfacePresentationsMode(physicaldevice);
 
-    //Seleccion del minimo de imagenes
-    uint32_t imageCount = surfaceCapabilities.minImageCount+1;
-    auto minImageCount = std::max(3u, surfaceCapabilities.minImageCount);
-    if ((0 < surfaceCapabilities.maxImageCount) && (surfaceCapabilities.maxImageCount < minImageCount))
-    {
-        minImageCount = surfaceCapabilities.maxImageCount;
+    // Present mode
+    VkPresentModeKHR presentationmode = windowsurface.GetSurfacePresentationsMode(physicaldevice);
+
+    // Número de imágenes
+    uint32_t imageCount = surfaceCapabilities.minImageCount + 1;
+    if (surfaceCapabilities.maxImageCount > 0 && imageCount > surfaceCapabilities.maxImageCount) {
+        imageCount = surfaceCapabilities.maxImageCount;
     }
 
-    //CreateSwapchain
+    // Crear Swapchain
     VkSwapchainCreateInfoKHR swapChainCreateInfo{};
-    swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapChainCreateInfo.surface = windowsurface.getSurface();
-    swapChainCreateInfo.imageExtent = getExtentSwapchain();
-    swapChainCreateInfo.minImageCount = minImageCount;
-    swapChainCreateInfo.imageFormat = swapChainSurfaceFormat.format;
-    swapChainCreateInfo.imageColorSpace = swapChainSurfaceFormat.colorSpace;
-    swapChainCreateInfo.imageArrayLayers = 1;
-    swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-    swapChainCreateInfo.preTransform = surfaceCapabilities.currentTransform;
-    swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swapChainCreateInfo.presentMode = presentationmode;
-    swapChainCreateInfo.clipped = true;
+    swapChainCreateInfo.sType              = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swapChainCreateInfo.surface            = windowsurface.getSurface();
+    swapChainCreateInfo.minImageCount      = imageCount;
+    swapChainCreateInfo.imageFormat        = swapChainSurfaceFormat.format;
+    swapChainCreateInfo.imageColorSpace    = swapChainSurfaceFormat.colorSpace;
+    swapChainCreateInfo.imageExtent        = swapChainExtent;
+    swapChainCreateInfo.imageArrayLayers   = 1;
+    swapChainCreateInfo.imageUsage         = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swapChainCreateInfo.preTransform       = surfaceCapabilities.currentTransform;
+    swapChainCreateInfo.compositeAlpha     = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swapChainCreateInfo.presentMode        = presentationmode;
+    swapChainCreateInfo.clipped            = VK_TRUE;
 
     QueueFamilyIndices indices = logicaldevice.findQueueFamilies(physicaldevice.GetPhysicalDevice());
     uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
     if (indices.graphicsFamily != indices.presentFamily) {
-        swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        swapChainCreateInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
         swapChainCreateInfo.queueFamilyIndexCount = 2;
-        swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
-    }
-    else {
+        swapChainCreateInfo.pQueueFamilyIndices   = queueFamilyIndices;
+    } else {
         swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        swapChainCreateInfo.queueFamilyIndexCount = 0;
-        swapChainCreateInfo.pQueueFamilyIndices = nullptr;
     }
 
-    std::cout<<"Buscando error: "<<logicaldevice.GetLogicalDevice()<<std::endl; 
-    std::cout<<"Buscando error: "<<&swapChainCreateInfo<<std::endl; 
-    std::cout<<"Buscando error: "<<&swapChain<<std::endl; 
+    // Crear el swapchain
+    if (vkCreateSwapchainKHR(logicaldevice.GetLogicalDevice(), &swapChainCreateInfo, nullptr, &swapChain) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create swap chain!");
+    }
 
-        if (vkCreateSwapchainKHR(logicaldevice.GetLogicalDevice(), &swapChainCreateInfo, nullptr, &swapChain) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create swap chain!");
-        }
-    
+    std::cout << "Swapchain creada correctamente - Handle: " << swapChain << "\n";
 
-        std::cout<<"Swapchain creada en: " <<swapChain <<"\n";
-
-
+    // Obtener las imágenes
     vkGetSwapchainImagesKHR(logicaldevice.GetLogicalDevice(), swapChain, &imageCount, nullptr);
-    getSwapchainImages().resize(imageCount);
-    vkGetSwapchainImagesKHR(logicaldevice.GetLogicalDevice(), swapChain, &imageCount, getSwapchainImages().data());
+    swapchainImages.resize(imageCount);
+    vkGetSwapchainImagesKHR(logicaldevice.GetLogicalDevice(), swapChain, &imageCount, swapchainImages.data());
+
+    swapChainImageFormat = swapChainSurfaceFormat.format;
+
+    std::cout << "Swapchain creado con " << imageCount << " imágenes\n";
+}
 
 
-    swapChainImageFormat = windowsurface.chooseSwapSurfaceFormat(availableFormats, pSurfaceFormatCount).format;
-    swapChainExtent = windowsurface.chooseSwapExtent(surfaceCapabilities, window);
-    
-};
 
 void Swapchain::CreateImageView(LogicalDevice logicaldevice)
 {
@@ -112,33 +100,59 @@ void Swapchain::CreateImageView(LogicalDevice logicaldevice)
     }
 };
 
-void Swapchain::cleanSwapchain(){
-    swapChainImageViews.clear();
-    swapChain = nullptr;
-}
-
-
-void Swapchain::destroySwapchain(LogicalDevice logicaldevice){
-    
-
+void Swapchain::cleanSwapchain(LogicalDevice logicaldevice)
+{
+    // Destruir image views
     for (auto imageView : swapChainImageViews) {
-            vkDestroyImageView(logicaldevice.GetLogicalDevice(), imageView, nullptr);
-        }
+
+        vkDestroyImageView(logicaldevice.GetLogicalDevice(), imageView, nullptr);
+    }
+
+    // Destruir swapchain
     vkDestroySwapchainKHR(logicaldevice.GetLogicalDevice(), swapChain, nullptr);
 
 
 
 
+}
+
+
+void Swapchain::destroySwapchain(LogicalDevice logicaldevice){
+    
+    for (auto imageView : swapChainImageViews) {
+
+            vkDestroyImageView(logicaldevice.GetLogicalDevice(), imageView, nullptr);
+    }
+
+    // Destruir swapchain
+    vkDestroySwapchainKHR(logicaldevice.GetLogicalDevice(), swapChain, nullptr);
+
 };
 
-void Swapchain::RecreateSwapchain(LogicalDevice logicaldevices,WindowSurface windowsurface,PhysicalDevice physicaldevice,Window window){
+void Swapchain::RecreateSwapchain(LogicalDevice logicaldevice, WindowSurface windowsurface,
+                                  PhysicalDevice physicaldevice, Window window)
+{
+    std::cout << "[+] RECREANDO SWAPCHAIN...\n";
 
-    vkDeviceWaitIdle(logicaldevices.GetLogicalDevice());
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(window.GetWindows(0), &width, &height);
+    while (width == 0 || height == 0) {
+        glfwWaitEvents();
+        glfwGetFramebufferSize(window.GetWindows(0), &width, &height);
+    }
 
-    cleanSwapchain();
+    vkDeviceWaitIdle(logicaldevice.GetLogicalDevice());
+    cleanSwapchain(logicaldevice);
 
-    CreateSwapChain(windowsurface, physicaldevice, window, logicaldevices);
-	CreateImageView(logicaldevices);
+    CreateSwapChain(windowsurface, physicaldevice, window, logicaldevice);
+    CreateImageView(logicaldevice);
+
+    std::cout << "[+] Swapchain RECREADO - Handle FINAL: " << swapChain << std::endl;
+
+    std::cout << "[+] Swapchain recreado correctamente (" 
+            << getExtentSwapchain().width << "x" 
+            << getExtentSwapchain().height << ")\n";
+
 
 };
 

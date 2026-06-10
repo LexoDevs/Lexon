@@ -29,9 +29,9 @@ void Pool::createCommandBuffer(LogicalDevice logicaldevice){
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool = commandPool;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount = 1;
+        allocInfo.commandBufferCount = MAX_FRAMES_IN_FLIGHT;
 
-    if (vkAllocateCommandBuffers(logicaldevice.GetLogicalDevice(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
+    if (vkAllocateCommandBuffers(logicaldevice.GetLogicalDevice(), &allocInfo, commandBuffers) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate command buffers!");
     }
 }
@@ -50,6 +50,7 @@ void transition_image_layout(
 {
 
 		VkImageMemoryBarrier2 barrier = {};
+            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2; 
 		    barrier.srcStageMask        = src_stage_mask;
 		    barrier.srcAccessMask       = src_access_mask;
 		    barrier.dstStageMask        = dst_stage_mask;
@@ -72,6 +73,7 @@ void transition_image_layout(
 		           .layerCount     = 1};
 		
         VkDependencyInfo dependency_info = {};
+            dependency_info.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
 		    dependency_info.dependencyFlags         = {};
 		    dependency_info.imageMemoryBarrierCount = 1;
 		    dependency_info.pImageMemoryBarriers    = &barrier;
@@ -79,14 +81,17 @@ void transition_image_layout(
     vkCmdPipelineBarrier2(commandBuffer, &dependency_info);
 }
 
-void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline)
+void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame)
 {
+    //VkCommandBuffer cmd = commandBuffers[currentFrame]; 
+
+    //vkResetCommandBuffer(cmd, 0);
+
     VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = 0; // Optional
-        beginInfo.pInheritanceInfo = nullptr; // Optional
 
-        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+
+        if (vkBeginCommandBuffer(commandBuffers[currentFrame], &beginInfo) != VK_SUCCESS) {
             throw std::runtime_error("failed to begin recording command buffer!");
         }
     
@@ -101,7 +106,7 @@ void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, Graphic
         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,// src_stage_mask
         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,// dst_stage_mask,
         swapchain,
-        commandBuffer
+        commandBuffers[currentFrame]
         );
 
         // ====================== INICIO DEL RENDERING ======================
@@ -124,10 +129,10 @@ void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, Graphic
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments    = &colorAttachment;
 
-    vkCmdBeginRendering(commandBuffer, &renderingInfo);
+    vkCmdBeginRendering(commandBuffers[currentFrame], &renderingInfo);
 
     // Bind del pipeline gráfico
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getGrapicsPipeline());
+    vkCmdBindPipeline(commandBuffers[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getGrapicsPipeline());
 
     // Viewport y Scissor (dynamic state)
     VkViewport viewport{};
@@ -142,14 +147,14 @@ void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, Graphic
     scissor.offset = {0, 0};
     scissor.extent = swapchain.getExtentSwapchain();
 
-    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+    vkCmdSetViewport(commandBuffers[currentFrame], 0, 1, &viewport);
+    vkCmdSetScissor(commandBuffers[currentFrame], 0, 1, &scissor);
 
     // Dibujar el triángulo
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
 
     // ====================== FIN DEL RENDERING ======================
-    vkCmdEndRendering(commandBuffer);
+    vkCmdEndRendering(commandBuffers[currentFrame]);
 
     // Transition final a Present
     transition_image_layout(
@@ -161,10 +166,10 @@ void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, Graphic
         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,// src_stage_mask
         VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT,         // dst_stage_mask
         swapchain,
-        commandBuffer
+        commandBuffers[currentFrame]
     );
 
-    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+    if (vkEndCommandBuffer(commandBuffers[currentFrame]) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");
     }
 }

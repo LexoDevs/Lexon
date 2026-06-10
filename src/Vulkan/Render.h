@@ -2,21 +2,24 @@
 
 #include "Buffers.h"
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
-
+#include "VulkanConstants.h"
 
 class Render {
 
     public:
     void createSyncObjects(LogicalDevice device);
     void destroyFences(LogicalDevice logicaldevice);
-    void drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain swapchain, GraphicsPipeline pipeline,
+    void cleanSync(LogicalDevice logicaldevice);
+    void drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapchain, GraphicsPipeline pipeline,
                         WindowSurface windowsurface, PhysicalDevice physicaldevice, Window window);
 
     private:
-    VkSemaphore imageAvailableSemaphore;   // "presentComplete"
-    VkSemaphore renderFinishedSemaphore;
-    VkFence inFlightFence;
+    VkSemaphore imageAvailableSemaphore[MAX_FRAMES_IN_FLIGHT];
+    VkSemaphore renderFinishedSemaphore[MAX_SWAPCHAIN_IMAGES]; // Uno por imagen del swapchain
+    VkFence inFlightFence[MAX_FRAMES_IN_FLIGHT];
     uint32_t frameIndex = 0;
+
+
+
 
 };

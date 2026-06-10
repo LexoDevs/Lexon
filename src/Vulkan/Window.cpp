@@ -1,7 +1,4 @@
-
 #include "Window.h"
-
-
 
 const char* FormatToString(VkFormat format) {
     switch (format) {
@@ -29,10 +26,6 @@ const char* PresentModeToString(VkPresentModeKHR presentmode) {
     }
 }
 
-
-
-
-
 //############## Clase Window ################//
  
 void Window::CargarGLFW() {
@@ -47,26 +40,34 @@ void Window::DesargarGLFW() {
 
 }
 
+void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+{
+    auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+    app->framebufferResized = true;
+
+}
+
 void Window::CrearVentana(const char* name) {
 
     //Definicion de las condiciones de la ventana
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-
-
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     //Creacion de ventana
     std::cout << "[!] Creando ventana..."<<"\n";
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, name, nullptr, nullptr);
+    glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+
     std::cout <<"\t" << name << " guardada en " << window << "\n";
-
-    //Cambiar icono de ventana
-    GLFWimage iconwindow;
-
 
     //Se incluye en la lista de ventanas creadas
     GestorVentanas.push_back(window);
+    glfwSetWindowUserPointer(GestorVentanas[0], this);
+
 }
+
+
 
 /*void Window::ActualizarVentanas(LogicalDevice logicaldevices, Pool ComandPool, Swapchain swapchain, GraphicsPipeline pipeline, Render render) {
 
@@ -110,6 +111,9 @@ void Window::InitWindowsSistem() {
 
 };
 
+
+
+
 //############## Clase Surface Window ################//
 
 void WindowSurface::CreateWindowSurface(VulkanInstance instance, Window window) {
@@ -140,6 +144,7 @@ VkExtent2D WindowSurface::chooseSwapExtent(VkSurfaceCapabilitiesKHR surfaceCapab
     {
         return surfaceCapabilities.currentExtent;
     }
+
     int width, height;
     glfwGetFramebufferSize(window.GetWindows(0), &width, &height);
 

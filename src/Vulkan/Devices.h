@@ -51,6 +51,9 @@ struct QueueFamilyIndices {
 
 class VulkanInstance {
 public:
+	~VulkanInstance(){
+	}
+
 	void CreateInstance();
 	void DestroyInstance();
 	VkInstance GetInstance() { return instance; };
@@ -77,7 +80,7 @@ private:
 class LogicalDevice {
 public:
 	void CreateLogicalDevice(PhysicalDevice physicaldevice);
-	VkDevice GetLogicalDevice() { return logicaldevice; };
+	VkDevice& GetLogicalDevice() { return logicaldevice; };
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	QueueFamilyIndices GetQueueFamilies() { return QueueFamilie; };
 	VkQueue getGraphicQueue() { return graphicsQueue; };

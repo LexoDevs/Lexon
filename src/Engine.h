@@ -1,7 +1,7 @@
 #pragma once
-
 #include "Vulkan/Render.h"
 
+//Estructura personalizada para agrupar los datos de entrada en el dibujado de frames.
 struct infoDraw{
     LogicalDevice logicaldevicesstr;
     Pool ComandPoolstr;
@@ -11,16 +11,18 @@ struct infoDraw{
 	WindowSurface windowsurfacestr;
 	PhysicalDevice physicaldevicestr;
 	Window windowstr;
-
 };
+
 
 class Engine {
 public:
 	void runEngine();
-
-	void StartDrawFrame(infoDraw structureDraw);
+	void StartDrawFrame(infoDraw& structureDraw);
 
 private:
+	void InitEngine();
+	void MainLoopEngine();
+	void CleanEngine();
 
 	Window window;
 	VulkanInstance instance;
@@ -32,12 +34,7 @@ private:
 	Pool ComandPool;
 	Render render;
 
-	
-	void InitEngine();
-	void MainLoopEngine();
-	void CleanEngine();
 };
 
 
-//static Engine masterengine = {};
 

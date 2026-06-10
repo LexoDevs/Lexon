@@ -2,110 +2,173 @@
 
 void Render::createSyncObjects(LogicalDevice logicaldevice)
 {
+    std::cout << "Creando sincronización para " << MAX_FRAMES_IN_FLIGHT << " frames...\n";
+
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;   // Importante: empieza señalizado
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (vkCreateSemaphore(logicaldevice.GetLogicalDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
-        vkCreateSemaphore(logicaldevice.GetLogicalDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
-        vkCreateFence(logicaldevice.GetLogicalDevice(), &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create synchronization objects!");
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {   
+        VkResult r1 = vkCreateSemaphore(logicaldevice.GetLogicalDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphore[i]);
+        VkResult r2 = vkCreateSemaphore(logicaldevice.GetLogicalDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphore[i]);
+        VkResult r3 = vkCreateFence(logicaldevice.GetLogicalDevice(), &fenceInfo, nullptr, &inFlightFence[i]);
+
+        if (r1 != VK_SUCCESS || r2 != VK_SUCCESS || r3 != VK_SUCCESS)
+            throw std::runtime_error("Failed creating sync objects");
     }
+
+    std::cout << "Sincronizacion creada (imageAvailable + Fences)\n";
+
+    
+
+    for (uint32_t i = 0; i < MAX_SWAPCHAIN_IMAGES; i++) {
+    }
+
 }
 
 void Render::destroyFences(LogicalDevice logicaldevice) {
-    vkDestroySemaphore(logicaldevice.GetLogicalDevice(), imageAvailableSemaphore, nullptr);
-    vkDestroySemaphore(logicaldevice.GetLogicalDevice(), renderFinishedSemaphore , nullptr);
-    vkDestroyFence(logicaldevice.GetLogicalDevice(), inFlightFence , nullptr);
 
-}
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        if (imageAvailableSemaphore[i] != VK_NULL_HANDLE)
+        {
+            vkDestroySemaphore(logicaldevice.GetLogicalDevice(), 
+                               imageAvailableSemaphore[i], nullptr);
+            imageAvailableSemaphore[i] = VK_NULL_HANDLE;
+        }
 
-void Render::drawFrame( LogicalDevice logicaldevice, Pool pool, Swapchain swapchain, GraphicsPipeline pipeline,
-                        WindowSurface windowsurface, PhysicalDevice physicaldevice, Window window)
+        if (renderFinishedSemaphore[i] != VK_NULL_HANDLE)
+        {
+            vkDestroySemaphore(logicaldevice.GetLogicalDevice(), 
+                               renderFinishedSemaphore[i], nullptr);
+            renderFinishedSemaphore[i] = VK_NULL_HANDLE;
+        }
+
+        if (inFlightFence[i] != VK_NULL_HANDLE)
+        {
+            vkDestroyFence(logicaldevice.GetLogicalDevice(), 
+                           inFlightFence[i], nullptr);
+            inFlightFence[i] = VK_NULL_HANDLE;
+        }
+    }
+
+    
+};
+
+void Render::cleanSync(LogicalDevice logicaldevice){
+   for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+
+    imageAvailableSemaphore[i]= VK_NULL_HANDLE;
+    renderFinishedSemaphore[i]= VK_NULL_HANDLE;
+    inFlightFence[i]= VK_NULL_HANDLE;
+   }
+};
+
+
+
+void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapchain,
+                       GraphicsPipeline pipeline, WindowSurface windowsurface,
+                       PhysicalDevice physicaldevice, Window window)
 {
 
-    vkWaitForFences(logicaldevice.GetLogicalDevice(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+
+//std::cout<<"Dentro del draw, esperando frames"<<std::endl;
+    // 1. Esperar al frame anterior
+   vkDeviceWaitIdle(logicaldevice.GetLogicalDevice());    //Solucion del error del index
 
 
 
-    // PASO 1: Esperar a que el frame anterior termine (CPU-GPU sync)
-    //std::cout<<"Intentando cargar el logical device:" <<logicaldevice.GetLogicalDevice() <<"\n";
-    //std::cout<<"Intentando cargar el comand buffer:" <<pool.getCommandBuffer() <<"\n";
-    //std::cout<<"Intentando cargar el swapchain:" <<swapchain.getSwapchain() <<"\n";
-    //std::cout<<"Intentando cargar el pipeline:" <<pipeline.getGrapicsPipeline() <<"\n";
+    vkWaitForFences(logicaldevice.GetLogicalDevice(), 1, 
+                    &inFlightFence[frameIndex], VK_TRUE, UINT64_MAX);
 
 
+    // 2. Adquirir imagen del swapchain
 
-    // PASO 2: Adquirir la siguiente imagen del swapchain
     uint32_t imageIndex;
+    //std::cout<<"swapchain: "<<swapchain.getSwapchain()<<std::endl;
+
+
     VkResult result = vkAcquireNextImageKHR(
         logicaldevice.GetLogicalDevice(),
-        swapchain.getSwapchain(),           // tu VkSwapchainKHR
+        swapchain.getSwapchain(),
         UINT64_MAX,
-        imageAvailableSemaphore,            // semaphore a signalizar cuando la imagen esté lista
+        imageAvailableSemaphore[frameIndex],
         VK_NULL_HANDLE,
         &imageIndex);
 
+    //std::cout<<"Imageindex: "<<imageIndex<<std::endl;
+    //std::cout<<"frameIndex: "<<frameIndex<<std::endl;
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        swapchain.RecreateSwapchain(logicaldevice, windowsurface, physicaldevice, window);
-        return;
-    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        swapchain.RecreateSwapchain(logicaldevice, windowsurface, physicaldevice, window);//0xc6031ff8f0//0xc6031ff740
+        return;   // Salir y reintentar en el próximo ciclo
+    }
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
-        vkResetFences(logicaldevice.GetLogicalDevice(), 1, &inFlightFence);
 
+    // 3. Resetear fence
+    vkResetFences(logicaldevice.GetLogicalDevice(), 1, &inFlightFence[frameIndex]);
 
-    // PASO 3: Grabar los comandos en el command buffer
-    pool.recordCommandBuffer(imageIndex,swapchain, pipeline);
+    // 4. Grabar comandos
+    vkResetCommandBuffer(pool.getCommandBuffer(frameIndex),0);
+    pool.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex);
 
-    // PASO 4: Preparar el Submit (enviar trabajo a la GPU)
-    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-
+    // 5. Submit
     VkSubmitInfo submitInfo{};
-    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    
+    VkSemaphore waitSemaphores[] = {imageAvailableSemaphore[frameIndex]};
+    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submitInfo.waitSemaphoreCount   = 1;
-    submitInfo.pWaitSemaphores      = &imageAvailableSemaphore;
+    submitInfo.pWaitSemaphores      = waitSemaphores;
     submitInfo.pWaitDstStageMask    = waitStages;
+
     submitInfo.commandBufferCount   = 1;
+    submitInfo.pCommandBuffers      = &pool.getCommandBuffer(frameIndex);
 
-    auto comand = pool.getCommandBuffer(); 
-    submitInfo.pCommandBuffers      = &comand;           // tu command buffer
+    VkSemaphore signalSemaphores[] = {renderFinishedSemaphore[frameIndex]};
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores    = &renderFinishedSemaphore;
+    submitInfo.pSignalSemaphores    = signalSemaphores;  
 
-    if (vkQueueSubmit(logicaldevice.getGraphicQueue(), 1, &submitInfo, inFlightFence) != VK_SUCCESS) {
+
+
+    if (vkQueueSubmit(logicaldevice.getGraphicQueue(), 1, &submitInfo, 
+                      inFlightFence[frameIndex]) != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
+      //  std::cout<<"Post Error"<<std::endl;
 
-    // PASO 5: Presentar la imagen en pantalla
+
+    // 6. Present
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores    = &renderFinishedSemaphore;
-    presentInfo.swapchainCount     = 1;
 
-    auto swapt = swapchain.getSwapchain();
-    presentInfo.pSwapchains        = &swapt;
-    presentInfo.pImageIndices      = &imageIndex;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores    = signalSemaphores;
+
+    VkSwapchainKHR swapChains[] = {swapchain.getSwapchain()};
+    presentInfo.swapchainCount     = 1;
+    presentInfo.pSwapchains   = swapChains;
+
+    presentInfo.pImageIndices = &imageIndex;
 
     result = vkQueuePresentKHR(logicaldevice.getPresentQueue(), &presentInfo);
 
-        frameIndex = (frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
-    //std::cout<<"Intentando cargar el logical device:" <<logicaldevice.GetLogicalDevice() <<"\n";
-
-        
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        // Recrear swapchain
-    } else if (result != VK_SUCCESS) {
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.framebufferResized) {
+        window.framebufferResized = false;
+        swapchain.RecreateSwapchain(logicaldevice, windowsurface, physicaldevice, window);
+    } 
+    else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
     }
 
-
+    // Avanzar al siguiente frame
+    frameIndex  = (frameIndex  + 1) % MAX_FRAMES_IN_FLIGHT;
 
 }
