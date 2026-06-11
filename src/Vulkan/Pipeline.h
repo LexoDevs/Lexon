@@ -53,15 +53,21 @@ const std::vector<uint16_t> indices = {
 class GraphicsPipeline {
 public:
 	void createGraphicsPipeline(LogicalDevice device, Swapchain swapchain);
+    void CreateDescriptorSetLayout(LogicalDevice logicaldevice);
+    void DestroyDescriptorSetLayout(LogicalDevice logicaldevice);
+
 	static std::vector<char> readFile(const std::string& filename);
     VkShaderModule createShaderModule(const std::vector<char>& code, LogicalDevice device);
 	VkPipelineLayout getGrapicsPipelineLayout() {return pipelineLayout;}
 	VkPipeline getGrapicsPipeline() {return Pipeline;}
 		VkShaderModule getShaderModule() {return shaderModule;}
+VkDescriptorSetLayout getdescriptorSetLayout(){ return descriptorSetLayout;}
+        
 private:
 	VkShaderModule shaderModule;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline Pipeline;
+    VkDescriptorSetLayout descriptorSetLayout;
 
 
 

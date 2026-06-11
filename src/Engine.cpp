@@ -31,11 +31,17 @@ void Engine::InitEngine() {
 	logicaldevices.CreateLogicalDevice(physicaldevice);
 	swapchain.CreateSwapChain(windowsurface, physicaldevice, window, logicaldevices);
 	swapchain.CreateImageView(logicaldevices);
+    pipeline.CreateDescriptorSetLayout(logicaldevices);
 	pipeline.createGraphicsPipeline(logicaldevices, swapchain);
     ComandPool.createCommandPool(logicaldevices,physicaldevice); 
 
     vertexbuffer.createVertexBuffer(logicaldevices,physicaldevice,ComandPool);
     vertexbuffer.createIndexBuffer(logicaldevices,physicaldevice,ComandPool);
+
+    vertexbuffer.createUniformBuffer(logicaldevices,physicaldevice);
+    ComandPool.createDescriptorPool(logicaldevices);
+    vertexbuffer.createDescriptorSets(logicaldevices, pipeline, ComandPool);
+
     vertexbuffer.createCommandBuffer(logicaldevices, ComandPool); 
     render.createSyncObjects(logicaldevices);
 };
@@ -84,8 +90,13 @@ void Engine::CleanEngine() {
 
     swapchain.destroySwapchain(logicaldevices);
 
+    pipeline.DestroyDescriptorSetLayout(logicaldevices);
+
     vertexbuffer.destroyVertexBuffer(logicaldevices);
 
+    vertexbuffer.destroyUniformBuffer(logicaldevices);
+
+    
 	render.destroyFences(logicaldevices);
     ComandPool.destroyCommandPool(logicaldevices);
 

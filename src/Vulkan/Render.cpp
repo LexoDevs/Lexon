@@ -111,6 +111,7 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
+    vertexbuffer.updateUniformBuffer(swapchain,frameIndex);
 
     // 3. Resetear fence
     vkResetFences(logicaldevice.GetLogicalDevice(), 1, &inFlightFence[frameIndex]);
