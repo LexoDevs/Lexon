@@ -72,7 +72,7 @@ void Render::cleanSync(LogicalDevice logicaldevice){
 
 void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapchain,
                        GraphicsPipeline pipeline, WindowSurface windowsurface,
-                       PhysicalDevice physicaldevice, Window window)
+                       PhysicalDevice physicaldevice, Window window, VertexBuffer vertexbuffer)
 {
 
 
@@ -116,8 +116,9 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
     vkResetFences(logicaldevice.GetLogicalDevice(), 1, &inFlightFence[frameIndex]);
 
     // 4. Grabar comandos
-    vkResetCommandBuffer(pool.getCommandBuffer(frameIndex),0);
-    pool.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex);
+    vkResetCommandBuffer(vertexbuffer.getCommandBuffer(frameIndex),0);
+
+    vertexbuffer.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex, vertexbuffer);
 
     // 5. Submit
     VkSubmitInfo submitInfo{};
@@ -130,7 +131,7 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
     submitInfo.pWaitDstStageMask    = waitStages;
 
     submitInfo.commandBufferCount   = 1;
-    submitInfo.pCommandBuffers      = &pool.getCommandBuffer(frameIndex);
+    submitInfo.pCommandBuffers      = &vertexbuffer.getCommandBuffer(frameIndex);
 
     VkSemaphore signalSemaphores[] = {renderFinishedSemaphore[frameIndex]};
     submitInfo.signalSemaphoreCount = 1;

@@ -187,7 +187,7 @@ VkPresentModeKHR WindowSurface::GetSurfacePresentationsMode(PhysicalDevice physi
     for (int i = 0; i < availablePresentModes.size(); i++) {
         //std::cout << "\tLos formatos son: " << PresentModeToString(availablePresentModes[i]) << "\n";
 
-        if (PresentModeToString(availablePresentModes[i]) == "VK_PRESENT_MODE_FIFO_KHR") {
+        if (PresentModeToString(availablePresentModes[i]) == "VK_PRESENT_MODE_MAILBOX_KHR") {
 
             std::cout << "\tEl formato seleccionado es: " << PresentModeToString(availablePresentModes[i]) << std::endl;
             return availablePresentModes[i];

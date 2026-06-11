@@ -11,7 +11,7 @@ class Render {
     void destroyFences(LogicalDevice logicaldevice);
     void cleanSync(LogicalDevice logicaldevice);
     void drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapchain, GraphicsPipeline pipeline,
-                        WindowSurface windowsurface, PhysicalDevice physicaldevice, Window window);
+                        WindowSurface windowsurface, PhysicalDevice physicaldevice, Window window,VertexBuffer vertexBuffer);
 
     private:
     VkSemaphore imageAvailableSemaphore[MAX_FRAMES_IN_FLIGHT];

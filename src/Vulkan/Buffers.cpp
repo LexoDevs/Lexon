@@ -23,11 +23,11 @@ void Pool::destroyCommandPool(LogicalDevice logicaldevice) {
 
 }
 
-void Pool::createCommandBuffer(LogicalDevice logicaldevice){
+void VertexBuffer::createCommandBuffer(LogicalDevice logicaldevice, Pool pool){
 
     VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool = commandPool;
+        allocInfo.commandPool = pool.getCommandPool();
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandBufferCount = MAX_FRAMES_IN_FLIGHT;
 
@@ -35,7 +35,6 @@ void Pool::createCommandBuffer(LogicalDevice logicaldevice){
         throw std::runtime_error("failed to allocate command buffers!");
     }
 }
-
 
 void transition_image_layout(
 	    uint32_t                imageIndex,
@@ -81,11 +80,9 @@ void transition_image_layout(
     vkCmdPipelineBarrier2(commandBuffer, &dependency_info);
 }
 
-void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame)
+void VertexBuffer::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, VertexBuffer& vertexbuffer)
 {
-    //VkCommandBuffer cmd = commandBuffers[currentFrame]; 
 
-    //vkResetCommandBuffer(cmd, 0);
 
     VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -134,6 +131,8 @@ void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, Graphic
     // Bind del pipeline gráfico
     vkCmdBindPipeline(commandBuffers[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getGrapicsPipeline());
 
+
+
     // Viewport y Scissor (dynamic state)
     VkViewport viewport{};
     viewport.x        = 0.0f;
@@ -150,8 +149,14 @@ void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, Graphic
     vkCmdSetViewport(commandBuffers[currentFrame], 0, 1, &viewport);
     vkCmdSetScissor(commandBuffers[currentFrame], 0, 1, &scissor);
 
+    VkBuffer vertexBuffers[] = {vertexbuffer.getVertexBuffer()};
+    VkDeviceSize offsets[] = {0};
+    
+    vkCmdBindVertexBuffers(commandBuffers[currentFrame], 0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(commandBuffers[currentFrame], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
     // Dibujar el triángulo
-    vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
+    vkCmdDrawIndexed(commandBuffers[currentFrame], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
     // ====================== FIN DEL RENDERING ======================
     vkCmdEndRendering(commandBuffers[currentFrame]);
@@ -172,4 +177,134 @@ void Pool::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, Graphic
     if (vkEndCommandBuffer(commandBuffers[currentFrame]) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");
     }
+}
+
+
+uint32_t VertexBuffer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties,PhysicalDevice physicaldevice) {
+        VkPhysicalDeviceMemoryProperties memProperties;
+        vkGetPhysicalDeviceMemoryProperties(physicaldevice.GetPhysicalDevice(), &memProperties);
+
+        for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+            if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+                return i;
+            }
+        }
+
+        throw std::runtime_error("failed to find suitable memory type!");
+}
+
+void VertexBuffer::createBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice,VkDeviceSize size,
+    VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+    VkBuffer& buffer, VkDeviceMemory& bufferMemory){
+
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateBuffer(logicaldevice.GetLogicalDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create buffer!");
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(logicaldevice.GetLogicalDevice(), buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties,physicaldevice);
+
+    if (vkAllocateMemory(logicaldevice.GetLogicalDevice(), &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate buffer memory!");
+    }
+
+    vkBindBufferMemory(logicaldevice.GetLogicalDevice(), buffer, bufferMemory, 0);
+}
+
+
+
+void copyBuffer(LogicalDevice logicaldevice, Pool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = commandPool.getCommandPool();
+        allocInfo.commandBufferCount = 1;
+
+        VkCommandBuffer commandBuffer;
+        vkAllocateCommandBuffers(logicaldevice.GetLogicalDevice(), &allocInfo, &commandBuffer);
+
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+            VkBufferCopy copyRegion{};
+            copyRegion.size = size;
+            vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+        vkEndCommandBuffer(commandBuffer);
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+
+        vkQueueSubmit(logicaldevice.getGraphicQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(logicaldevice.getGraphicQueue());
+
+        vkFreeCommandBuffers(logicaldevice.GetLogicalDevice(), commandPool.getCommandPool(), 1, &commandBuffer);
+    }
+
+void VertexBuffer::destroyVertexBuffer(LogicalDevice logicaldevice){
+
+        vkDestroyBuffer(logicaldevice.GetLogicalDevice(), indexBuffer, nullptr);
+    vkFreeMemory(logicaldevice.GetLogicalDevice(), indexBufferMemory, nullptr);
+        vkDestroyBuffer(logicaldevice.GetLogicalDevice(), vertexBuffer, nullptr);
+        vkFreeMemory(logicaldevice.GetLogicalDevice(), vertexBufferMemory, nullptr);
+        
+}
+
+void VertexBuffer::createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool){
+
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+        memcpy(data, vertices.data(), (size_t) bufferSize);
+    vkUnmapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory);
+
+    createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+    copyBuffer(logicaldevice, commandPool,stagingBuffer, vertexBuffer, bufferSize);
+
+            vkDestroyBuffer(logicaldevice.GetLogicalDevice(), stagingBuffer, nullptr);
+        vkFreeMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory, nullptr);
+
+}
+
+void VertexBuffer::createIndexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool){
+
+    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, indices.data(), (size_t) bufferSize);
+    vkUnmapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory);
+
+    createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+
+    copyBuffer(logicaldevice,commandPool,stagingBuffer, indexBuffer, bufferSize);
+
+    vkDestroyBuffer(logicaldevice.GetLogicalDevice(), stagingBuffer, nullptr);
+    vkFreeMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory, nullptr);
+
 }

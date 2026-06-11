@@ -9,6 +9,7 @@ void Engine::runEngine() {
 
 void Engine::StartDrawFrame(infoDraw& structureDraw){
 
+
     render.drawFrame(
         structureDraw.logicaldevicesstr,
         structureDraw.ComandPoolstr,
@@ -16,7 +17,8 @@ void Engine::StartDrawFrame(infoDraw& structureDraw){
         structureDraw.pipelinestr,
         structureDraw.windowsurfacestr,
         structureDraw.physicaldevicestr,
-        structureDraw.windowstr
+        structureDraw.windowstr,
+        structureDraw.vertexbufferstr
     );
 };
 
@@ -31,14 +33,21 @@ void Engine::InitEngine() {
 	swapchain.CreateImageView(logicaldevices);
 	pipeline.createGraphicsPipeline(logicaldevices, swapchain);
     ComandPool.createCommandPool(logicaldevices,physicaldevice); 
-    ComandPool.createCommandBuffer(logicaldevices); 
+
+    vertexbuffer.createVertexBuffer(logicaldevices,physicaldevice,ComandPool);
+    vertexbuffer.createIndexBuffer(logicaldevices,physicaldevice,ComandPool);
+    vertexbuffer.createCommandBuffer(logicaldevices, ComandPool); 
     render.createSyncObjects(logicaldevices);
 };
 
 void Engine::MainLoopEngine() {
 	//window.ActualizarVentanas(logicaldevices, ComandPool, swapchain, pipeline, render);
 
-    infoDraw info = {logicaldevices, ComandPool, swapchain, pipeline, render, windowsurface, physicaldevice, window};
+    infoDraw info = {logicaldevices, ComandPool, swapchain, pipeline, render, windowsurface, physicaldevice, window, vertexbuffer};
+
+                double previousTime = glfwGetTime();
+                int frameCount = 0;
+                double fps = 0.0;
 
         while (!glfwWindowShouldClose(window.GetWindows(0))){
             glfwSetKeyCallback(window.GetWindows(0), GLFW_KeyCallback);
@@ -47,6 +56,24 @@ void Engine::MainLoopEngine() {
             //std::cout<<"Iniciando dibujo"<<std::endl;
             StartDrawFrame(info);
             
+
+                double currentTime = glfwGetTime();
+                frameCount++;
+                if (currentTime - previousTime >= 1.0) {
+                        fps = frameCount / (currentTime - previousTime);
+                        previousTime = currentTime;
+                        frameCount = 0;
+                        std::string title = "Vulkan Engine - FPS: " + std::to_string(static_cast<int>(fps));
+                        glfwSetWindowTitle(window.GetWindows(0), title.c_str());
+                    }
+
+        // Mostrar FPS en consola 
+        static double lastPrintTime = 0.0;
+        if (currentTime - lastPrintTime >= 0.2) {  // Imprimir cada 2 segundos
+            std::cout << "\rFPS: " << std::fixed << std::setprecision(1) << fps << "    " << std::flush;
+            lastPrintTime = currentTime;
+        }
+
         }
         vkDeviceWaitIdle(logicaldevices.GetLogicalDevice());
 
@@ -56,6 +83,8 @@ void Engine::MainLoopEngine() {
 void Engine::CleanEngine() {
 
     swapchain.destroySwapchain(logicaldevices);
+
+    vertexbuffer.destroyVertexBuffer(logicaldevices);
 
 	render.destroyFences(logicaldevices);
     ComandPool.destroyCommandPool(logicaldevices);

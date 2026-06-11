@@ -7,7 +7,7 @@ public:
 	void CreateSwapChain(WindowSurface windowsurface, PhysicalDevice physicaldevice, Window window, LogicalDevice logicaldevice);
 	void CreateImageView(LogicalDevice logicaldevice);
 	void cleanSwapchain(LogicalDevice logicaldevice);
-	void destroySwapchain(LogicalDevice logicaldevice);
+	void destroySwapchain(LogicalDevice& logicaldevice);
 
 	void RecreateSwapchain(LogicalDevice logicaldevices,WindowSurface windowsurface,PhysicalDevice physicaldevice,Window window);
 	std::vector<VkImage>& getSwapchainImages() { return swapchainImages; } 

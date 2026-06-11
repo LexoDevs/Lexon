@@ -117,11 +117,12 @@ void Swapchain::cleanSwapchain(LogicalDevice logicaldevice)
 }
 
 
-void Swapchain::destroySwapchain(LogicalDevice logicaldevice){
+void Swapchain::destroySwapchain(LogicalDevice& logicaldevice){
     
     for (auto imageView : swapChainImageViews) {
-
+        if (imageView != VK_NULL_HANDLE){
             vkDestroyImageView(logicaldevice.GetLogicalDevice(), imageView, nullptr);
+        }
     }
 
     // Destruir swapchain

@@ -11,6 +11,7 @@ struct infoDraw{
 	WindowSurface windowsurfacestr;
 	PhysicalDevice physicaldevicestr;
 	Window windowstr;
+	VertexBuffer vertexbufferstr;
 };
 
 
@@ -32,6 +33,7 @@ private:
 	Swapchain swapchain;
 	GraphicsPipeline pipeline;
 	Pool ComandPool;
+	VertexBuffer vertexbuffer;
 	Render render;
 
 };
