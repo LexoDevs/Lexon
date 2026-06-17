@@ -3,7 +3,7 @@
 void Swapchain::CreateSwapChain(WindowSurface windowsurface, PhysicalDevice physicaldevice, 
                                 Window window, LogicalDevice logicaldevice) 
 {
-    std::cout << "[!] Creando cadena de intercambio...\n";
+    std::cout << "\033[1;36m[!] Creando cadena de intercambio...\033[0m\n";
 
     VkSurfaceCapabilitiesKHR surfaceCapabilities = windowsurface.GetSurfaceCapabilities(physicaldevice);
     swapChainExtent = windowsurface.chooseSwapExtent(surfaceCapabilities, window);
@@ -37,7 +37,7 @@ void Swapchain::CreateSwapChain(WindowSurface windowsurface, PhysicalDevice phys
     swapChainCreateInfo.presentMode        = presentationmode;
     swapChainCreateInfo.clipped            = VK_TRUE;
 
-    QueueFamilyIndices indices = logicaldevice.findQueueFamilies(physicaldevice.GetPhysicalDevice());
+    QueueFamilyIndices indices = logicaldevice.GetQueueFamilies();
     uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
 
     if (indices.graphicsFamily != indices.presentFamily) {
@@ -53,7 +53,7 @@ void Swapchain::CreateSwapChain(WindowSurface windowsurface, PhysicalDevice phys
         throw std::runtime_error("failed to create swap chain!");
     }
 
-    std::cout << "Swapchain creada correctamente - Handle: " << swapChain << "\n";
+    std::cout << "\t\033[1;32mSwapchain\033[0m creada correctamente en \033[1;32m" << swapChain << "\033[0m\n";
 
     // Obtener las imágenes
     vkGetSwapchainImagesKHR(logicaldevice.GetLogicalDevice(), swapChain, &imageCount, nullptr);
@@ -62,7 +62,11 @@ void Swapchain::CreateSwapChain(WindowSurface windowsurface, PhysicalDevice phys
 
     swapChainImageFormat = swapChainSurfaceFormat.format;
 
-    std::cout << "Swapchain creado con " << imageCount << " imágenes\n";
+    std::cout << "\t\033[1;33mSwapchain creado con \033[0m\033[1;32m" << imageCount << "\033[0m\033[1;33m imagenes\033[0m\n";
+
+    for (int i = 0; i<imageCount; i++){
+        std::cout << swapchainImages[i]<<"\n";
+    }
 }
 
 
@@ -90,9 +94,6 @@ void Swapchain::CreateImageView(LogicalDevice logicaldevice)
         imageViewCreateInfo.subresourceRange.levelCount = 1;
         imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         imageViewCreateInfo.subresourceRange.layerCount = 1;
-
-        std::cout<<"Hola: "<<&getSwapchainImageView()[i+1]<<"\n";
-
 
         if (vkCreateImageView(logicaldevice.GetLogicalDevice(), &imageViewCreateInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create image views!");
@@ -133,7 +134,8 @@ void Swapchain::destroySwapchain(LogicalDevice& logicaldevice){
 void Swapchain::RecreateSwapchain(LogicalDevice logicaldevice, WindowSurface windowsurface,
                                   PhysicalDevice physicaldevice, Window window)
 {
-    std::cout << "[+] RECREANDO SWAPCHAIN...\n";
+    std::cout << "\033[1;36m[!] Recreando Swapchain...\033[0m\n";
+
 
     int width = 0, height = 0;
     glfwGetFramebufferSize(window.GetWindows(0), &width, &height);
@@ -147,6 +149,7 @@ void Swapchain::RecreateSwapchain(LogicalDevice logicaldevice, WindowSurface win
 
     CreateSwapChain(windowsurface, physicaldevice, window, logicaldevice);
     CreateImageView(logicaldevice);
+    //createdepth;
 
     std::cout << "[+] Swapchain RECREADO - Handle FINAL: " << swapChain << std::endl;
 

@@ -51,8 +51,6 @@ struct QueueFamilyIndices {
 
 class VulkanInstance {
 public:
-	~VulkanInstance(){
-	}
 
 	void CreateInstance();
 	void DestroyInstance();
@@ -70,11 +68,13 @@ class PhysicalDevice {
 public:
 	void SelectPhysicalDevices(VulkanInstance instance);
 	VkPhysicalDevice GetPhysicalDevice() { return physicalDevice; };
+
 private:
-	bool IsDeviceSelectable(VkPhysicalDevice device);
-	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+	bool IsDeviceSelectable(VkPhysicalDevice physicalDevice);
+	bool checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice);
 
 	VkPhysicalDevice physicalDevice = nullptr;
+	
 };
 
 class LogicalDevice {
@@ -82,7 +82,7 @@ public:
 	void CreateLogicalDevice(PhysicalDevice physicaldevice);
 	VkDevice& GetLogicalDevice() { return logicaldevice; };
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-	QueueFamilyIndices GetQueueFamilies() { return QueueFamilie; };
+	QueueFamilyIndices& GetQueueFamilies() { return QueueFamilie; };
 	VkQueue getGraphicQueue() { return graphicsQueue; };
 	VkQueue getPresentQueue() { return presentQueue; };
 
@@ -91,6 +91,8 @@ public:
 	}
 
 private:
+
+
 	QueueFamilyIndices QueueFamilie;
 	VkDevice logicaldevice;
 	VkQueue graphicsQueue = VK_NULL_HANDLE;

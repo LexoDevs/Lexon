@@ -1,4 +1,8 @@
+
+
 #include "Render.h"
+
+
 
 void Render::createSyncObjects(LogicalDevice logicaldevice)
 {
@@ -72,7 +76,8 @@ void Render::cleanSync(LogicalDevice logicaldevice){
 
 void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapchain,
                        GraphicsPipeline pipeline, WindowSurface windowsurface,
-                       PhysicalDevice physicaldevice, Window window, VertexBuffer vertexbuffer)
+                       PhysicalDevice physicaldevice, Window window, VertexBuffer vertexbuffer, Texture texture,
+                    VkImageView depthImageView,  VkClearValue clearDepth, VkImage depthImage)
 {
 
 
@@ -105,6 +110,7 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         swapchain.RecreateSwapchain(logicaldevice, windowsurface, physicaldevice, window);//0xc6031ff8f0//0xc6031ff740
+        
         return;   // Salir y reintentar en el próximo ciclo
     }
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
@@ -112,14 +118,13 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
     }
 
     vertexbuffer.updateUniformBuffer(swapchain,frameIndex);
-
     // 3. Resetear fence
     vkResetFences(logicaldevice.GetLogicalDevice(), 1, &inFlightFence[frameIndex]);
 
     // 4. Grabar comandos
     vkResetCommandBuffer(vertexbuffer.getCommandBuffer(frameIndex),0);
 
-    vertexbuffer.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex, vertexbuffer);
+    texture.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex, vertexbuffer, depthImageView, clearDepth, depthImage);
 
     // 5. Submit
     VkSubmitInfo submitInfo{};
@@ -162,8 +167,8 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
 
     result = vkQueuePresentKHR(logicaldevice.getPresentQueue(), &presentInfo);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.framebufferResized) {
-        window.framebufferResized = false;
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.getframebufferResized()) {
+        window.getframebufferResized() = false;
         swapchain.RecreateSwapchain(logicaldevice, windowsurface, physicaldevice, window);
     } 
     else if (result != VK_SUCCESS) {
@@ -174,3 +179,5 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
     frameIndex  = (frameIndex  + 1) % MAX_FRAMES_IN_FLIGHT;
 
 }
+
+

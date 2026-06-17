@@ -1,31 +1,7 @@
 #include "Window.h"
+#include "VulkanFormats.h"
 
-const char* FormatToString(VkFormat format) {
-    switch (format) {
-    case 44:              return "VK_FORMAT_B8G8R8A8_UNORM";
-    case 50:              return "VK_FORMAT_B8G8R8A8_SRGB ";
-    case 37:                 return "VK_FORMAT_R8G8B8A8_UNORM ";
-    case 43:               return "VK_FORMAT_R8G8B8A8_SRGB ";
-    case 64:               return "VK_FORMAT_A2B10G10R10_UNORM_PACK32 ";
-
-    default: return "tochar(format)";
-    }
-}
-
-const char* PresentModeToString(VkPresentModeKHR presentmode) {
-    switch (presentmode) {
-    case 0:                  return "VK_PRESENT_MODE_IMMEDIATE_KHR";
-    case 1:                  return "VK_PRESENT_MODE_MAILBOX_KHR";
-    case 2:                  return "VK_PRESENT_MODE_FIFO_KHR";
-    case 3:                  return "VK_PRESENT_MODE_FIFO_RELAXED_KHR";
-    case 1000111000:         return "VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR";
-    case 1000111001:         return "VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR";
-    case 1000361000:         return "VK_PRESENT_MODE_FIFO_LATEST_READY_KHR";
-
-    default: return "Formato desconocido.";
-    }
-}
-
+#include "dwmapi.h"
 //############## Clase Window ################//
  
 void Window::CargarGLFW() {
@@ -43,58 +19,68 @@ void Window::DesargarGLFW() {
 void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
     auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
-    app->framebufferResized = true;
+    app->getframebufferResized() = true;
 
 }
 
-void Window::CrearVentana(const char* name) {
+void Window::PersonalizarVentana(GLFWwindow* window){
 
-    //Definicion de las condiciones de la ventana
+    #ifdef _WIN32
+    HWND hwnd = glfwGetWin32Window(window);
+    if (hwnd)
+    {
+        // ==================== COLOR DE TÍTULO Y BORDE ====================
+        // Azul personalizado (puedes cambiar los valores RGB)
+        COLORREF captionColor = RGB(0, 100, 255);     // Azul bonito
+        COLORREF borderColor  = RGB(0, 80, 220);      // Azul un poco más oscuro para el borde
+
+        // Color de la barra de título
+        DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, 
+                             &captionColor, sizeof(captionColor));
+
+        // Color del borde de la ventana
+        DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, 
+                             &borderColor, sizeof(borderColor));
+
+        // Opcional: Color del texto del título (blanco para que se vea bien)
+        COLORREF titleTextColor = RGB(255, 255, 255);
+        DwmSetWindowAttribute(hwnd, DWMWA_TEXT_COLOR, 
+                             &titleTextColor, sizeof(titleTextColor));
+
+        // Esquinas redondeadas (Windows 11)
+        DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
+        DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, 
+                             &preference, sizeof(preference));
+    }
+    #endif
+
+};
+
+void Window::CrearVentana(const char* name)
+{
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    //Creacion de ventana
-    std::cout << "[!] Creando ventana..."<<"\n";
+    std::cout << "\033[1;36m[!] Creando ventana...\033[0m\n";
+    
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, name, nullptr, nullptr);
+    if (!window)
+    {
+        throw std::runtime_error("Failed to create GLFW window");
+    }
+
+
+    PersonalizarVentana(window);
+
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 
-    std::cout <<"\t" << name << " guardada en " << window << "\n";
+    std::cout << "\t\033[1;32m" << name << "\033[0m guardada en \033[1;32m" 
+              << window << "\033[0m\n\n";
 
-    //Se incluye en la lista de ventanas creadas
     GestorVentanas.push_back(window);
-    glfwSetWindowUserPointer(GestorVentanas[0], this);
-
+    glfwSetWindowUserPointer(window, this);
 }
-
-
-
-/*void Window::ActualizarVentanas(LogicalDevice logicaldevices, Pool ComandPool, Swapchain swapchain, GraphicsPipeline pipeline, Render render) {
-
-    while (GestorVentanas.size() > 0) {
-        size_t i = 0;
-
-        while (i < GestorVentanas.size() ) { 
-
-            if (!glfwWindowShouldClose(GestorVentanas[i])) {
-
-                glfwSetKeyCallback(GestorVentanas[i], GLFW_KeyCallback);
-                glfwPollEvents();
-                std::cout<<"Intentando cargar el logical device:" <<logicaldevices.GetLogicalDevice() <<"\n";
-                render.drawFrame(logicaldevices, ComandPool, swapchain, pipeline);
-                //masterengine.StartDrawFrame(logicaldevices);
-            }
-            else {
-                std::cout<<"Cerrando ventana"<<std::endl;
-                glfwDestroyWindow(GestorVentanas[i]);
-                GestorVentanas.erase(GestorVentanas.begin() + i);
-                i--;
-
-            }
-            i++;
-        }
-    }
-}*/
 
 void Window::LimpiarVentanas() {
 
@@ -111,6 +97,11 @@ void Window::InitWindowsSistem() {
 
 };
 
+void Window::DestroyWindowsSistem(){
+
+    DesargarGLFW();
+
+};
 
 
 
@@ -118,11 +109,14 @@ void Window::InitWindowsSistem() {
 
 void WindowSurface::CreateWindowSurface(VulkanInstance instance, Window window) {
 
-    std::cout << "[!] Creando superficie de ventana virtual...\n";
+	std::cout << "\033[1;36m[!] Creando superficie de ventana virtual...\033[0m\n";
 
     if (glfwCreateWindowSurface(instance.GetInstance(), window.GetWindows(0), nullptr, &surface) != 0) {
         throw std::runtime_error("failed to create window surface!");
     }
+
+    std::cout << "\t\033[1;32mWindow Surface\033[0m:" << " alojada en \033[1;32m" << &surface << "\033[0m\n\n";
+
 
 };
 
@@ -133,7 +127,7 @@ VkSurfaceCapabilitiesKHR WindowSurface::GetSurfaceCapabilities(PhysicalDevice ph
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicaldevice.GetPhysicalDevice(), surface, &surfaceCapabilities);
 
-    std::cout << "La resolucion de la ventana es: " << surfaceCapabilities.currentExtent.height << 'x' << surfaceCapabilities.currentExtent.width << std::endl;
+    std::cout << "\t\033[1;33mLa resolucion de la ventana es: \033[0m\033[1;32m" << surfaceCapabilities.currentExtent.height << 'x' << surfaceCapabilities.currentExtent.width << "\033[0m\n\n";
 
     return surfaceCapabilities;
 }
@@ -164,12 +158,12 @@ std::vector<VkSurfaceFormatKHR> WindowSurface::getSurfaceFormats(PhysicalDevice 
 }
 
 VkSurfaceFormatKHR WindowSurface::chooseSwapSurfaceFormat(std::vector<VkSurfaceFormatKHR> availableFormats, uint32_t pSurfaceFormatCount) {
-    std::cout << "Se detectaron un total de " << pSurfaceFormatCount << " formatos\n";
+    std::cout << "\t\033[1;33mSe detectaron un total de \033[0m\033[1;32m" << pSurfaceFormatCount << "\033[0m\033[1;33m formatos\033[0m\n";
     for (int i = 0; i < availableFormats.size()-1; i++) {
-        //std::cout << "\tLos formatos son: " << FormatToString(availableFormats[i].format) << "\n";
 
         if (FormatToString(availableFormats[i].format) == "VK_FORMAT_B8G8R8A8_UNORM") {
-            std::cout << "\tEl formato seleccionado es: " << FormatToString(availableFormats[i].format) << std::endl;
+
+            std::cout << "\t\t\033[1;33mEl formato seleccionado es: \033[0m\033[1;32m" << FormatToString(availableFormats[i].format) << "\033[0m\n\n";
             return availableFormats[i];
         }
     }
@@ -181,15 +175,14 @@ VkPresentModeKHR WindowSurface::GetSurfacePresentationsMode(PhysicalDevice physi
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicaldevice.GetPhysicalDevice(), surface, &pPresentModeCount, NULL);
     std::vector<VkPresentModeKHR> availablePresentModes(pPresentModeCount);
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicaldevice.GetPhysicalDevice(), surface, &pPresentModeCount, availablePresentModes.data());
+    std::cout << "\t\033[1;33mSe detectaron un total de \033[0m\033[1;32m" << pPresentModeCount << "\033[0m\033[1;33m modos de presentacion\033[0m\n";
 
-    std::cout << "Se detectaron un total de " << pPresentModeCount << " modos de presentacion\n";
 
     for (int i = 0; i < availablePresentModes.size(); i++) {
-        //std::cout << "\tLos formatos son: " << PresentModeToString(availablePresentModes[i]) << "\n";
 
         if (PresentModeToString(availablePresentModes[i]) == "VK_PRESENT_MODE_MAILBOX_KHR") {
 
-            std::cout << "\tEl formato seleccionado es: " << PresentModeToString(availablePresentModes[i]) << std::endl;
+            std::cout << "\t\t\033[1;33mEl formato seleccionado es: \033[0m\033[1;32m" << PresentModeToString(availablePresentModes[i]) << "\033[0m\n\n";
             return availablePresentModes[i];
 
         }

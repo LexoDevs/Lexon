@@ -12,6 +12,8 @@ struct infoDraw{
 	PhysicalDevice physicaldevicestr;
 	Window windowstr;
 	VertexBuffer vertexbufferstr;
+	Texture texturestr;
+	DepthBuffer depthbufferstr;
 };
 
 
@@ -35,7 +37,9 @@ private:
 	Pool ComandPool;
 	VertexBuffer vertexbuffer;
 	Render render;
-
+	Texture texture;
+	DepthBuffer depthbuffer;
+uint32_t depthImage;
 };
 
 

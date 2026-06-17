@@ -108,9 +108,9 @@ struct {
 //############## Instancia de Vulkan ################//
 
 void VulkanInstance::CreateInstance() {
+	std::cout << "\033[1;36m[!] Creando instancia de Vulkan...\033[0m\n";
+	std::cout << "\033[1;33m\tComprobando version...\033[0m\n";
 
-	std::cout << "[!] Creando instancia de Vulkan..." << "\n";
-	std::cout << "Comprobando version... \n";
 
 	GetInstanceVersion();
 
@@ -130,13 +130,13 @@ void VulkanInstance::CreateInstance() {
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
 
-	std::cout << "Cargando extensiones... \n";
+	std::cout << "\033[1;33m\tCargando extensiones...\033[0m\n";
+
 	auto extensionsList = GetInstanceExtensionsRequired();
 
-
-	std::cout << "Extensiones cargadas: \n";
+	std::cout << "\033[1;33m\tExtensiones cargadas:\033[0m\n";
 	for (int i = 0; i <= extensionsList.size()-1; i++) {
-		std::cout << "\tExtension: " << extensionsList[i] << " guardada en " << &extensionsList[i] << '\n';
+		std::cout << "\t\t\033[1;32m"<<extensionsList[i]<<"\033[0m:" << " alojada en \033[1;32m" << &extensionsList[i] << "\033[0m\n";
 
 	}
 
@@ -161,7 +161,7 @@ void VulkanInstance::CreateInstance() {
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create instance!");
 	}
-	std::cout << '\t' <<"Instancia guardada en " << instance << "\n";
+	std::cout << '\t' <<"\033[1;32mInstancia\033[0m guardada en \033[1;32m" << instance << "\033[0m\n\n";
 
 
 };
@@ -187,8 +187,8 @@ void VulkanInstance::GetInstanceVersion() {
 		m_Version.Minor = VK_API_VERSION_MINOR(InstanceVersion);
 		m_Version.Patch = VK_API_VERSION_PATCH(InstanceVersion);
 
-		std::cout<<"\t" << "La version cargada de Vulkan es: " <<
-			m_Version.Major << '.' << m_Version.Minor <<'.' << m_Version.Patch<<"\n";
+		std::cout<<"\t" << "La \033[1;32mversion\033[0m cargada de \033[1;32mVulkan\033[0m es: \033[1;32m" <<
+			m_Version.Major << '.' << m_Version.Minor <<'.' << m_Version.Patch<<"\033[0m\n\n";
 	}
 }
 
@@ -210,12 +210,14 @@ std::vector<const char*> VulkanInstance::GetInstanceExtensionsRequired() {
 //############## Dispositivos fisicos de vulkan ################//
 
 void PhysicalDevice::SelectPhysicalDevices(VulkanInstance instance) {
-	std::cout << "[!] Buscando dispositivos fisicos..." << "\n";
+
+	std::cout << "\033[1;36m[!] Buscando dispositivos fisicos...\033[0m\n";
 
 
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance.GetInstance(), &deviceCount, nullptr);
-	std::cout<<"\tNumero de dispositivos fisicos detectados: "<<deviceCount<<"\n";
+	std::cout << "\t\033[1;33mNumero de dispositivos fisicos detectados: \033[0m"<< deviceCount<<"\n";
+
 
 	if (deviceCount == 0) {
 		throw std::runtime_error("failed to find GPUs with Vulkan support!");
@@ -224,14 +226,17 @@ void PhysicalDevice::SelectPhysicalDevices(VulkanInstance instance) {
 	std::vector<VkPhysicalDevice> devices(deviceCount);
 	vkEnumeratePhysicalDevices(instance.GetInstance(), &deviceCount, devices.data());
 
+
 	for (const auto& device : devices) {
 		if (IsDeviceSelectable(device)) {
+
 			physicalDevice = device;
+
 			break;
 		}
 	}
 
-	if (physicalDevice == VK_NULL_HANDLE) {
+	if (GetPhysicalDevice() == VK_NULL_HANDLE) {
 		throw std::runtime_error("failed to find a suitable GPU!");
 	}
 
@@ -243,44 +248,47 @@ void PhysicalDevice::SelectPhysicalDevices(VulkanInstance instance) {
 	prop2.pNext = &driverProps;
 
 	vkGetPhysicalDeviceProperties2(physicalDevice, &prop2);
-	std::cout << "\tDatos del dispositivo fisico seleccionado: \n";
-	std::cout << "\t\tGPU seleccionado: " << prop2.properties.deviceName << std::endl;
-	std::cout << "\t\tDriver Name: " << driverProps.driverName << std::endl;
-	std::cout << "\t\tDriver Info: " << driverProps.driverInfo << std::endl;
-	std::cout << "\t\tAPI Version: "
+	std::cout << "\t\033[1;33mDatos del dispositivo fisico seleccionado: \033[0m\n";
+	std::cout << "\t\t\033[1;33mGPU seleccionado: \033[0m\033[1;32m" << prop2.properties.deviceName << "\033[0m\n";
+	std::cout << "\t\t\033[1;33mDriver Name: \033[0m\033[1;32m" << driverProps.driverName << "\033[0m\n";
+	std::cout << "\t\t\033[1;33mDriver Info: \033[0m\033[1;32m" << driverProps.driverInfo << "\033[0m\n";
+	std::cout << "\t\t\033[1;33mAPI Version: \033[0m\033[1;32m"
 		<< VK_VERSION_MAJOR(prop2.properties.apiVersion) << "."
 		<< VK_VERSION_MINOR(prop2.properties.apiVersion) << "."
-		<< VK_VERSION_PATCH(prop2.properties.apiVersion) << std::endl;
-	std::cout << "\t\tVendor ID: 0x" << std::hex << prop2.properties.vendorID << std::dec << std::endl;
+		<< VK_VERSION_PATCH(prop2.properties.apiVersion) <<"\033[0m\n";
+	std::cout << "\t\t\033[1;33mVendor ID:\033[0m\033[1;32m 0x" << std::hex << prop2.properties.vendorID << std::dec << "\033[0m\n\n";
 
 };
 
-bool PhysicalDevice::IsDeviceSelectable(VkPhysicalDevice device) {
-	bool extensionsSupported = checkDeviceExtensionSupport(device);
+bool PhysicalDevice::IsDeviceSelectable(VkPhysicalDevice physicalDevice) {
+	bool extensionsSupported = checkDeviceExtensionSupport(physicalDevice);
 
 	VkPhysicalDeviceFeatures supportedFeatures;
-	vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+	vkGetPhysicalDeviceFeatures(physicalDevice, &supportedFeatures);
 
 	return extensionsSupported && supportedFeatures.samplerAnisotropy;
 }
 
 
-bool PhysicalDevice::checkDeviceExtensionSupport(VkPhysicalDevice device) {
+bool PhysicalDevice::checkDeviceExtensionSupport(VkPhysicalDevice physicalDevice) {
 	uint32_t extensionCount;
-	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-	std::cout << "\tNumero de extensiones del dispositivo fisico detectadas: " << extensionCount << "\n";
+
+
+	vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
+
+	std::cout << "\t\033[1;33mNumero de extensiones del dispositivo fisico detectadas: \033[0m"<< extensionCount<<"\n";
 
 
 	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+	vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.data());
 
-	int cont = 0, contmax = 9;
-	std::cout<<"\tPrimeras "<< contmax <<" extensiones del dispositivo fisico:\n";
+	int cont = 0, contmax = 20;
+	std::cout<<"\t\033[1;33mPrimeras \033[0m\033[1;32m"<< contmax <<" extensiones \033[0m\033[1;33mdel dispositivo fisico:\033[0m\n";
 
 
 	for (const VkExtensionProperties& e : availableExtensions) {
 		if (cont <= contmax) {
-			printf("\t\t%s\n", e.extensionName);
+			printf("\t\t\033[1;32m%s\033[0m\n", e.extensionName);
 			cont++;
 		}
 		else {
@@ -342,7 +350,7 @@ void LogicalDevice::CreateLogicalDevice(PhysicalDevice physicaldevice) {
 	createInfo.pNext = &DynamicRenderingFeature;
 	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 	createInfo.pQueueCreateInfos = queueCreateInfos.data();
-	createInfo.pEnabledFeatures = nullptr;
+	createInfo.pEnabledFeatures = &deviceFeatures;
 
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()); //requiredExtensions
 	createInfo.ppEnabledExtensionNames = deviceExtensions.data();
@@ -360,7 +368,8 @@ void LogicalDevice::CreateLogicalDevice(PhysicalDevice physicaldevice) {
 	if (vkCreateDevice(physicaldevice.GetPhysicalDevice(), &createInfo, nullptr, &logicaldevice) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create logical device!");
 	}
-	std::cout<<"Logical device guardado en: "<<logicaldevice<<"\n";
+	std::cout << "\t\033[1;32mLogical device \033[0mguardado en \033[1;32m" << logicaldevice << "\033[0m\n\n";
+
 	vkGetDeviceQueue(logicaldevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
 
 	vkGetDeviceQueue(logicaldevice, indices.presentFamily.value(), 0, &presentQueue);
@@ -368,42 +377,42 @@ void LogicalDevice::CreateLogicalDevice(PhysicalDevice physicaldevice) {
 };
 
 QueueFamilyIndices LogicalDevice::findQueueFamilies(VkPhysicalDevice device) {
-	std::cout << "[!] Buscando familia de colas...\n";
+	std::cout << "\033[1;36m[!] Buscando familia de colas...\033[0m\n";
+
 	QueueFamilyIndices indices;
 
 	uint32_t count;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
-	std::cout << "\tNumero de familias de colas: "<<count<<"\n";
+	std::cout << "\t\033[1;33mNumero de familias de colas: \033[0m\033[1;32m"<<count<<"\033[0m\n";
 
 	std::vector<VkQueueFamilyProperties> props(count);
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &count, props.data());
 
-	int i = 0;
+
 	for (int i = 0; i <= props.size()-1; i++) {
 		VkQueueFlags flags = props[i].queueFlags;
 
-		std::cout << "\tCola [" << i << "] -> Flags = " << flags << " -> ";
+		if (props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			QueueFamilie.graphicsFamily = i;
+			QueueFamilie.presentFamily = i;
+			std::cout << "\t\033[1;33mFamilia de Colas seleccionada: "<<"\033[0m";
+			std::cout << "\033[1;32mCola [" << i << "] -> Flags = " << flags << " -> ";
 
-		// Mostrar nombres de las colas
+		}
+
 		if (flags & VK_QUEUE_GRAPHICS_BIT)      std::cout << "GRAPHICS ";
 		if (flags & VK_QUEUE_COMPUTE_BIT)       std::cout << "COMPUTE ";
 		if (flags & VK_QUEUE_TRANSFER_BIT)      std::cout << "TRANSFER ";
 		if (flags & VK_QUEUE_SPARSE_BINDING_BIT)std::cout << "SPARSE ";
 		if (flags & VK_QUEUE_PROTECTED_BIT)     std::cout << "PROTECTED ";
 
-		std::cout << "\n";
+		std::cout<<"\033[0m\n\n";
 
-		if (props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-			indices.graphicsFamily = i;
-			indices.presentFamily = i;
-			std::cout << "\tCola seleccionada:" << i << "\n";
-		}
-
-		//if (indices.isComplete()) break;
+		if (QueueFamilie.isComplete()) break;
 
 	}
 
 
-	return indices;
+	return QueueFamilie;
 }
 

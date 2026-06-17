@@ -15,9 +15,10 @@ public:
 	VkSwapchainKHR getSwapchain() const { return swapChain; }
 	void setSwapchain(VkSwapchainKHR swapnew) { swapChain = swapnew; }
 
-	VkExtent2D getExtentSwapchain() { return swapChainExtent; }
+	VkExtent2D& getExtentSwapchain() { return swapChainExtent; }
 	VkSurfaceFormatKHR GetswapChainSurfaceFormat() {return swapChainSurfaceFormat;}
-	
+	VkFormat& GetswapChainImageformat() {return swapChainImageFormat;}
+
 
 private:
 

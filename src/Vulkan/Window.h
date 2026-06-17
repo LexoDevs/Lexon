@@ -6,7 +6,6 @@
 
 #include "Devices.h"
 
-
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
 
@@ -26,23 +25,24 @@ class Window {
 	public:
 
 		void InitWindowsSistem();
-		void CargarGLFW();
-		void DesargarGLFW();
-		static void framebufferResizeCallback(GLFWwindow* windowin, int width, int height);
-
+		void DestroyWindowsSistem();
+		void PersonalizarVentana(GLFWwindow* window);
 		void CrearVentana(const char* name);
-
-		//void ActualizarVentanas(LogicalDevice logicaldevices, Pool ComandPool, Swapchain swapchain, GraphicsPipeline pipeline, Render render);
 		void LimpiarVentanas();
+
 		GLFWwindow* GetWindows(int i) { return GestorVentanas[i]; }
 		std::vector<GLFWwindow*>& getListaVentanas() {return GestorVentanas;};
-
+		
+		static void framebufferResizeCallback(GLFWwindow* windowin, int width, int height);
 		bool& getframebufferResized() { return framebufferResized;}
-		bool framebufferResized = false;
-
 		
 	private:
+		void CargarGLFW();
+		void DesargarGLFW();
+
 		std::vector<GLFWwindow*> GestorVentanas;
+
+		bool framebufferResized = false;
 
 };
 
@@ -51,13 +51,19 @@ class WindowSurface {
 
 	public:
 		void CreateWindowSurface(VulkanInstance instance, Window window );
-		VkSurfaceKHR getSurface() { return surface; };
+		
 		VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(PhysicalDevice physicaldevice);
 		VkPresentModeKHR GetSurfacePresentationsMode(PhysicalDevice physicaldevice);
+		
 		VkExtent2D chooseSwapExtent(VkSurfaceCapabilitiesKHR surfaceCapabilities, Window window);
+		
 		std::vector<VkSurfaceFormatKHR> getSurfaceFormats(PhysicalDevice physicaldevice, uint32_t& pSurfaceFormatCount);
+		
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(std::vector<VkSurfaceFormatKHR> availableFormats, uint32_t pSurfaceFormatCount);
 		
+
+		VkSurfaceKHR getSurface() { return surface; };
+
 	private:
 
 		VkSurfaceKHR surface;

@@ -1,5 +1,4 @@
 #include "Engine.h"
-#include <iostream>
 
 
 int main() {
@@ -11,7 +10,7 @@ int main() {
     catch (const std::exception& error) {
 
         std::cerr << error.what() << '\n';
-        //return EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
 
