@@ -77,7 +77,7 @@ void Render::cleanSync(LogicalDevice logicaldevice){
 void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapchain,
                        GraphicsPipeline pipeline, WindowSurface windowsurface,
                        PhysicalDevice physicaldevice, Window window, VertexBuffer vertexbuffer, Texture texture,
-                    DepthBuffer &depthbuffer,  VkClearValue clearDepth, VkImage depthImage)
+                    DepthBuffer &depthbuffer,  VkClearValue clearDepth, VkImage depthImage, ObjectInstance mesh)
 {
 
 
@@ -127,7 +127,7 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
     vkResetCommandBuffer(vertexbuffer.getCommandBuffer(frameIndex),0);
 
     auto depth = depthbuffer.getdepthImage();
-    depthbuffer.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex, vertexbuffer, texture, clearDepth, depth);
+    depthbuffer.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex, vertexbuffer, texture, clearDepth, depth,mesh);
 
     // 5. Submit
     VkSubmitInfo submitInfo{};

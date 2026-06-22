@@ -43,10 +43,10 @@ class VertexBuffer {
 
         void createCommandBuffer(LogicalDevice logicaldevice, Pool pool);
 
-        void createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture);
+        void createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture, ObjectInstance& mesh);
         void destroyVertexBuffer(LogicalDevice logicaldevice);
 
-        void createIndexBuffer(LogicalDevice logicaldevice,PhysicalDevice physicaldevice, Pool commandPool, VkImage texture);
+        void createIndexBuffer(LogicalDevice logicaldevice,PhysicalDevice physicaldevice, Pool commandPool, VkImage texture, ObjectInstance& mesh);
 
         void createUniformBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice);
         void destroyUniformBuffer(LogicalDevice logicaldevice);
@@ -127,7 +127,7 @@ class DepthBuffer {
     VkExtent2D& getDepthSize(){return depthsize;}
 
     VkImage& getdepthImage(){return depthImage;}
-    void recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, VertexBuffer& vertexbuffer, Texture texture, VkClearValue clearDepth, VkImage depthImage);
+    void recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, VertexBuffer& vertexbuffer, Texture texture, VkClearValue clearDepth, VkImage depthImage,  ObjectInstance mesh);
 
 
     private:

@@ -3,6 +3,7 @@
 
 #include "Buffers.h"
 
+#include "../LoaderAssets.h"
 
 
 void Pool::createCommandPool(LogicalDevice logicaldevice, PhysicalDevice physicaldevice) {
@@ -80,7 +81,8 @@ void transition_image_layout(
     vkCmdPipelineBarrier2(commandBuffer, &dependency_info);
 }
 
-void DepthBuffer::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, VertexBuffer& vertexbuffer, Texture texture, VkClearValue clearDepth, VkImage depthImage)
+void DepthBuffer::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, 
+    VertexBuffer& vertexbuffer, Texture texture, VkClearValue clearDepth, VkImage depthImage, ObjectInstance mesh)
 {
     VkCommandBuffer cmd = vertexbuffer.getCommandBuffer(currentFrame);
 
@@ -152,9 +154,6 @@ void DepthBuffer::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, 
     renderingInfo.pDepthAttachment     = &depthAttachment;
 
     
-std::cout << "RenderArea: " << renderingInfo.renderArea.extent.width << "x" << renderingInfo.renderArea.extent.height << "\n";
-std::cout << "Depth View size: " << getDepthSize().width << "x" << getDepthSize().height << "\n";
-
 
     vkCmdBeginRendering(cmd, &renderingInfo);
 
@@ -196,7 +195,7 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
     VkDeviceSize offsets[]   = { 0 };
     
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(cmd, vertexbuffer.getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(cmd, vertexbuffer.getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
     vkCmdBindDescriptorSets(cmd, 
                         VK_PIPELINE_BIND_POINT_GRAPHICS, 
@@ -205,7 +204,7 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
                         &texture.getdescriptorSets(currentFrame),   // Asumiendo que es un método de Texture
                         0, nullptr);
 
-    vkCmdDrawIndexed(cmd, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+    vkCmdDrawIndexed(cmd, static_cast<uint32_t>(mesh.getIndices().size()), 1, 0, 0, 0);
 
     vkCmdEndRendering(cmd);
 
@@ -293,12 +292,13 @@ void VertexBuffer::destroyVertexBuffer(LogicalDevice logicaldevice){
         
 }
 
-void VertexBuffer::createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture){
+void VertexBuffer::createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture,  ObjectInstance& mesh){
 
     Texture textclass{};
     textclass.getTextureImage() = texture;
 
-    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+    VkDeviceSize bufferSize = sizeof(mesh.getVertices()[0]) * mesh.getVertices().size();
+    std::cout<<"Tamano de buffer: "<<bufferSize<<std::endl;
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -306,7 +306,7 @@ void VertexBuffer::createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevic
 
     void* data;
     vkMapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, vertices.data(), (size_t) bufferSize);
+        memcpy(data, mesh.getVertices().data(), (size_t) bufferSize);
     vkUnmapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory);
 
     createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
@@ -317,12 +317,12 @@ void VertexBuffer::createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevic
 
 }
 
-void VertexBuffer::createIndexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture){
+void VertexBuffer::createIndexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture, ObjectInstance& mesh){
 
     Texture textclass{};
     textclass.getTextureImage() = texture;
 
-    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+    VkDeviceSize bufferSize = sizeof(mesh.getIndices()[0]) * mesh.getIndices().size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -330,7 +330,7 @@ void VertexBuffer::createIndexBuffer(LogicalDevice logicaldevice, PhysicalDevice
 
     void* data;
     vkMapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, indices.data(), (size_t) bufferSize);
+    memcpy(data, mesh.getIndices().data(), (size_t) bufferSize);
     vkUnmapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory);
 
     createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
@@ -405,7 +405,8 @@ void Pool::createDescriptorPool(LogicalDevice logicaldevice)
 
 void Texture::createTextureImage(VertexBuffer buffer, LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool pool){
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("../resources/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {

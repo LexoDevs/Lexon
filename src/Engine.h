@@ -1,5 +1,6 @@
 #pragma once
 #include "Vulkan/Render.h"
+#include "LoaderAssets.h"
 
 //Estructura personalizada para agrupar los datos de entrada en el dibujado de frames.
 struct infoDraw{
@@ -14,6 +15,7 @@ struct infoDraw{
 	VertexBuffer vertexbufferstr;
 	Texture texturestr;
 	DepthBuffer depthbufferstr;
+	ObjectInstance meshstr;
 };
 
 
@@ -40,6 +42,12 @@ private:
 	Texture texture;
 	DepthBuffer depthbuffer;
 uint32_t depthImage;
+	ObjectInstance mesh;
+
+
+
+
+	LoaderAssets loader;
 };
 
 

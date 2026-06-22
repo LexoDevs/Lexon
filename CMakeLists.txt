@@ -82,7 +82,8 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${Vulkan_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/src
-    ${stb_image_SOURCE_DIR}   
+    ${stb_image_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/external/tinyobjloader
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

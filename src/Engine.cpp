@@ -22,8 +22,8 @@ void Engine::StartDrawFrame(infoDraw& structureDraw){
         structureDraw.texturestr,
         structureDraw.depthbufferstr,  
         structureDraw.depthbufferstr.getClearImageView(),
-        structureDraw.depthbufferstr.getdepthImage()
-
+        structureDraw.depthbufferstr.getdepthImage(),
+        structureDraw.meshstr
     );
 };
 
@@ -52,8 +52,9 @@ void Engine::InitEngine() {
     texture.createTextureImageView(logicaldevices, VK_IMAGE_ASPECT_DEPTH_BIT);
     texture.createTextureSampler(logicaldevices, physicaldevice);
 
-    vertexbuffer.createVertexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage());
-    vertexbuffer.createIndexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage());
+    mesh.AddObject(loader);
+    vertexbuffer.createVertexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage(),mesh);
+    vertexbuffer.createIndexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage(),mesh);
 
     vertexbuffer.createUniformBuffer(logicaldevices,physicaldevice);
     ComandPool.createDescriptorPool(logicaldevices);
@@ -66,7 +67,7 @@ void Engine::InitEngine() {
 
 void Engine::MainLoopEngine() {
 
-    infoDraw info = {logicaldevices, ComandPool, swapchain, pipeline, render, windowsurface, physicaldevice, window, vertexbuffer, texture, depthbuffer };
+    infoDraw info = {logicaldevices, ComandPool, swapchain, pipeline, render, windowsurface, physicaldevice, window, vertexbuffer, texture, depthbuffer, mesh };
 
     double previousTime = glfwGetTime();
     int frameCount = 0;
