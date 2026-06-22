@@ -43,7 +43,7 @@ void VertexBuffer::createCommandBuffer(LogicalDevice logicaldevice, Pool pool){
 
 void transition_image_layout(
     VkCommandBuffer         commandBuffer,
-    VkImage                 image,
+    VkImage                 &image,
     VkImageLayout           old_layout,
     VkImageLayout           new_layout,
     VkImageAspectFlags      aspectMask,
@@ -80,7 +80,7 @@ void transition_image_layout(
     vkCmdPipelineBarrier2(commandBuffer, &dependency_info);
 }
 
-void Texture::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, VertexBuffer& vertexbuffer, VkImageView depthImageView, VkClearValue clearDepth, VkImage depthImage)
+void DepthBuffer::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, VertexBuffer& vertexbuffer, Texture texture, VkClearValue clearDepth, VkImage depthImage)
 {
     VkCommandBuffer cmd = vertexbuffer.getCommandBuffer(currentFrame);
 
@@ -107,7 +107,7 @@ void Texture::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, Grap
     // Transición del Depth Image
     transition_image_layout(
         cmd,
-        depthImage,
+        getdepthImage(),
         VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
         VK_IMAGE_ASPECT_DEPTH_BIT,
@@ -130,22 +130,31 @@ void Texture::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, Grap
     colorAttachment.storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
     colorAttachment.clearValue  = clearValues[0];
 
+
+
     VkRenderingAttachmentInfo depthAttachment{};
     depthAttachment.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    depthAttachment.imageView   = depthImageView;
+    depthAttachment.imageView   = getdepthImageView();
     depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
     depthAttachment.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp     = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depthAttachment.clearValue  = clearValues[1];
 
+
     VkRenderingInfo renderingInfo{};
     renderingInfo.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
     renderingInfo.renderArea.offset    = {0, 0};
-    renderingInfo.renderArea.extent    = swapchain.getExtentSwapchain();
+    renderingInfo.renderArea.extent.width    = swapchain.getExtentSwapchain().width;
+    renderingInfo.renderArea.extent.height    = swapchain.getExtentSwapchain().height;
     renderingInfo.layerCount           = 1;
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments    = &colorAttachment;
     renderingInfo.pDepthAttachment     = &depthAttachment;
+
+    
+std::cout << "RenderArea: " << renderingInfo.renderArea.extent.width << "x" << renderingInfo.renderArea.extent.height << "\n";
+std::cout << "Depth View size: " << getDepthSize().width << "x" << getDepthSize().height << "\n";
+
 
     vkCmdBeginRendering(cmd, &renderingInfo);
 
@@ -193,7 +202,7 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
                         VK_PIPELINE_BIND_POINT_GRAPHICS, 
                         pipeline.getGrapicsPipelineLayout(), 
                         0, 1, 
-                        &getdescriptorSets(currentFrame),   // Asumiendo que es un método de Texture
+                        &texture.getdescriptorSets(currentFrame),   // Asumiendo que es un método de Texture
                         0, nullptr);
 
     vkCmdDrawIndexed(cmd, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
@@ -465,7 +474,7 @@ void Texture::createImage(LogicalDevice logicaldevice, VertexBuffer buffer, Phys
 }
 
 
-void Texture::transitionImageLayout(Pool pool, LogicalDevice logicaldevice, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+void Texture::transitionImageLayout(Pool pool, LogicalDevice logicaldevice, VkImage &image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands(pool, logicaldevice);
 
         VkImageMemoryBarrier barrier{};
@@ -714,11 +723,14 @@ void Texture::createDescriptorSets(LogicalDevice logicaldevice, GraphicsPipeline
 }
 
 
-void DepthBuffer::createDepthResources(PhysicalDevice physicaldevice, Texture texture, LogicalDevice logicaldevice, VertexBuffer buffer, Swapchain swapchain){
+void DepthBuffer::createDepthResources(PhysicalDevice physicaldevice, Texture texture, LogicalDevice logicaldevice, VertexBuffer buffer, Swapchain& swapchain){
         
         VkFormat depthFormat = findDepthFormat(physicaldevice);
+        
+        getDepthSize().height = swapchain.getExtentSwapchain().height;
+        getDepthSize().width = swapchain.getExtentSwapchain().width;
 
-        texture.createImage(logicaldevice, buffer, physicaldevice, swapchain.getExtentSwapchain().width, swapchain.getExtentSwapchain().height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+        texture.createImage(logicaldevice, buffer, physicaldevice, getDepthSize().width, getDepthSize().height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, getdepthImage(), depthImageMemory);
         depthImageView = texture.createImageView(logicaldevice, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT );
         
 };
@@ -758,4 +770,11 @@ void DepthBuffer::destroyDepthResources(LogicalDevice logicaldevice){
     vkDestroyImageView(logicaldevice.GetLogicalDevice(), depthImageView, nullptr);
     vkDestroyImage(logicaldevice.GetLogicalDevice(), depthImage, nullptr);
     vkFreeMemory(logicaldevice.GetLogicalDevice(), depthImageMemory, nullptr);
+};
+
+void DepthBuffer::cleanDepthResources(LogicalDevice logicaldevice){
+    vkDestroyImageView(logicaldevice.GetLogicalDevice(), depthImageView, nullptr);
+    vkDestroyImage(logicaldevice.GetLogicalDevice(), depthImage, nullptr);
+    vkFreeMemory(logicaldevice.GetLogicalDevice(), depthImageMemory, nullptr);
+
 };

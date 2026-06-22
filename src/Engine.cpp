@@ -20,7 +20,7 @@ void Engine::StartDrawFrame(infoDraw& structureDraw){
         structureDraw.windowstr,
         structureDraw.vertexbufferstr,
         structureDraw.texturestr,
-        structureDraw.depthbufferstr.getdepthImageView(),  
+        structureDraw.depthbufferstr,  
         structureDraw.depthbufferstr.getClearImageView(),
         structureDraw.depthbufferstr.getdepthImage()
 

@@ -83,7 +83,7 @@ class Texture {
         void createTextureImage(VertexBuffer buffer, LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool pool);
         void createImage(LogicalDevice logicaldevice, VertexBuffer buffer, PhysicalDevice physicaldevice, uint32_t width,
              uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-        void transitionImageLayout(Pool pool, LogicalDevice logicaldevice, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+        void transitionImageLayout(Pool pool, LogicalDevice logicaldevice, VkImage &image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
         VkCommandBuffer beginSingleTimeCommands(Pool pool, LogicalDevice logicaldevice);
         void endSingleTimeCommands(VkCommandBuffer commandBuffer, LogicalDevice logicaldevice, Pool pool);
         void copyBufferToImage(Pool pool, LogicalDevice logicaldevice, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
@@ -98,7 +98,6 @@ class Texture {
         void createDescriptorSets(LogicalDevice logicaldevice, GraphicsPipeline pipeline, Pool pool, VertexBuffer vertexbuffer);
         void destroyDescriptorSet(LogicalDevice logicaldevice);
         void bindDescriptorSet(VertexBuffer vertexbuffer, GraphicsPipeline pipeline,uint32_t currentFrame);
-        void recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, VertexBuffer& vertexbuffer, VkImageView depthImageView, VkClearValue clearDepth, VkImage depthImage);
 
         VkDescriptorSet& getdescriptorSets(int i){return descriptorSets[i];};
         VkImage& getTextureImage(){return textureImage;}
@@ -115,17 +114,24 @@ class Texture {
 
 class DepthBuffer {
     public:
-    void createDepthResources(PhysicalDevice physicaldevice, Texture texture, LogicalDevice logicaldevice, VertexBuffer buffer, Swapchain swapchain);
+    void createDepthResources(PhysicalDevice physicaldevice, Texture texture, LogicalDevice logicaldevice, VertexBuffer buffer, Swapchain &swapchain);
     void destroyDepthResources(LogicalDevice logicaldevice);
+    void cleanDepthResources(LogicalDevice logicaldevice);
+
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features,PhysicalDevice physicaldevice);
     VkFormat findDepthFormat(PhysicalDevice physicaldevice);
     bool hasStencilComponent(VkFormat format);
     VkImageView& getdepthImageView(){return depthImageView;}
-        VkClearValue& getClearImageView(){return clearDepth;}
-        VkImage& getdepthImage(){return depthImage;}
+    VkClearValue& getClearImageView(){return clearDepth;}
+    
+    VkExtent2D& getDepthSize(){return depthsize;}
+
+    VkImage& getdepthImage(){return depthImage;}
+    void recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, VertexBuffer& vertexbuffer, Texture texture, VkClearValue clearDepth, VkImage depthImage);
 
 
     private:
+        VkExtent2D depthsize ;
         VkImage depthImage;
         VkDeviceMemory depthImageMemory;
         VkImageView depthImageView;

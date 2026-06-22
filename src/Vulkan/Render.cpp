@@ -77,7 +77,7 @@ void Render::cleanSync(LogicalDevice logicaldevice){
 void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapchain,
                        GraphicsPipeline pipeline, WindowSurface windowsurface,
                        PhysicalDevice physicaldevice, Window window, VertexBuffer vertexbuffer, Texture texture,
-                    VkImageView depthImageView,  VkClearValue clearDepth, VkImage depthImage)
+                    DepthBuffer &depthbuffer,  VkClearValue clearDepth, VkImage depthImage)
 {
 
 
@@ -110,7 +110,9 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         swapchain.RecreateSwapchain(logicaldevice, windowsurface, physicaldevice, window);//0xc6031ff8f0//0xc6031ff740
-        
+                depthbuffer.cleanDepthResources(logicaldevice);
+
+        depthbuffer.createDepthResources(physicaldevice,texture, logicaldevice, vertexbuffer, swapchain);
         return;   // Salir y reintentar en el próximo ciclo
     }
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
@@ -124,7 +126,8 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
     // 4. Grabar comandos
     vkResetCommandBuffer(vertexbuffer.getCommandBuffer(frameIndex),0);
 
-    texture.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex, vertexbuffer, depthImageView, clearDepth, depthImage);
+    auto depth = depthbuffer.getdepthImage();
+    depthbuffer.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex, vertexbuffer, texture, clearDepth, depth);
 
     // 5. Submit
     VkSubmitInfo submitInfo{};
@@ -170,6 +173,10 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.getframebufferResized()) {
         window.getframebufferResized() = false;
         swapchain.RecreateSwapchain(logicaldevice, windowsurface, physicaldevice, window);
+        
+        depthbuffer.cleanDepthResources(logicaldevice);
+
+        depthbuffer.createDepthResources(physicaldevice,texture, logicaldevice, vertexbuffer, swapchain);
     } 
     else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
