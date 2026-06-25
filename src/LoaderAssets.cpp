@@ -1,6 +1,8 @@
 
 #include "LoaderAssets.h"
 
+
+
 #include <iostream>
 #include <unordered_map>
 
@@ -51,9 +53,10 @@ void LoaderAssets::LoadModel(std::string path, std::vector<Vertex>& vertices , s
     }
 
     std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+    vertices.clear();
+    indices.clear();
 
     for (const auto& shape : shapes) {
-                std::cout<<"Numero de vertices cargados: "<<&shape.mesh.indices<<std::endl;
 
         for (const auto& index : shape.mesh.indices) {
             
@@ -78,20 +81,115 @@ void LoaderAssets::LoadModel(std::string path, std::vector<Vertex>& vertices , s
             if (uniqueVertices.count(vertex) == 0) {
             uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
             vertices.push_back(vertex);
+
         }
 
         indices.push_back(uniqueVertices[vertex]);
         }
 
     }
+        std::cout << "Cargado: " << path <<std::endl;
+        std::cout <<"Vertices: " << vertices.size() <<std::endl;
+        std::cout <<"Indices: " << indices.size() << std::endl;
 
+        LevelObjects[0].setVertices(vertices);
+        LevelObjects[0].setIndices(indices);
+
+        std::cout<<"Vertices buffers: " <<LevelObjects[0].getVertices().size()<<std::endl;
+        std::cout<<"Indices buffers: " <<LevelObjects[0].getIndices().size()<<std::endl;
 
 };
 
+void ObjectInstance::setupGameObjects(){
+    // Object 1 - Center
+    std::cout<<"Primer objeto inicializado"<<std::endl;
+    LevelObjects[0].setposition({0.0f, 1.0f, 0.0f});
+    LevelObjects[0].getrotation() = {0.0f, 0.0f, 0.0f};
+    LevelObjects[0].getscale() = {1.0f, 1.0f, 1.0f};
 
+    // Object 2 - Left
+    std::cout<<"Segundo objeto inicializado"<<std::endl;
+    LevelObjects[1].getposition() = {-2.0f, 0.0f, -1.0f};
+    LevelObjects[1].rotation ={0.0f, 0.0f, 0.0f};
+    LevelObjects[1].scale = {0.75f, 0.75f, 0.75f};
+
+    // Object 3 - Right
+    std::cout<<"Tercer objeto inicializado"<<std::endl;
+    LevelObjects[2].position = {2.0f, 0.0f, -1.0f};
+    LevelObjects[2].rotation = {0.0f, 0.0f, 0.0f};
+    LevelObjects[2].scale = {0.75f, 0.75f, 0.75f};
+};
 
 void ObjectInstance::AddObject(LoaderAssets loader){
 
+    vertices = getVertices();
+    indices = getIndices();
 loader.LoadModel(MODEL_PATH, vertices, indices);
 
+setupGameObjects();
+
 };
+
+
+
+glm::mat4 ObjectInstance::getModelMatrix() const {
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, position);
+    model = glm::rotate(model, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, scale);
+    return model;
+};
+
+
+
+void ObjectInstance::PrepareLevelObjects(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
+{
+    LoaderAssets loader;
+
+    // === Construir buffers globales + calcular offsets ===
+    std::vector<Vertex> globalVertices;
+    std::vector<uint32_t> globalIndices;
+
+    uint32_t currentIndexOffset = 0;
+
+    for (auto& obj : LevelObjects)
+    {
+        if (obj.getIndices().empty()) continue;
+
+        uint32_t vertexOffset = static_cast<uint32_t>(globalVertices.size());
+
+        // Guardar offsets
+        obj.setIndexOffset(currentIndexOffset);
+        obj.setIndexCount(static_cast<uint32_t>(obj.indices.size()));
+
+        // Añadir vértices
+        globalVertices.insert(globalVertices.end(), 
+                             obj.vertices.begin(), 
+                             obj.vertices.end());
+
+        // Ajustar y añadir índices
+        for (uint32_t idx : obj.indices)
+        {
+            globalIndices.push_back(idx + vertexOffset);
+        }
+
+        currentIndexOffset += obj.getIndexCount();
+
+
+
+    }
+    setupGameObjects();
+
+    vertices = globalVertices;
+    indices = globalIndices;
+    
+    // Subir al GPU (un solo buffer grande)
+    //vertexbuffer.uploadVertices(globalVertices);
+    //vertexbuffer.uploadIndices(globalIndices);
+
+    std::cout << "=== Escena cargada correctamente ===\n";
+    std::cout << "Total Vértices globales: " << vertices.size() << "\n";
+    std::cout << "Total Índices globales:  " << indices.size() << std::endl;
+}

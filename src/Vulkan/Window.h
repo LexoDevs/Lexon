@@ -5,6 +5,8 @@
 #include <algorithm> //std::clamp
 
 #include "Devices.h"
+#include "LoaderAssets.h"
+
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
@@ -17,6 +19,14 @@ static void GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, int acti
 
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 
+    }
+
+	if ((key == GLFW_KEY_SPACE) && (action == GLFW_PRESS)) {
+
+		std::cout<<"Hola"<<std::endl;
+		std::cout<<LevelObjects[0].getIndices().size()<<std::endl;
+
+		LevelObjects[0].getIndices().size();
     }
 }
 

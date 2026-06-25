@@ -43,10 +43,10 @@ class VertexBuffer {
 
         void createCommandBuffer(LogicalDevice logicaldevice, Pool pool);
 
-        void createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture, ObjectInstance& mesh);
+        void createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture, std::vector<Vertex>& vertex);
         void destroyVertexBuffer(LogicalDevice logicaldevice);
 
-        void createIndexBuffer(LogicalDevice logicaldevice,PhysicalDevice physicaldevice, Pool commandPool, VkImage texture, ObjectInstance& mesh);
+        void createIndexBuffer(LogicalDevice logicaldevice,PhysicalDevice physicaldevice, Pool commandPool, VkImage texture, std::vector<uint32_t>& indices);
 
         void createUniformBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice);
         void destroyUniformBuffer(LogicalDevice logicaldevice);
@@ -99,7 +99,7 @@ class Texture {
         void destroyDescriptorSet(LogicalDevice logicaldevice);
         void bindDescriptorSet(VertexBuffer vertexbuffer, GraphicsPipeline pipeline,uint32_t currentFrame);
 
-        VkDescriptorSet& getdescriptorSets(int i){return descriptorSets[i];};
+        //VkDescriptorSet& getdescriptorSets(int i){return descriptorSets[i];};
         VkImage& getTextureImage(){return textureImage;}
         VkDeviceMemory& getTextureImageMemory(){return textureImageMemory;}
 
@@ -108,7 +108,7 @@ class Texture {
         VkDeviceMemory textureImageMemory;
         VkImageView textureImageView;
         VkSampler textureSampler;
-        VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
+        //VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
 
 };
 
@@ -127,8 +127,13 @@ class DepthBuffer {
     VkExtent2D& getDepthSize(){return depthsize;}
 
     VkImage& getdepthImage(){return depthImage;}
-    void recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, VertexBuffer& vertexbuffer, Texture texture, VkClearValue clearDepth, VkImage depthImage,  ObjectInstance mesh);
 
+    void recordCommandBuffer(uint32_t imageIndex, 
+                                      Swapchain swapchain, 
+                                      GraphicsPipeline pipeline, 
+                                      uint32_t currentFrame, 
+                                      VertexBuffer& vertexbuffer, 
+                                      Texture texture);
 
     private:
         VkExtent2D depthsize ;
