@@ -168,6 +168,7 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
 
     presentInfo.pImageIndices = &imageIndex;
 
+
     result = vkQueuePresentKHR(logicaldevice.getPresentQueue(), &presentInfo);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.getframebufferResized()) {
