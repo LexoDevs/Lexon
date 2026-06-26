@@ -42,7 +42,7 @@ std::array<VkVertexInputAttributeDescription, 3> Vertex::getAttributeDescription
 }
 
 
-void LoaderAssets::LoadModel(std::string path, std::vector<Vertex>& vertices , std::vector<uint32_t>& indices, int orden){
+void LoaderAssets::LoadModel(std::string path, std::vector<Vertex>& vertices , std::vector<uint32_t>& indices){
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -53,7 +53,8 @@ void LoaderAssets::LoadModel(std::string path, std::vector<Vertex>& vertices , s
     }
 
     std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
+    vertices.clear();
+    indices.clear();
 
     for (const auto& shape : shapes) {
 
@@ -91,10 +92,11 @@ void LoaderAssets::LoadModel(std::string path, std::vector<Vertex>& vertices , s
         std::cout <<"Vertices: " << vertices.size() <<std::endl;
         std::cout <<"Indices: " << indices.size() << std::endl;
 
-        LevelObjects[orden].setVertices(vertices);
-        LevelObjects[orden].setIndices(indices);
+        LevelObjects[0].setVertices(vertices);
+        LevelObjects[0].setIndices(indices);
 
-
+        std::cout<<"Vertices buffers: " <<LevelObjects[0].getVertices().size()<<std::endl;
+        std::cout<<"Indices buffers: " <<LevelObjects[0].getIndices().size()<<std::endl;
 
 };
 
@@ -118,16 +120,13 @@ void ObjectInstance::setupGameObjects(){
     LevelObjects[2].scale = {0.75f, 0.75f, 0.75f};
 };
 
-void ObjectInstance::AddObject(LoaderAssets loader, int orden){
+void ObjectInstance::AddObject(LoaderAssets loader){
 
     vertices = getVertices();
     indices = getIndices();
-    loader.LoadModel(MODEL_PATH, vertices, indices, orden);
+loader.LoadModel(MODEL_PATH, vertices, indices);
 
-
-            std::cout<<"Vertices buffers: " <<LevelObjects[orden].getVertices().size()<<std::endl;
-        std::cout<<"Indices buffers: " <<LevelObjects[orden].getIndices().size()<<std::endl;
-
+setupGameObjects();
 
 };
 
@@ -150,7 +149,8 @@ void ObjectInstance::PrepareLevelObjects(std::vector<Vertex>& vertices, std::vec
     LoaderAssets loader;
 
     // === Construir buffers globales + calcular offsets ===
-
+    std::vector<Vertex> globalVertices;
+    std::vector<uint32_t> globalIndices;
 
     uint32_t currentIndexOffset = 0;
 
@@ -158,25 +158,33 @@ void ObjectInstance::PrepareLevelObjects(std::vector<Vertex>& vertices, std::vec
     {
         if (obj.getIndices().empty()) continue;
 
-        uint32_t vertexOffset = static_cast<uint32_t>(vertices.size());
+        uint32_t vertexOffset = static_cast<uint32_t>(globalVertices.size());
 
         // Guardar offsets
         obj.setIndexOffset(currentIndexOffset);
         obj.setIndexCount(static_cast<uint32_t>(obj.indices.size()));
 
-        vertices = obj.getVertices();
-        indices = obj.getIndices();
         // Añadir vértices
+        globalVertices.insert(globalVertices.end(), 
+                             obj.vertices.begin(), 
+                             obj.vertices.end());
 
+        // Ajustar y añadir índices
+        for (uint32_t idx : obj.indices)
+        {
+            globalIndices.push_back(idx + vertexOffset);
+        }
 
         currentIndexOffset += obj.getIndexCount();
 
 
 
     }
-    //setupGameObjects();
+    setupGameObjects();
 
-
+    vertices = globalVertices;
+    indices = globalIndices;
+    
     // Subir al GPU (un solo buffer grande)
     //vertexbuffer.uploadVertices(globalVertices);
     //vertexbuffer.uploadIndices(globalIndices);

@@ -47,17 +47,6 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(stb_image)
 
-
-# === Dear ImGui ===
-FetchContent_Declare(
-    imgui
-    GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG        v1.91.8-docking
-    GIT_SHALLOW    TRUE
-)
-
-FetchContent_MakeAvailable(imgui)
-
 # ==================== Cargar shaders ====================
 
 function (add_slang_shader_target TARGET)
@@ -79,15 +68,6 @@ function (add_slang_shader_target TARGET)
   add_custom_target (${TARGET} DEPENDS ${SHADERS_DIR}/slang.spv)
 endfunction()
 
-set(IMGUI_SOURCES
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_demo.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-    ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
-) 
 
 # ==================== Archivos fuente ====================
 file(GLOB_RECURSE SOURCES 
@@ -96,7 +76,7 @@ file(GLOB_RECURSE SOURCES
 
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${IMGUI_SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 # ==================== Include y Link ====================
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -104,8 +84,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${stb_image_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/external/tinyobjloader
-    ${imgui_SOURCE_DIR}           # ← Importante
-    ${imgui_SOURCE_DIR}/backends  # ← Importante
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

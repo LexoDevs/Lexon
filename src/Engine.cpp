@@ -52,11 +52,11 @@ void Engine::InitEngine() {
     texture.createTextureImageView(logicaldevices, VK_IMAGE_ASPECT_DEPTH_BIT);
     texture.createTextureSampler(logicaldevices, physicaldevice);
 
-    mesh.AddObject(loader,0);
-    mesh.AddObject(loader,1);
-    mesh.AddObject(loader,2);
+    mesh.AddObject(loader);
+    mesh.AddObject(loader);
+    mesh.AddObject(loader);
 
-       std::vector<Vertex> vertices;
+        std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     mesh.PrepareLevelObjects(vertices, indices);
 

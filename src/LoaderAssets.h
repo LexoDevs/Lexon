@@ -46,7 +46,7 @@ namespace std {
 
 class LoaderAssets {
     public:
-        void LoadModel(std::string path, std::vector<Vertex>& vertex , std::vector<uint32_t>& index, int orden);
+        void LoadModel(std::string path, std::vector<Vertex>& vertex , std::vector<uint32_t>& index);
 
     private:
 
@@ -64,7 +64,7 @@ class ObjectInstance {
         void setIndices(std::vector<uint32_t> count)   { indices = count; }
 
         void setupGameObjects();
-        void AddObject(LoaderAssets loader, int orden);
+        void AddObject(LoaderAssets loader);
 
     std::vector<VkBuffer>& getuniformBuffersmesh(){ return uniformBuffersmesh; };
     std::vector<VkDeviceMemory>& getuniformBuffersMemorymesh(){ return uniformBuffersMemorymesh; };
