@@ -30,7 +30,7 @@ void Engine::StartDrawFrame(infoDraw& structureDraw){
 void Engine::InitEngine() {
 
 	window.InitWindowsSistem();
-    
+
 	instance.CreateInstance();
 
     windowsurface.CreateWindowSurface(instance, window);
@@ -40,8 +40,8 @@ void Engine::InitEngine() {
 
 	swapchain.CreateSwapChain(windowsurface, physicaldevice, window, logicaldevices);
 	swapchain.CreateImageView(logicaldevices);
-    
     pipeline.CreateDescriptorSetLayout(logicaldevices);
+
 	pipeline.createGraphicsPipeline(logicaldevices, swapchain, depthbuffer.findDepthFormat(physicaldevice));
 
     ComandPool.createCommandPool(logicaldevices,physicaldevice); 
@@ -53,43 +53,8 @@ void Engine::InitEngine() {
     texture.createTextureSampler(logicaldevices, physicaldevice);
 
     mesh.AddObject(loader);
-    mesh.AddObject(loader);
-    mesh.AddObject(loader);
-
-        std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-    mesh.PrepareLevelObjects(vertices, indices);
-
-    std::cout<<"Primer objeto inicializado"<<std::endl;
-    LevelObjects[0].setposition({0.0f, 1.0f, 0.0f});
-    LevelObjects[0].setrotation({0.0f, 0.0f, 0.0f});
-    LevelObjects[0].setscale({1.0f, 1.0f, 1.0f});
-
-    // Object 2 - Left
-    std::cout<<"Segundo objeto inicializado"<<std::endl;
-    LevelObjects[1].setposition({-2.0f, 0.0f, -1.0f});
-    LevelObjects[1].setrotation({0.0f, 0.0f, 0.0f});
-    LevelObjects[1].setscale({0.75f, 0.75f, 0.75f});
-
-    // Object 3 - Right
-    std::cout<<"Tercer objeto inicializado"<<std::endl;
-    LevelObjects[2].setposition({2.0f, 0.0f, -1.0f});
-    LevelObjects[2].setrotation({0.0f, 0.0f, 0.0f});
-    LevelObjects[2].setscale({0.75f, 0.75f, 0.75f});
-
-
-
-        
-    std::cout<<"Vertices: "<<vertices.size()<<std::endl;
-
-    vertexbuffer.createVertexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage(),vertices);
-    vertexbuffer.createIndexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage(),indices);
-//    mesh.PrepareLevelObjects();
-    
-    //mesh.setupGameObjects();
-
-        std::cout<<"Posicion1: "<<LevelObjects[0].getposition().x<<" "<<LevelObjects[0].getposition().y<< " "<<LevelObjects[0].getposition().z<<std::endl;
-        std::cout<<"Posicion2: "<<LevelObjects[1].getposition().x<<" "<<LevelObjects[1].getposition().y<< " "<<LevelObjects[1].getposition().z<<std::endl;
+    vertexbuffer.createVertexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage(),mesh);
+    vertexbuffer.createIndexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage(),mesh);
 
     vertexbuffer.createUniformBuffer(logicaldevices,physicaldevice);
     ComandPool.createDescriptorPool(logicaldevices);
