@@ -30,7 +30,7 @@ void Engine::StartDrawFrame(infoDraw& structureDraw){
 void Engine::InitEngine() {
 
 	window.InitWindowsSistem();
-
+    
 	instance.CreateInstance();
 
     windowsurface.CreateWindowSurface(instance, window);
@@ -40,8 +40,8 @@ void Engine::InitEngine() {
 
 	swapchain.CreateSwapChain(windowsurface, physicaldevice, window, logicaldevices);
 	swapchain.CreateImageView(logicaldevices);
+    
     pipeline.CreateDescriptorSetLayout(logicaldevices);
-
 	pipeline.createGraphicsPipeline(logicaldevices, swapchain, depthbuffer.findDepthFormat(physicaldevice));
 
     ComandPool.createCommandPool(logicaldevices,physicaldevice); 
@@ -52,7 +52,6 @@ void Engine::InitEngine() {
     texture.createTextureImageView(logicaldevices, VK_IMAGE_ASPECT_DEPTH_BIT);
     texture.createTextureSampler(logicaldevices, physicaldevice);
 
-<<<<<<< HEAD
     mesh.AddObject(loader,0);
     mesh.AddObject(loader,1);
     mesh.AddObject(loader,2);
@@ -91,11 +90,6 @@ void Engine::InitEngine() {
 
         std::cout<<"Posicion1: "<<LevelObjects[0].getposition().x<<" "<<LevelObjects[0].getposition().y<< " "<<LevelObjects[0].getposition().z<<std::endl;
         std::cout<<"Posicion2: "<<LevelObjects[1].getposition().x<<" "<<LevelObjects[1].getposition().y<< " "<<LevelObjects[1].getposition().z<<std::endl;
-=======
-    mesh.AddObject(loader);
-    vertexbuffer.createVertexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage(),mesh);
-    vertexbuffer.createIndexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage(),mesh);
->>>>>>> parent of 64c4e27 (Primer Game Object (Corregir))
 
     vertexbuffer.createUniformBuffer(logicaldevices,physicaldevice);
     ComandPool.createDescriptorPool(logicaldevices);

@@ -81,8 +81,12 @@ void transition_image_layout(
     vkCmdPipelineBarrier2(commandBuffer, &dependency_info);
 }
 
-void DepthBuffer::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, GraphicsPipeline pipeline, uint32_t currentFrame, 
-    VertexBuffer& vertexbuffer, Texture texture, VkClearValue clearDepth, VkImage depthImage, ObjectInstance mesh)
+void DepthBuffer::recordCommandBuffer(uint32_t imageIndex, 
+                                      Swapchain swapchain, 
+                                      GraphicsPipeline pipeline, 
+                                      uint32_t currentFrame, 
+                                      VertexBuffer& vertexbuffer, 
+                                      Texture texture)
 {
     VkCommandBuffer cmd = vertexbuffer.getCommandBuffer(currentFrame);
 
@@ -92,47 +96,34 @@ void DepthBuffer::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, 
     if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS) {
         throw std::runtime_error("failed to begin recording command buffer!");
     }
-    
 
-    transition_image_layout(
-        cmd,
-        swapchain.getSwapchainImages()[imageIndex],
-        VK_IMAGE_LAYOUT_UNDEFINED,
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        0,                                                // srcAccessMask
-        VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-        VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT,             // srcStage
-        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT  // dstStage
-    );
-        
-    // Transición del Depth Image
-    transition_image_layout(
-        cmd,
-        getdepthImage(),
+    // Transiciones de layout
+    transition_image_layout(cmd, swapchain.getSwapchainImages()[imageIndex],
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+        VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+    transition_image_layout(cmd, getdepthImage(),
         VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
         VK_IMAGE_ASPECT_DEPTH_BIT,
+        0,
         VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-        VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-        VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
-        VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT
-    );
+        VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT,
+        VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT);
 
-        // ====================== INICIO DEL RENDERING ======================
-    VkClearValue clearValues[2] = {};
-    clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
-    clearValues[1].depthStencil = { 1.0f, 0 };
+    // ====================== RENDERING ======================
+    VkClearValue clearValues[2]{};
+    clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+    clearValues[1].depthStencil = {1.0f, 0};
 
     VkRenderingAttachmentInfo colorAttachment{};
     colorAttachment.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    colorAttachment.imageView   = swapchain.getSwapchainImageView()[imageIndex];  // Asume que tienes este método
+    colorAttachment.imageView   = swapchain.getSwapchainImageView()[imageIndex];
     colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     colorAttachment.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
     colorAttachment.clearValue  = clearValues[0];
-
-
 
     VkRenderingAttachmentInfo depthAttachment{};
     depthAttachment.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
@@ -142,84 +133,86 @@ void DepthBuffer::recordCommandBuffer(uint32_t imageIndex, Swapchain swapchain, 
     depthAttachment.storeOp     = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depthAttachment.clearValue  = clearValues[1];
 
-
     VkRenderingInfo renderingInfo{};
     renderingInfo.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
     renderingInfo.renderArea.offset    = {0, 0};
-    renderingInfo.renderArea.extent.width    = swapchain.getExtentSwapchain().width;
-    renderingInfo.renderArea.extent.height    = swapchain.getExtentSwapchain().height;
+    renderingInfo.renderArea.extent    = swapchain.getExtentSwapchain();
     renderingInfo.layerCount           = 1;
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments    = &colorAttachment;
     renderingInfo.pDepthAttachment     = &depthAttachment;
 
-    
-
     vkCmdBeginRendering(cmd, &renderingInfo);
 
-    // Bind del pipeline gráfico
-    vkCmdBindPipeline(vertexbuffer.getCommandBuffer(currentFrame), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getGrapicsPipeline());
+    // Bind Pipeline
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getGrapicsPipeline());
 
+    // Estado de profundidad
     vkCmdSetDepthTestEnable(cmd, VK_TRUE);
-vkCmdSetDepthWriteEnable(cmd, VK_TRUE);
-vkCmdSetDepthCompareOp(cmd, VK_COMPARE_OP_LESS);
+    vkCmdSetDepthWriteEnable(cmd, VK_TRUE);
+    vkCmdSetDepthCompareOp(cmd, VK_COMPARE_OP_LESS);
+    vkCmdSetDepthBiasEnable(cmd, VK_FALSE);
+    vkCmdSetStencilTestEnable(cmd, VK_FALSE);
+    vkCmdSetDepthBoundsTestEnable(cmd, VK_FALSE);
 
-vkCmdSetDepthBiasEnable(cmd, VK_FALSE);
-vkCmdSetDepthBias(cmd, 0.0f, 0.0f, 0.0f);
-
-vkCmdSetStencilTestEnable(cmd, VK_FALSE);
-
-vkCmdSetDepthBoundsTestEnable(cmd, VK_FALSE);
-vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
-
-    // Viewport y Scissor (dynamic state)
+    // Viewport y Scissor
     VkViewport viewport{};
-    viewport.x        = 0.0f;
-    viewport.y        = 0.0f;
-    viewport.width    = static_cast<float>(swapchain.getExtentSwapchain().width);
-    viewport.height   = static_cast<float>(swapchain.getExtentSwapchain().height);
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width  = static_cast<float>(swapchain.getExtentSwapchain().width);
+    viewport.height = static_cast<float>(swapchain.getExtentSwapchain().height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(cmd, 0, 1, &viewport);
 
-    // Scissor
     VkRect2D scissor{};
     scissor.offset = {0, 0};
     scissor.extent = swapchain.getExtentSwapchain();
-
-    vkCmdSetViewport(vertexbuffer.getCommandBuffer(currentFrame), 0, 1, &viewport); //??
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-
+    // Bind de buffers de vértices e índices (compartidos)
     VkBuffer vertexBuffers[] = { vertexbuffer.getVertexBuffer() };
-    VkDeviceSize offsets[]   = { 0 };
-    
+    VkDeviceSize offsets[] = { 0 };
+
+    //std::cout<<"Tamano del vertexbuffers pre dibujado:"<<vertexBuffers<<std::endl;
+
+
     vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(cmd, vertexbuffer.getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-    vkCmdBindDescriptorSets(cmd, 
-                        VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                        pipeline.getGrapicsPipelineLayout(), 
-                        0, 1, 
-                        &texture.getdescriptorSets(currentFrame),   // Asumiendo que es un método de Texture
-                        0, nullptr);
+    // === DIBUJAR CADA OBJETO ===
+for (const auto& gameObject : LevelObjects)
+{
+    if (gameObject.getIndexCount() == 0) continue;
 
-    vkCmdDrawIndexed(cmd, static_cast<uint32_t>(mesh.getIndices().size()), 1, 0, 0, 0);
+    // Bind del descriptor set específico de este objeto
+    VkDescriptorSet descriptorSet = gameObject.getdescriptorSetsmesh()[currentFrame];
+    vkCmdBindDescriptorSets(cmd,
+                            VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            pipeline.getGrapicsPipelineLayout(),
+                            0, 1, &descriptorSet,
+                            0, nullptr);
+
+    vkCmdDrawIndexed(cmd,
+                     gameObject.getIndexCount(),      // ← Usar el count guardado
+                     1,                               // instanceCount
+                     gameObject.getIndexOffset(),     // ← firstIndex correcto
+                     0,                               // vertexOffset
+                     0);                              // firstInstance
+}
 
     vkCmdEndRendering(cmd);
 
-
-    transition_image_layout(
-        cmd,
-        swapchain.getSwapchainImages()[imageIndex],
-        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        VK_IMAGE_ASPECT_COLOR_BIT,
-        VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
-        0,
-        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-        VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
-    );
+    // Transición final del swapchain image a Present
+    transition_image_layout(cmd,
+                            swapchain.getSwapchainImages()[imageIndex],
+                            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                            VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                            VK_IMAGE_ASPECT_COLOR_BIT,
+                            VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+                            0,
+                            VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+                            VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT);
 
     if (vkEndCommandBuffer(cmd) != VK_SUCCESS) {
         throw std::runtime_error("failed to record command buffer!");
@@ -292,21 +285,21 @@ void VertexBuffer::destroyVertexBuffer(LogicalDevice logicaldevice){
         
 }
 
-void VertexBuffer::createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture,  ObjectInstance& mesh){
+void VertexBuffer::createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture,   std::vector<Vertex>& vertices){
 
     Texture textclass{};
     textclass.getTextureImage() = texture;
 
-    VkDeviceSize bufferSize = sizeof(mesh.getVertices()[0]) * mesh.getVertices().size();
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
     std::cout<<"Tamano de buffer: "<<bufferSize<<std::endl;
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    VkBuffer stagingBuffer({});
+    VkDeviceMemory stagingBufferMemory({});
     createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
     vkMapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, mesh.getVertices().data(), (size_t) bufferSize);
+        memcpy(data, vertices.data(), bufferSize);
     vkUnmapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory);
 
     createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
@@ -317,12 +310,12 @@ void VertexBuffer::createVertexBuffer(LogicalDevice logicaldevice, PhysicalDevic
 
 }
 
-void VertexBuffer::createIndexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture, ObjectInstance& mesh){
+void VertexBuffer::createIndexBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice, Pool commandPool, VkImage texture, std::vector<uint32_t>& indices){
 
     Texture textclass{};
     textclass.getTextureImage() = texture;
 
-    VkDeviceSize bufferSize = sizeof(mesh.getIndices()[0]) * mesh.getIndices().size();
+    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -330,7 +323,7 @@ void VertexBuffer::createIndexBuffer(LogicalDevice logicaldevice, PhysicalDevice
 
     void* data;
     vkMapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, mesh.getIndices().data(), (size_t) bufferSize);
+    memcpy(data, indices.data(), (size_t) bufferSize);
     vkUnmapMemory(logicaldevice.GetLogicalDevice(), stagingBufferMemory);
 
     createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
@@ -343,17 +336,36 @@ void VertexBuffer::createIndexBuffer(LogicalDevice logicaldevice, PhysicalDevice
 }
 
 void VertexBuffer::createUniformBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice){
-    VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-    uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-    uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+    for (auto& gameObject : LevelObjects) {
+        gameObject.getuniformBuffersmesh().clear();
+        gameObject.getuniformBuffersMemorymesh().clear();
+        gameObject.getuniformBuffersMappedmesh().clear();
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+        //uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+        //uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
-        vkMapMemory(logicaldevice.GetLogicalDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+                VkBuffer buffer({});
+                VkDeviceMemory bufferMem({});
+            createBuffer(logicaldevice,physicaldevice,bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, buffer, bufferMem);
+
+            gameObject.getuniformBuffersmesh().emplace_back(std::move(buffer));
+            gameObject.getuniformBuffersMemorymesh().emplace_back(std::move(bufferMem));
+
+            void* mappedPtr = nullptr;
+            
+            if (vkMapMemory(logicaldevice.GetLogicalDevice(), bufferMem, 0, bufferSize, 0, &mappedPtr) != VK_SUCCESS) {
+                // TODO: proper error handling
+                throw std::runtime_error("Failed to map uniform buffer memory!");
+            }
+
+            gameObject.getuniformBuffersMappedmesh().emplace_back(mappedPtr);
+
+
+        }
     }
-
 };
 
 void VertexBuffer::destroyUniformBuffer(LogicalDevice logicaldevice){
@@ -366,32 +378,45 @@ void VertexBuffer::destroyUniformBuffer(LogicalDevice logicaldevice){
 
 void VertexBuffer::updateUniformBuffer(Swapchain swapchain, uint32_t currentImage) {
     static auto startTime = std::chrono::high_resolution_clock::now();
-
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+    glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), swapchain.getExtentSwapchain().width / (float) swapchain.getExtentSwapchain().height, 0.1f, 10.0f);
-    ubo.proj[1][1] *= -1;
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f), swapchain.getExtentSwapchain().width / (float) swapchain.getExtentSwapchain().height, 0.1f, 10.0f);
 
-    memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
+    proj[1][1] *= -1;
+
+    for (auto& mesh : LevelObjects){
+        
+        mesh.getrotation().y += 0.001f;
+
+        glm::mat4 initialRotation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 model = mesh.getModelMatrix() * initialRotation;
+
+    UniformBufferObject ubo{
+        .model = model,
+        .view = view,
+        .proj = proj
+    };
+
+        memcpy(mesh.getuniformBuffersMappedmesh()[currentImage], &ubo, sizeof(ubo));
+
+    }
 }
 
 void Pool::createDescriptorPool(LogicalDevice logicaldevice)
 {
     std::array<VkDescriptorPoolSize, 2> poolSizes{};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_OBJECTS * MAX_FRAMES_IN_FLIGHT);
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_OBJECTS * MAX_FRAMES_IN_FLIGHT);
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
-    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolInfo.maxSets = static_cast<uint32_t>(MAX_OBJECTS * MAX_FRAMES_IN_FLIGHT);
 
     if (vkCreateDescriptorPool(logicaldevice.GetLogicalDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");
@@ -579,9 +604,9 @@ void Texture::copyBufferToImage(Pool pool, LogicalDevice logicaldevice, VkBuffer
 }
 
 void Texture::destroyDescriptorSet(LogicalDevice logicaldevice){
-
+    for (auto& mesh : LevelObjects)
     for (int i = 0; i<MAX_FRAMES_IN_FLIGHT;i++){
-    descriptorSets[i] = VK_NULL_HANDLE;
+    mesh.getdescriptorSetsmesh()[i] = VK_NULL_HANDLE;
 
     }
 };
@@ -664,65 +689,89 @@ void Texture::createTextureSampler(LogicalDevice logicaldevice, PhysicalDevice p
 };
 
 void Texture::bindDescriptorSet(VertexBuffer vertexbuffer, GraphicsPipeline pipeline,uint32_t currentFrame){
-    vkCmdBindDescriptorSets(vertexbuffer.getCommandBuffer(currentFrame), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.getGrapicsPipelineLayout(), 0, 1, &getdescriptorSets(currentFrame), 0, nullptr);
+
+        VkDescriptorSet descriptorSet = LevelObjects[0].getdescriptorSetsmesh()[currentFrame];
+        vkCmdBindDescriptorSets(vertexbuffer.getCommandBuffer(currentFrame),
+                                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                pipeline.getGrapicsPipelineLayout(),
+                                0, 1, &descriptorSet,
+                                0, nullptr);
 };
 
-void Texture::createDescriptorSets(LogicalDevice logicaldevice, GraphicsPipeline pipeline, Pool pool,  VertexBuffer vertexbuffer) {
-        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, pipeline.getdescriptorSetLayout());
-        VkDescriptorSetAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = pool.getDescriptorPool();
-        allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-        allocInfo.pSetLayouts = layouts.data();
+void Texture::createDescriptorSets(LogicalDevice logicaldevice, 
+                                   GraphicsPipeline pipeline, 
+                                   Pool pool,  
+                                   VertexBuffer vertexbuffer) 
+{
+    VkDevice device = logicaldevice.GetLogicalDevice();
 
-        if (vkAllocateDescriptorSets(logicaldevice.GetLogicalDevice(), &allocInfo, descriptorSets) != VK_SUCCESS) {
+    for (auto& gameObject : LevelObjects) 
+    {
+        gameObject.getdescriptorSetsmesh().clear();
+
+        // Vector para recibir los descriptor sets
+        std::vector<VkDescriptorSet> descriptorSets(MAX_FRAMES_IN_FLIGHT);
+
+        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, 
+                                                   pipeline.getdescriptorSetLayout());
+
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool     = pool.getDescriptorPool();
+        allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        allocInfo.pSetLayouts        = layouts.data();
+
+        if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
 
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-                
-    // === 1. Uniform Buffer (binding 0) ===
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = vertexbuffer.getUniformBuffer(i);
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBufferObject);
-
-    VkWriteDescriptorSet uboWrite{};
-    uboWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    uboWrite.dstSet = descriptorSets[i];
-    uboWrite.dstBinding = 0;
-    uboWrite.dstArrayElement = 0;
-    uboWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboWrite.descriptorCount = 1;
-    uboWrite.pBufferInfo = &bufferInfo;
-
-    // === 2. Combined Image Sampler (binding 1) ===
-    VkDescriptorImageInfo imageInfo{};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = textureImageView;
-    imageInfo.sampler = textureSampler;
-
-    VkWriteDescriptorSet samplerWrite{};
-    samplerWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    samplerWrite.dstSet = descriptorSets[i];
-    samplerWrite.dstBinding = 1;                    // ← importante
-    samplerWrite.dstArrayElement = 0;
-    samplerWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    samplerWrite.descriptorCount = 1;
-    samplerWrite.pImageInfo = &imageInfo;
-
-    // Actualizar ambos de una vez
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites = {uboWrite, samplerWrite};
-
-    vkUpdateDescriptorSets(logicaldevice.GetLogicalDevice(),
-                           static_cast<uint32_t>(descriptorWrites.size()),
-                           descriptorWrites.data(),
-                           0, nullptr);
+        // Guardar todos los descriptor sets en el objeto
+        for (auto& ds : descriptorSets) {
+            gameObject.getdescriptorSetsmesh().emplace_back(ds);
         }
-}
-}
 
+        // Actualizar cada descriptor set (uno por frame in flight)
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+        {
+            // 1. Uniform Buffer
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = gameObject.getuniformBuffersmesh()[i];
+            bufferInfo.offset = 0;
+            bufferInfo.range  = sizeof(UniformBufferObject);
+
+            VkWriteDescriptorSet uboWrite{};
+            uboWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            uboWrite.dstSet          = gameObject.getdescriptorSetsmesh()[i];
+            uboWrite.dstBinding      = 0;
+            uboWrite.dstArrayElement = 0;
+            uboWrite.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            uboWrite.descriptorCount = 1;
+            uboWrite.pBufferInfo     = &bufferInfo;
+
+            // 2. Texture Sampler
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView   = textureImageView;
+            imageInfo.sampler     = textureSampler;
+
+            VkWriteDescriptorSet samplerWrite{};
+            samplerWrite.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            samplerWrite.dstSet          = gameObject.getdescriptorSetsmesh()[i];
+            samplerWrite.dstBinding      = 1;
+            samplerWrite.dstArrayElement = 0;
+            samplerWrite.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            samplerWrite.descriptorCount = 1;
+            samplerWrite.pImageInfo      = &imageInfo;
+
+            std::array<VkWriteDescriptorSet, 2> descriptorWrites = {uboWrite, samplerWrite};
+
+            vkUpdateDescriptorSets(device,
+                                   static_cast<uint32_t>(descriptorWrites.size()),
+                                   descriptorWrites.data(),
+                                   0, nullptr);
+        }
+    }
+}
 
 void DepthBuffer::createDepthResources(PhysicalDevice physicaldevice, Texture texture, LogicalDevice logicaldevice, VertexBuffer buffer, Swapchain& swapchain){
         
