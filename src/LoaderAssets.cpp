@@ -1,8 +1,6 @@
 
 #include "LoaderAssets.h"
 
-
-
 #include <iostream>
 #include <unordered_map>
 
@@ -53,9 +51,13 @@ void LoaderAssets::LoadModel(std::string path, std::vector<Vertex>& vertices , s
     }
 
     std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 64c4e27 (Primer Game Object (Corregir))
 
     for (const auto& shape : shapes) {
+                std::cout<<"Numero de vertices cargados: "<<&shape.mesh.indices<<std::endl;
 
         for (const auto& index : shape.mesh.indices) {
             
@@ -80,46 +82,28 @@ void LoaderAssets::LoadModel(std::string path, std::vector<Vertex>& vertices , s
             if (uniqueVertices.count(vertex) == 0) {
             uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
             vertices.push_back(vertex);
-
         }
 
         indices.push_back(uniqueVertices[vertex]);
         }
 
     }
-        std::cout << "Cargado: " << path <<std::endl;
-        std::cout <<"Vertices: " << vertices.size() <<std::endl;
-        std::cout <<"Indices: " << indices.size() << std::endl;
 
+<<<<<<< HEAD
         LevelObjects[orden].setVertices(vertices);
         LevelObjects[orden].setIndices(indices);
 
 
+=======
+>>>>>>> parent of 64c4e27 (Primer Game Object (Corregir))
 
 };
 
-void ObjectInstance::setupGameObjects(){
-    // Object 1 - Center
-    std::cout<<"Primer objeto inicializado"<<std::endl;
-    LevelObjects[0].setposition({0.0f, 1.0f, 0.0f});
-    LevelObjects[0].getrotation() = {0.0f, 0.0f, 0.0f};
-    LevelObjects[0].getscale() = {1.0f, 1.0f, 1.0f};
 
-    // Object 2 - Left
-    std::cout<<"Segundo objeto inicializado"<<std::endl;
-    LevelObjects[1].getposition() = {-2.0f, 0.0f, -1.0f};
-    LevelObjects[1].rotation ={0.0f, 0.0f, 0.0f};
-    LevelObjects[1].scale = {0.75f, 0.75f, 0.75f};
-
-    // Object 3 - Right
-    std::cout<<"Tercer objeto inicializado"<<std::endl;
-    LevelObjects[2].position = {2.0f, 0.0f, -1.0f};
-    LevelObjects[2].rotation = {0.0f, 0.0f, 0.0f};
-    LevelObjects[2].scale = {0.75f, 0.75f, 0.75f};
-};
 
 void ObjectInstance::AddObject(LoaderAssets loader, int orden){
 
+<<<<<<< HEAD
     vertices = getVertices();
     indices = getIndices();
     loader.LoadModel(MODEL_PATH, vertices, indices, orden);
@@ -185,3 +169,8 @@ void ObjectInstance::PrepareLevelObjects(std::vector<Vertex>& vertices, std::vec
     std::cout << "Total Vértices globales: " << vertices.size() << "\n";
     std::cout << "Total Índices globales:  " << indices.size() << std::endl;
 }
+=======
+loader.LoadModel(MODEL_PATH, vertices, indices);
+
+};
+>>>>>>> parent of 64c4e27 (Primer Game Object (Corregir))

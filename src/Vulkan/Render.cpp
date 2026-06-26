@@ -76,7 +76,7 @@ void Render::cleanSync(LogicalDevice logicaldevice){
 
 void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapchain,
                        GraphicsPipeline pipeline, WindowSurface windowsurface,
-                       PhysicalDevice physicaldevice, Window window, VertexBuffer& vertexbuffer, Texture texture,
+                       PhysicalDevice physicaldevice, Window window, VertexBuffer vertexbuffer, Texture texture,
                     DepthBuffer &depthbuffer,  VkClearValue clearDepth, VkImage depthImage, ObjectInstance mesh)
 {
 
@@ -110,7 +110,7 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         swapchain.RecreateSwapchain(logicaldevice, windowsurface, physicaldevice, window);//0xc6031ff8f0//0xc6031ff740
-        depthbuffer.cleanDepthResources(logicaldevice);
+                depthbuffer.cleanDepthResources(logicaldevice);
 
         depthbuffer.createDepthResources(physicaldevice,texture, logicaldevice, vertexbuffer, swapchain);
         return;   // Salir y reintentar en el próximo ciclo
@@ -127,7 +127,7 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
     vkResetCommandBuffer(vertexbuffer.getCommandBuffer(frameIndex),0);
 
     auto depth = depthbuffer.getdepthImage();
-    depthbuffer.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex, vertexbuffer, texture);
+    depthbuffer.recordCommandBuffer(imageIndex, swapchain, pipeline, frameIndex, vertexbuffer, texture, clearDepth, depth,mesh);
 
     // 5. Submit
     VkSubmitInfo submitInfo{};

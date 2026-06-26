@@ -10,14 +10,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include <array>
-
-
-// Define the number of objects to render
-
-
-
-
 const std::string MODEL_PATH = "../resources/models/viking_room.obj";
 const std::string TEXTURE_PATH = "../resources/Textures/viking_room.png";
 
@@ -54,9 +46,9 @@ class LoaderAssets {
 };
 
 
-
 class ObjectInstance {
     public:
+<<<<<<< HEAD
         glm::mat4 getModelMatrix() const;
         const std::vector<Vertex>& getVertices() const {return vertices;};
         const std::vector<uint32_t>& getIndices() const {return indices;};
@@ -65,53 +57,14 @@ class ObjectInstance {
 
         void setupGameObjects();
         void AddObject(LoaderAssets loader, int orden);
+=======
+        void AddObject(LoaderAssets loader);
+>>>>>>> parent of 64c4e27 (Primer Game Object (Corregir))
 
-    std::vector<VkBuffer>& getuniformBuffersmesh(){ return uniformBuffersmesh; };
-    std::vector<VkDeviceMemory>& getuniformBuffersMemorymesh(){ return uniformBuffersMemorymesh; };
-    VkDeviceMemory& getuniformBuffersMemoryValue(int i){ return uniformBuffersMemorymesh[i]; };
-
-    std::vector<void*>& getuniformBuffersMappedmesh(){ return uniformBuffersMappedmesh; };
-    const std::vector<VkDescriptorSet>&  getdescriptorSetsmesh() const { return descriptorSetsmesh; };
- std::vector<VkDescriptorSet>&  getdescriptorSetsmesh()  { return descriptorSetsmesh; };
-
-    glm::vec3& getposition () { return position;};
-    glm::vec3& getrotation () { return rotation;};
-    glm::vec3& getscale () { return scale;};
-    
-    void setposition (glm::vec3 pos) {  position = pos;};
-    void setrotation (glm::vec3 rot) {  rotation = rot;};
-    void setscale (glm::vec3 scal) {  scale = scal;};
-    
-    uint32_t getIndexOffset() const { return indexOffset; }
-    uint32_t getIndexCount()  const { return indexCount; }
-    void setIndexOffset(uint32_t offset) { indexOffset = offset; }
-    void setIndexCount(uint32_t count)   { indexCount = count; }
-
-    void PrepareLevelObjects(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
-
-
+        std::vector<Vertex>& getVertices() {return vertices;};
+        std::vector<uint32_t>& getIndices() {return indices;};
 
     private:
-    uint32_t indexOffset = 0;  
-    uint32_t indexCount  = 0;
-
-    glm::vec3 position = {0.0f, 0.0f, 0.0f};
-    glm::vec3 rotation = {0.0f, 0.0f, 0.0f};
-    glm::vec3 scale = {1.0f, 1.0f, 1.0f};
-
-    std::vector<VkBuffer> uniformBuffersmesh;
-    std::vector<VkDeviceMemory> uniformBuffersMemorymesh;
-    std::vector<void*> uniformBuffersMappedmesh;
-
-    std::vector<VkDescriptorSet> descriptorSetsmesh;
-
-//Creado ya y usado
-    std::vector<Vertex> vertices = {};
-    std::vector<uint32_t> indices = {};
+        std::vector<Vertex> vertices;
+        std::vector<uint32_t> indices;
 };
-
-constexpr int MAX_OBJECTS = 3;
-
-// In the VulkanApplication class:
-// Array of game objects to render
-static std::array<ObjectInstance, MAX_OBJECTS> LevelObjects;
