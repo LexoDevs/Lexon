@@ -23,7 +23,8 @@ void Engine::StartDrawFrame(infoDraw& structureDraw){
         structureDraw.depthbufferstr,  
         structureDraw.depthbufferstr.getClearImageView(),
         structureDraw.depthbufferstr.getdepthImage(),
-        structureDraw.meshstr
+        structureDraw.meshstr,
+        structureDraw.camerastr
     );
 };
 
@@ -67,7 +68,7 @@ void Engine::InitEngine() {
 
 void Engine::MainLoopEngine() {
 
-    infoDraw info = {logicaldevices, ComandPool, swapchain, pipeline, render, windowsurface, physicaldevice, window, vertexbuffer, texture, depthbuffer, mesh };
+    infoDraw info = {logicaldevices, ComandPool, swapchain, pipeline, render, windowsurface, physicaldevice, window, vertexbuffer, texture, depthbuffer, mesh, camera };
 
     double previousTime = glfwGetTime();
     int frameCount = 0;

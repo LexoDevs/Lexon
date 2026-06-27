@@ -12,7 +12,7 @@ class Render {
     void cleanSync(LogicalDevice logicaldevice);
     void drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapchain, GraphicsPipeline pipeline,
                         WindowSurface windowsurface, PhysicalDevice physicaldevice, Window window,VertexBuffer vertexBuffer,
-                        Texture texture, DepthBuffer &depthbuffer, VkClearValue clearDepth, VkImage depthImage, ObjectInstance mesh);
+                        Texture texture, DepthBuffer &depthbuffer, VkClearValue clearDepth, VkImage depthImage, ObjectInstance mesh, CameraView camera);
 
     private:
     VkSemaphore imageAvailableSemaphore[MAX_FRAMES_IN_FLIGHT];

@@ -5,8 +5,14 @@
 
 #include <string>
 
+
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
+
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <vulkan/vulkan.h>
 
@@ -25,6 +31,13 @@ struct Vertex {
     bool operator==(const Vertex& other) const {
         return pos == other.pos && color == other.color && texCoord == other.texCoord;
     }
+};
+
+struct UniformBufferObject
+{
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
 };
 
 namespace std {
@@ -49,6 +62,7 @@ class LoaderAssets {
 class ObjectInstance {
     public:
         void AddObject(LoaderAssets loader);
+        void SetMatrixModel(UniformBufferObject& ubo, float time, glm::vec3 pos);
 
         std::vector<Vertex>& getVertices() {return vertices;};
         std::vector<uint32_t>& getIndices() {return indices;};

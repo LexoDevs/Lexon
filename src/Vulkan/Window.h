@@ -5,11 +5,13 @@
 #include <algorithm> //std::clamp
 
 #include "Devices.h"
+#include "Camera.h"
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
 
 //############## Funcion Callback de Inputs ################//
+
 
 static void GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
@@ -18,6 +20,12 @@ static void GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, int acti
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 
     }
+
+	    if ((key == GLFW_KEY_W) && (action == GLFW_PRESS)) {
+
+
+    }
+
 }
 
 class Window {

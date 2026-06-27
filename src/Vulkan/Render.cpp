@@ -77,7 +77,7 @@ void Render::cleanSync(LogicalDevice logicaldevice){
 void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapchain,
                        GraphicsPipeline pipeline, WindowSurface windowsurface,
                        PhysicalDevice physicaldevice, Window window, VertexBuffer vertexbuffer, Texture texture,
-                    DepthBuffer &depthbuffer,  VkClearValue clearDepth, VkImage depthImage, ObjectInstance mesh)
+                    DepthBuffer &depthbuffer,  VkClearValue clearDepth, VkImage depthImage, ObjectInstance mesh, CameraView camera)
 {
 
 
@@ -119,7 +119,7 @@ void Render::drawFrame(LogicalDevice logicaldevice, Pool pool, Swapchain& swapch
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
-    vertexbuffer.updateUniformBuffer(swapchain,frameIndex);
+    vertexbuffer.updateUniformBuffer(swapchain,frameIndex,mesh, camera);
     // 3. Resetear fence
     vkResetFences(logicaldevice.GetLogicalDevice(), 1, &inFlightFence[frameIndex]);
 

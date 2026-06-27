@@ -3,19 +3,13 @@
 #include "VulkanConstants.h"
 
 #include "Pipeline.h"
+#include "../Camera.h"
 
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+
 
 #include <chrono>
 
-struct UniformBufferObject
-{
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
-};
+
 
 
 class Pool {
@@ -50,7 +44,7 @@ class VertexBuffer {
 
         void createUniformBuffer(LogicalDevice logicaldevice, PhysicalDevice physicaldevice);
         void destroyUniformBuffer(LogicalDevice logicaldevice);
-        void updateUniformBuffer(Swapchain swapchain, uint32_t currentImage);
+        void updateUniformBuffer(Swapchain swapchain, uint32_t currentImage, ObjectInstance mesh,CameraView camera);
 
         void setVertexBuffer(VkBuffer new_vertexbuffer){  vertexBuffer = new_vertexbuffer;}
 

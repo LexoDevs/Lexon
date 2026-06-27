@@ -4,7 +4,7 @@
 
 void GraphicsPipeline::createGraphicsPipeline(LogicalDevice device, Swapchain swapchain, VkFormat formatDepth) {
 
-    VkShaderModule shaderModule = createShaderModule(readFile("../shaders/slang.spv"), device);
+    VkShaderModule shaderModule = createShaderModule(readFile("../shaders/generated/slang.spv"), device);
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

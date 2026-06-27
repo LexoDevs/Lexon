@@ -83,7 +83,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${Vulkan_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/src
     ${stb_image_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/external/tinyobjloader
+    ${CMAKE_SOURCE_DIR}/third_party/tinyobjloader
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
