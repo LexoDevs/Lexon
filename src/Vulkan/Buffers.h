@@ -3,7 +3,7 @@
 #include "VulkanConstants.h"
 
 #include "Pipeline.h"
-#include "../Camera.h"
+#include "../Renderer/Camera.h"
 
 
 

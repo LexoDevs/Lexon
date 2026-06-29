@@ -1,5 +1,5 @@
 #pragma once
-#include "LoaderAssets.h"
+#include "../Assets/Loaders/LoaderAssets.h"
 
 class CameraView {
 

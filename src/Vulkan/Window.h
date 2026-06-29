@@ -5,8 +5,8 @@
 #include <algorithm> //std::clamp
 
 #include "Devices.h"
-#include "Camera.h"
-#include "../Runtime/RHI/Backends/Vulkan/VulkanRHI.h"
+#include "../Renderer/Camera.h"
+#include "../RHI/Vulkan/VulkanRHI.h"
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;

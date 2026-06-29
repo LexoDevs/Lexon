@@ -8,7 +8,7 @@
 
 #include "Swapchain.h"
 
-#include "../LoaderAssets.h"
+#include "../Assets/Loaders/LoaderAssets.h"
 
 class GraphicsPipeline {
 public:

@@ -1,7 +1,7 @@
 #pragma once
 #include "../Vulkan/Render.h"
-#include "../LoaderAssets.h"
-#include "../Runtime/RHI/Backends/Vulkan/VulkanRHI.h"
+#include "../Assets/Loaders/LoaderAssets.h"
+#include "../RHI/Vulkan/VulkanRHI.h"
 //Estructura personalizada para agrupar los datos de entrada en el dibujado de frames.
 struct infoDraw{
     LogicalDevice logicaldevicesstr;
