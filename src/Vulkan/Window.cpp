@@ -107,7 +107,7 @@ void Window::DestroyWindowsSistem(){
 
 //############## Clase Surface Window ################//
 
-void WindowSurface::CreateWindowSurface(VulkanInstance instance, Window window) {
+void WindowSurface::CreateWindowSurface(VulkanInstance& instance, Window window) {
 
 	std::cout << "\033[1;36m[!] Creando superficie de ventana virtual...\033[0m\n";
 

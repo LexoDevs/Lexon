@@ -7,7 +7,6 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-//stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
 VkVertexInputBindingDescription Vertex::getBindingDescription() {
     VkVertexInputBindingDescription bindingDescription{};

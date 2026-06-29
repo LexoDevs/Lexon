@@ -2,9 +2,6 @@
 
 //############## Funcion Callback de Capas de Validacion ################//
 
-const std::vector<char const*> validationLayers = {
-	"VK_LAYER_KHRONOS_validation"
-};
 
 std::vector<const char*> requiredDeviceExtension = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -27,11 +24,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
     }
 }
 
-#ifdef NDEBUG
-constexpr bool enableValidationLayers = false;
-#else
-constexpr bool enableValidationLayers = true;
-#endif
+
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -93,119 +86,6 @@ bool checkValidationLayerSupport() {
 	return true;
 }
 
-//############## Estructura para deparar los datos de version en 3 ################//
-
-struct {
-	int Major = 0;
-	int Minor = 0;
-	int Patch = 0;
-} m_Version;
-
-//############## Estructura para agrupar las colas de dispositivos fisicos ################//
-
-
-
-//############## Instancia de Vulkan ################//
-
-void VulkanInstance::CreateInstance() {
-	std::cout << "\033[1;36m[!] Creando instancia de Vulkan...\033[0m\n";
-	std::cout << "\033[1;33m\tComprobando version...\033[0m\n";
-
-
-	GetInstanceVersion();
-
-	if (enableValidationLayers && !checkValidationLayerSupport()) {
-		throw std::runtime_error("validation layers requested, but not available!");
-	}
-
-	VkApplicationInfo appInfo{};
-	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName = "Hello Triangle";
-	appInfo.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
-	appInfo.pEngineName = "No Engine";
-	appInfo.engineVersion = VK_MAKE_VERSION(0, 1, 0);
-	appInfo.apiVersion = VK_MAKE_API_VERSION(0, m_Version.Major, m_Version.Minor, m_Version.Patch);
-
-	VkInstanceCreateInfo createInfo{};
-	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	createInfo.pApplicationInfo = &appInfo;
-
-	std::cout << "\033[1;33m\tCargando extensiones...\033[0m\n";
-
-	auto extensionsList = GetInstanceExtensionsRequired();
-
-	std::cout << "\033[1;33m\tExtensiones cargadas:\033[0m\n";
-	for (int i = 0; i <= extensionsList.size()-1; i++) {
-		std::cout << "\t\t\033[1;32m"<<extensionsList[i]<<"\033[0m:" << " alojada en \033[1;32m" << &extensionsList[i] << "\033[0m\n";
-
-	}
-
-	std::cout << "\n";
-
-	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensionsList.size());
-	createInfo.ppEnabledExtensionNames = extensionsList.data();
-
-	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-	if (enableValidationLayers) {
-		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-		createInfo.ppEnabledLayerNames = validationLayers.data();
-
-		populateDebugMessengerCreateInfo(debugCreateInfo);
-		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
-	}
-	else {
-		createInfo.enabledLayerCount = 0;
-		createInfo.pNext = nullptr;
-	}
-
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create instance!");
-	}
-	std::cout << '\t' <<"\033[1;32mInstancia\033[0m guardada en \033[1;32m" << instance << "\033[0m\n\n";
-
-
-};
-
-void VulkanInstance::DestroyInstance() {
-	if (enableValidationLayers) {
-           // DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-        }
-
-	vkDestroyInstance(instance, nullptr);
-
-};
-
-//Obtencion de la version de la instancia de vulkan creada
-void VulkanInstance::GetInstanceVersion() {
-
-	uint32_t InstanceVersion = 0;
-
-	VkResult res = vkEnumerateInstanceVersion(&InstanceVersion);
-	if (!res) {
-
-		m_Version.Major = VK_API_VERSION_MAJOR(InstanceVersion);
-		m_Version.Minor = VK_API_VERSION_MINOR(InstanceVersion);
-		m_Version.Patch = VK_API_VERSION_PATCH(InstanceVersion);
-
-		std::cout<<"\t" << "La \033[1;32mversion\033[0m cargada de \033[1;32mVulkan\033[0m es: \033[1;32m" <<
-			m_Version.Major << '.' << m_Version.Minor <<'.' << m_Version.Patch<<"\033[0m\n\n";
-	}
-}
-
-//Otencion de todas las extensiones requeridas por la instanciad de vulkan
-std::vector<const char*> VulkanInstance::GetInstanceExtensionsRequired() {
-
-	uint32_t glfwExtensionCount = 0;
-	const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-
-        if (enableValidationLayers) {
-            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-        }
-
-	return extensions;
-}
 
 //############## Dispositivos fisicos de vulkan ################//
 

@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+
+
 void Engine::runEngine() {
 
 	InitEngine();
@@ -32,11 +34,12 @@ void Engine::InitEngine() {
 
 	window.InitWindowsSistem();
 
-	instance.CreateInstance();
+    VulkanAPI.InitVulkan();
+	std::cout << "\033[1;36m[!] Creando superficie de ventana virtual...\033[0m\n";
 
-    windowsurface.CreateWindowSurface(instance, window);
+    windowsurface.CreateWindowSurface(VulkanAPI.GetVulkanInstance(), window);
 
-	physicaldevice.SelectPhysicalDevices(instance);
+	physicaldevice.SelectPhysicalDevices(VulkanAPI.GetVulkanInstance());
 	logicaldevices.CreateLogicalDevice(physicaldevice);
 
 	swapchain.CreateSwapChain(windowsurface, physicaldevice, window, logicaldevices);
@@ -128,9 +131,9 @@ void Engine::CleanEngine() {
     vkDestroyShaderModule(logicaldevices.GetLogicalDevice(), pipeline.getShaderModule(), nullptr);
 
     vkDestroyDevice(logicaldevices.GetLogicalDevice(), nullptr);
-    vkDestroySurfaceKHR(instance.GetInstance(), windowsurface.getSurface(), nullptr);
+    //vkDestroySurfaceKHR(instance.getVulkanInstance(, windowsurface.getSurface(), nullptr);
     
-	instance.DestroyInstance();
+	VulkanAPI.DestroyVulkan();
 
 	window.DestroyWindowsSistem();
 

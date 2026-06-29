@@ -1,0 +1,80 @@
+Vulkan/
+├── Core/
+│   ├── VulkanContext.h/cpp          ← único núcleo compartido
+│   ├── VulkanConfig.h
+│   ├── VulkanLimits.h
+│   └── VulkanHandles.h
+│
+├── Instance/
+│   ├── VulkanInstance.h/cpp
+│   ├── VulkanDebugMessenger.h/cpp
+│   └── VulkanValidation.h
+│
+├── Device/
+│   ├── VulkanDevice.h/cpp
+│   ├── VulkanPhysicalDevice.h/cpp
+│   └── VulkanQueueManager.h/cpp
+│
+├── Memory/
+│   ├── VulkanAllocator.h/cpp
+│   ├── VulkanMemoryBlock.h
+│   └── VulkanStagingSystem.h/cpp
+│
+├── Swapchain/
+│   ├── VulkanSwapchain.h/cpp
+│   ├── VulkanSurface.h/cpp
+│   └── VulkanPresentManager.h/cpp
+│
+├── Resources/
+│   ├── VulkanBuffer.h/cpp
+│   ├── VulkanImage.h/cpp
+│   ├── VulkanSampler.h/cpp
+│   └── VulkanResourceRegistry.h/cpp
+│
+├── Pipeline/
+│   ├── VulkanPipeline.h/cpp
+│   ├── VulkanPipelineLayout.h/cpp
+│   ├── VulkanPipelineCache.h/cpp
+│   └── VulkanRenderPass.h/cpp
+│
+├── Shader/
+│   ├── VulkanShaderModule.h/cpp
+│   ├── VulkanSPIRVLoader.h/cpp
+│   └── VulkanReflection.h/cpp
+│
+├── Command/
+│   ├── VulkanCommandSystem.h/cpp
+│   ├── VulkanCommandBuffer.h/cpp
+│   ├── VulkanCommandPool.h/cpp
+│   └── VulkanSubmission.h/cpp
+│
+├── Sync/
+│   ├── VulkanFence.h/cpp
+│   ├── VulkanSemaphore.h/cpp
+│   ├── VulkanBarrier.h/cpp
+│   └── VulkanFrameSync.h/cpp
+│
+├── Descriptors/
+│   ├── VulkanDescriptorSet.h/cpp
+│   ├── VulkanDescriptorPool.h/cpp
+│   ├── VulkanBindless.h/cpp
+│   └── VulkanDescriptorUpdateSystem.h/cpp
+│
+├── Frame/
+│   ├── VulkanFrameContext.h/cpp
+│   ├── VulkanFrameManager.h/cpp
+│   └── VulkanFrameAllocator.h/cpp
+│
+├── Extensions/
+│   ├── VulkanRayTracing.h
+│   ├── VulkanMeshShaders.h
+│   ├── VulkanDynamicRendering.h
+│   └── VulkanDescriptorIndexing.h
+│
+├── Debug/
+│   ├── VulkanDebugUtils.h/cpp
+│   ├── VulkanGPUProfiler.h/cpp
+│   └── VulkanCrashDump.h/cpp
+│
+└── VulkanRHI.cpp
+└── VulkanRHI.h

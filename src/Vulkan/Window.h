@@ -6,6 +6,7 @@
 
 #include "Devices.h"
 #include "Camera.h"
+#include "../Runtime/RHI/Backends/Vulkan/VulkanRHI.h"
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
@@ -58,7 +59,7 @@ class Window {
 class WindowSurface {
 
 	public:
-		void CreateWindowSurface(VulkanInstance instance, Window window );
+		void CreateWindowSurface(VulkanInstance& instance, Window window );
 		
 		VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(PhysicalDevice physicaldevice);
 		VkPresentModeKHR GetSurfacePresentationsMode(PhysicalDevice physicaldevice);

@@ -11,6 +11,7 @@
 #include <glm/mat4x4.hpp>
 
 #include <vulkan/vulkan.h> 
+#include "../Runtime/RHI/Backends/Vulkan/VulkanRHI.h"
 
 #include <iostream>
 #include <optional>
@@ -49,12 +50,12 @@ struct QueueFamilyIndices {
 };
 
 
-class VulkanInstance {
+/*class VulkanInstance {
 public:
 
 	void CreateInstance();
 	void DestroyInstance();
-	VkInstance GetInstance() { return instance; };
+	VkInstance& GetInstance() { return instance; };
 
 private:
 	VkInstance instance;
@@ -62,7 +63,7 @@ private:
 	void GetInstanceVersion();
 	std::vector<const char*> GetInstanceExtensionsRequired();
 
-};
+};*/
 
 class PhysicalDevice {
 public:
