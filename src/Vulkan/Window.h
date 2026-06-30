@@ -7,27 +7,12 @@
 #include "Devices.h"
 #include "../Renderer/Camera.h"
 #include "../RHI/Vulkan/VulkanRHI.h"
+#include "../Core/Input/InputSystem.h"
 
 constexpr uint32_t WIDTH = 800;
 constexpr uint32_t HEIGHT = 600;
 
-//############## Funcion Callback de Inputs ################//
 
-
-static void GLFW_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-
-    if ((key == GLFW_KEY_ESCAPE) && (action == GLFW_PRESS)) {
-
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-
-    }
-
-	    if ((key == GLFW_KEY_W) && (action == GLFW_PRESS)) {
-
-
-    }
-
-}
 
 class Window {
 
@@ -35,7 +20,6 @@ class Window {
 
 		void InitWindowsSistem();
 		void DestroyWindowsSistem();
-		void PersonalizarVentana(GLFWwindow* window);
 		void CrearVentana(const char* name);
 		void LimpiarVentanas();
 
@@ -46,6 +30,8 @@ class Window {
 		bool& getframebufferResized() { return framebufferResized;}
 		
 	private:
+		void PersonalizarVentana(GLFWwindow* window);
+
 		void CargarGLFW();
 		void DesargarGLFW();
 

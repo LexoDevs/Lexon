@@ -10,15 +10,14 @@ public:
 	void destroySwapchain(LogicalDevice& logicaldevice);
 
 	void RecreateSwapchain(LogicalDevice logicaldevices,WindowSurface windowsurface,PhysicalDevice physicaldevice,Window window);
-	std::vector<VkImage>& getSwapchainImages() { return swapchainImages; } 
-	std::vector<VkImageView>& getSwapchainImageView() { return swapChainImageViews; }
-	VkSwapchainKHR getSwapchain() const { return swapChain; }
-	void setSwapchain(VkSwapchainKHR swapnew) { swapChain = swapnew; }
 
-	VkExtent2D& getExtentSwapchain() { return swapChainExtent; }
-	VkSurfaceFormatKHR GetswapChainSurfaceFormat() {return swapChainSurfaceFormat;}
-	VkFormat& GetswapChainImageformat() {return swapChainImageFormat;}
+	VkSwapchainKHR getSwapchain() const 				{ return swapChain; }
+	VkExtent2D& getExtentSwapchain()					{ return swapChainExtent; }
+	VkSurfaceFormatKHR GetswapChainSurfaceFormat()		{ return swapChainSurfaceFormat;}
+	VkFormat& GetswapChainImageformat() 				{ return swapChainImageFormat;}
 
+	std::vector<VkImage>& getSwapchainImages() 			{ return swapchainImages; } 
+	std::vector<VkImageView>& getSwapchainImageView()   { return swapChainImageViews; }
 
 private:
 

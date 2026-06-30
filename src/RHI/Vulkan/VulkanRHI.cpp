@@ -1,17 +1,19 @@
 #include "VulkanRHI.h"
 #include <iostream>
 
-VulkanRHI::VulkanRHI(): instance(instance)
+VulkanRHI::VulkanRHI()
+    : instance(context),
+      validacionlayers(context)
 {
-
 }
-
     void VulkanRHI::InitVulkan(){ 
-        std::cout<<"Iniciando instancia:"<<std::endl;
         instance.CreateInstances();
+        validacionlayers.CreateDebugUtilsMessengerEXT(context,nullptr);
     };
 
     void VulkanRHI::DestroyVulkan(){ 
+
+        validacionlayers.DestroyDebugUtilsMessengerEXT(context,nullptr);
         instance.DestroyInstance();
         
     };

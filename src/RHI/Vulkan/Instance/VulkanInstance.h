@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../Core/VulkanContext.h"
+
+
 #include "vector"
 #include "../Resources/VulkanConstants.h"
 
@@ -8,6 +10,11 @@
 
 class VulkanInstance {
 public:
+    VulkanInstance(VulkanContext& context)
+        : m_Context(context)
+    {
+    }
+	
 	//Destroy y Create
 	void CreateInstances();
 	void DestroyInstance();

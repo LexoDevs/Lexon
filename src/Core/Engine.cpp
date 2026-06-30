@@ -35,7 +35,6 @@ void Engine::InitEngine() {
 	window.InitWindowsSistem();
 
     VulkanAPI.InitVulkan();
-	std::cout << "\033[1;36m[!] Creando superficie de ventana virtual...\033[0m\n";
 
     windowsurface.CreateWindowSurface(VulkanAPI.GetVulkanInstance(), window);
 

@@ -106,8 +106,9 @@ void Swapchain::cleanSwapchain(LogicalDevice logicaldevice)
 {
     // Destruir image views
     for (auto imageView : swapChainImageViews) {
-
-        vkDestroyImageView(logicaldevice.GetLogicalDevice(), imageView, nullptr);
+        if (imageView != VK_NULL_HANDLE){
+            vkDestroyImageView(logicaldevice.GetLogicalDevice(), imageView, nullptr);
+        }
     }
 
     // Destruir swapchain
