@@ -1,10 +1,8 @@
-#include "Pipeline.h"
+#include "VulkanPipeline.h"
 
+void VulkanPipeline::createGraphicsPipeline(VkFormat formatDepth) {
 
-
-void GraphicsPipeline::createGraphicsPipeline(LogicalDevice device, Swapchain swapchain, VkFormat formatDepth) {
-
-    VkShaderModule shaderModule = createShaderModule(readFile("../shaders/generated/slang.spv"), device);
+    VkShaderModule shaderModule = createShaderModule(readFile("../shaders/generated/slang.spv"));
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -39,14 +37,14 @@ void GraphicsPipeline::createGraphicsPipeline(LogicalDevice device, Swapchain sw
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float) swapchain.getExtentSwapchain().width;
-    viewport.height = (float) swapchain.getExtentSwapchain().height;
+    viewport.width = (float) m_Context.swapChainExtent.width;
+    viewport.height = (float) m_Context.swapChainExtent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = swapchain.getExtentSwapchain();
+    scissor.extent = m_Context.swapChainExtent;
 
     VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -135,24 +133,24 @@ void GraphicsPipeline::createGraphicsPipeline(LogicalDevice device, Swapchain sw
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1; // Optional
-        pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout; // Optional
+        pipelineLayoutInfo.pSetLayouts = &m_Context.descriptorSetLayout; // Optional
         pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
         pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
 
 
-        if (vkCreatePipelineLayout(device.GetLogicalDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(m_Context.device, &pipelineLayoutInfo, nullptr, &m_Context.pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
-        VkSurfaceFormatKHR surfaceFormat = swapchain.GetswapChainSurfaceFormat();
+        VkSurfaceFormatKHR surfaceFormat = m_Context.swapChainSurfaceFormat;
         
 
         VkPipelineRenderingCreateInfo renderingInfo{};
         renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
         renderingInfo.colorAttachmentCount = 1;
         renderingInfo.pColorAttachmentFormats = &surfaceFormat.format;
-        renderingInfo.depthAttachmentFormat = formatDepth;
+        renderingInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
 
     VkGraphicsPipelineCreateInfo pipelineCreateInfoChain{};
         pipelineCreateInfoChain.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -166,20 +164,20 @@ void GraphicsPipeline::createGraphicsPipeline(LogicalDevice device, Swapchain sw
         pipelineCreateInfoChain.pMultisampleState   = &multisampling;
         pipelineCreateInfoChain.pColorBlendState    = &colorBlending;
         pipelineCreateInfoChain.pDynamicState       = &dynamicState;
-        pipelineCreateInfoChain.layout              = pipelineLayout;
-        pipelineCreateInfoChain.renderPass          = nullptr;
+        pipelineCreateInfoChain.layout              = m_Context.pipelineLayout;
+        pipelineCreateInfoChain.renderPass          = VK_NULL_HANDLE;
         pipelineCreateInfoChain.pDepthStencilState = &depthStencil;
 
 
 
-        if (vkCreateGraphicsPipelines(device.GetLogicalDevice(), VK_NULL_HANDLE, 1, &pipelineCreateInfoChain, nullptr, &Pipeline) != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(m_Context.device, VK_NULL_HANDLE, 1, &pipelineCreateInfoChain, nullptr, &m_Context.Pipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
         
 
 };
 
-void GraphicsPipeline::CreateDescriptorSetLayout(LogicalDevice logicaldevice){
+void VulkanPipeline::CreateDescriptorSetLayout(){
         VkDescriptorSetLayoutBinding uboLayoutBinding{};
         uboLayoutBinding.binding = 0;
         uboLayoutBinding.descriptorCount = 1;
@@ -200,13 +198,13 @@ void GraphicsPipeline::CreateDescriptorSetLayout(LogicalDevice logicaldevice){
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
         layoutInfo.pBindings = bindings.data();
 
-        if (vkCreateDescriptorSetLayout(logicaldevice.GetLogicalDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+        if (vkCreateDescriptorSetLayout(m_Context.device, &layoutInfo, nullptr, &m_Context.descriptorSetLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor set layout!");
         }
 
 }
 
-std::vector<char> GraphicsPipeline::readFile(const std::string& filename) {
+std::vector<char> VulkanPipeline::readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
     if (!file.is_open()) {
@@ -221,24 +219,27 @@ std::vector<char> GraphicsPipeline::readFile(const std::string& filename) {
     return buffer;
 }
 
-[[nodiscard]] VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char>& code, LogicalDevice device)
+[[nodiscard]] VkShaderModule VulkanPipeline::createShaderModule(const std::vector<char>& code)
 {
     VkShaderModuleCreateInfo shadermodulecreateInfo{};
     shadermodulecreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     shadermodulecreateInfo.codeSize = code.size() * sizeof(char);
     shadermodulecreateInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-    if (vkCreateShaderModule(device.GetLogicalDevice(), &shadermodulecreateInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+    if (vkCreateShaderModule(m_Context.device, &shadermodulecreateInfo, nullptr, &m_Context.shaderModule) != VK_SUCCESS) {
         throw std::runtime_error("failed to create shader module!");
     }
 
-    return shaderModule;
+    return m_Context.shaderModule;
 
 }
 
-void GraphicsPipeline::DestroyDescriptorSetLayout(LogicalDevice logicaldevice) {
-    vkDestroyDescriptorSetLayout(logicaldevice.GetLogicalDevice(), descriptorSetLayout, nullptr);
+void VulkanPipeline::DestroyDescriptorSetLayout() {
+    vkDestroyDescriptorSetLayout(m_Context.device, m_Context.descriptorSetLayout, nullptr);
 
+    vkDestroyPipeline(m_Context.device, m_Context.Pipeline, nullptr);
+    vkDestroyPipelineLayout(m_Context.device, m_Context.pipelineLayout, nullptr);
+    vkDestroyShaderModule(m_Context.device, m_Context.shaderModule, nullptr);
 
 }
 

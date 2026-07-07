@@ -1,5 +1,7 @@
 #include "VulkanInstance.h"
 #include <iostream>
+#include <cstring>
+#include <GLFW/glfw3.h>
 
 struct {
 	int Major = 0;
@@ -168,10 +170,9 @@ void VulkanInstance::CreateInstances() {
 
 
 void VulkanInstance::DestroyInstance() {
-	if (enableValidationLayers) {
-           // DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-        }
 
 	vkDestroyInstance(m_Context.instance, nullptr);
 
 };
+
+

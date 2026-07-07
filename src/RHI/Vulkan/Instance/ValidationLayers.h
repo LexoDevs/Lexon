@@ -34,15 +34,16 @@ public:
     {
     }
 
-    void DestroyDebugUtilsMessengerEXT(VulkanContext context, const VkAllocationCallbacks* pAllocator);
-    VkResult CreateDebugUtilsMessengerEXT(VulkanContext context, const VkAllocationCallbacks* pAllocator);
-
-	VkDebugUtilsMessengerEXT GetDebugInfos() { return m_Context.debuginfo; };
-
+    void setupDebugMessenger();
+    void DestroyDebugUtilsMessengerEXT(const VkAllocationCallbacks* pAllocator);
+    VkResult CreateDebugUtilsMessengerEXT(const VkAllocationCallbacks* pAllocator);
+void populateDebugMessengerCreateInfo();
+void DestroyValidationLayers();
 
 private:
 	//Contexto de vulkan (Datos)
     VulkanContext& m_Context;
 
-    VkDebugUtilsMessengerCreateInfoEXT createinfodebug;
+    //VkDebugUtilsMessengerEXT debuginfo;
+    //VkDebugUtilsMessengerCreateInfoEXT createinfodebug;
 };

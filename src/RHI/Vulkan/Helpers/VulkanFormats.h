@@ -2,7 +2,9 @@
 
 #include <vulkan/vulkan.h> 
 
-const char* FormatToString(VkFormat format) {
+#include <optional>
+
+static const char* FormatToString(VkFormat format) {
     switch (format) {
     case 44:              return "VK_FORMAT_B8G8R8A8_UNORM";
     case 50:              return "VK_FORMAT_B8G8R8A8_SRGB ";
@@ -14,7 +16,7 @@ const char* FormatToString(VkFormat format) {
     }
 }
 
-const char* PresentModeToString(VkPresentModeKHR presentmode) {
+static const char* PresentModeToString(VkPresentModeKHR presentmode) {
     switch (presentmode) {
     case 0:                  return "VK_PRESENT_MODE_IMMEDIATE_KHR";
     case 1:                  return "VK_PRESENT_MODE_MAILBOX_KHR";
@@ -27,3 +29,12 @@ const char* PresentModeToString(VkPresentModeKHR presentmode) {
     default: return "Formato desconocido.";
     }
 }
+
+struct QueueFamilyIndices {
+	std::optional<uint32_t> graphicsFamily;
+	std::optional<uint32_t> presentFamily;
+
+	bool isComplete() const {
+		return graphicsFamily.has_value() && presentFamily.has_value();
+	}
+};

@@ -1,41 +1,40 @@
 #pragma once
-#include "../Vulkan/Render.h"
 #include "../Assets/Loaders/LoaderAssets.h"
 #include "../RHI/Vulkan/VulkanRHI.h"
+#include "Input/InputSystem.h"
+#include "../Editor/EditorLayer.h"
 //Estructura personalizada para agrupar los datos de entrada en el dibujado de frames.
+
+/*
 struct infoDraw{
-    LogicalDevice logicaldevicesstr;
+
     Pool ComandPoolstr;
     Swapchain swapchainstr;
     GraphicsPipeline pipelinestr; 
     Render renderstr;
-	WindowSurface windowsurfacestr;
-	PhysicalDevice physicaldevicestr;
-	Window windowstr;
 	VertexBuffer vertexbufferstr;
 	Texture texturestr;
 	DepthBuffer depthbufferstr;
 	ObjectInstance meshstr;
 	CameraView camerastr;
-};
+};*/
 
 
 class Engine {
 public:
 	void runEngine();
-	void StartDrawFrame(infoDraw& structureDraw);
-
+	void StartDrawFrame();
+	void CleanEngine();
 private:
 	void InitEngine();
 	void MainLoopEngine();
-	void CleanEngine();
 
+	LoaderAssets loader;
 	VulkanRHI VulkanAPI;
-
-	Window window;
-	PhysicalDevice physicaldevice;
-	LogicalDevice logicaldevices;
-	WindowSurface windowsurface;
+	ObjectInstance mesh;
+	CameraView camera;
+EditorLayer layersUI;
+	/*
 	Swapchain swapchain;
 	GraphicsPipeline pipeline;
 	Pool ComandPool;
@@ -43,12 +42,9 @@ private:
 	Render render;
 	Texture texture;
 	DepthBuffer depthbuffer;
-uint32_t depthImage;
+	uint32_t depthImage;
 	ObjectInstance mesh;
-CameraView camera;
-
-
-	LoaderAssets loader;
+*/
 };
 
 

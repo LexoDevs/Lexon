@@ -1,5 +1,5 @@
 #include "Engine.h"
-
+#include <iostream>
 
 
 void Engine::runEngine() {
@@ -9,79 +9,63 @@ void Engine::runEngine() {
 	CleanEngine();
 };
 
-void Engine::StartDrawFrame(infoDraw& structureDraw){
+void Engine::StartDrawFrame(){
 
 
-    render.drawFrame(
-        structureDraw.logicaldevicesstr,
+    /*render.drawFrame(
         structureDraw.ComandPoolstr,
         structureDraw.swapchainstr,
         structureDraw.pipelinestr,
-        structureDraw.windowsurfacestr,
-        structureDraw.physicaldevicestr,
-        structureDraw.windowstr,
+        structureDraw.renderstr,
         structureDraw.vertexbufferstr,
         structureDraw.texturestr,
         structureDraw.depthbufferstr,  
-        structureDraw.depthbufferstr.getClearImageView(),
-        structureDraw.depthbufferstr.getdepthImage(),
         structureDraw.meshstr,
         structureDraw.camerastr
-    );
+    );*/
 };
 
 void Engine::InitEngine() {
 
-	window.InitWindowsSistem();
+
+    VulkanAPI.InitWindowSistem();
+
+    VulkanRHI* pVulkan = &VulkanAPI;
+    glfwSetWindowUserPointer(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, pVulkan);
 
     VulkanAPI.InitVulkan();
 
-    windowsurface.CreateWindowSurface(VulkanAPI.GetVulkanInstance(), window);
-
-	physicaldevice.SelectPhysicalDevices(VulkanAPI.GetVulkanInstance());
-	logicaldevices.CreateLogicalDevice(physicaldevice);
-
-	swapchain.CreateSwapChain(windowsurface, physicaldevice, window, logicaldevices);
-	swapchain.CreateImageView(logicaldevices);
-    pipeline.CreateDescriptorSetLayout(logicaldevices);
-
-	pipeline.createGraphicsPipeline(logicaldevices, swapchain, depthbuffer.findDepthFormat(physicaldevice));
-
-    ComandPool.createCommandPool(logicaldevices,physicaldevice); 
-    depthbuffer.createDepthResources(physicaldevice, texture, logicaldevices, vertexbuffer, swapchain);
-
-
-    texture.createTextureImage(vertexbuffer,logicaldevices, physicaldevice, ComandPool);
-    texture.createTextureImageView(logicaldevices, VK_IMAGE_ASPECT_DEPTH_BIT);
-    texture.createTextureSampler(logicaldevices, physicaldevice);
-
     mesh.AddObject(loader);
-    vertexbuffer.createVertexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage(),mesh);
-    vertexbuffer.createIndexBuffer(logicaldevices,physicaldevice,ComandPool, texture.getTextureImage(),mesh);
 
-    vertexbuffer.createUniformBuffer(logicaldevices,physicaldevice);
-    ComandPool.createDescriptorPool(logicaldevices);
-    texture.createDescriptorSets(logicaldevices, pipeline, ComandPool, vertexbuffer);
+    VulkanAPI.InitPostLoadElements(mesh);
 
-    vertexbuffer.createCommandBuffer(logicaldevices, ComandPool); 
+    layersUI.ImGui_Init(VulkanAPI);  
 
-    render.createSyncObjects(logicaldevices);
 };
 
 void Engine::MainLoopEngine() {
 
-    infoDraw info = {logicaldevices, ComandPool, swapchain, pipeline, render, windowsurface, physicaldevice, window, vertexbuffer, texture, depthbuffer, mesh, camera };
 
     double previousTime = glfwGetTime();
     int frameCount = 0;
     double fps = 0.0;
 
-    while (!glfwWindowShouldClose(window.GetWindows(0))){
+    while (!glfwWindowShouldClose(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow)){
 
-        glfwSetKeyCallback(window.GetWindows(0), GLFW_KeyCallback);
+        glfwSetKeyCallback(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, GLFW_KeyCallback);
         glfwPollEvents();
 
-        StartDrawFrame(info);        
+    // ImGui NewFrame ANTES de DrawFrame
+    layersUI.ImGui_NewFrame();
+
+    // Aquí dibujas tu interfaz
+    ImGui::ShowDemoWindow();
+    layersUI.VentanaSuperior(VulkanAPI);
+
+    VulkanAPI.DrawFrame(camera, mesh);   // ← Dentro hará RecordImGui
+
+    layersUI.ImGui_EndFrame();   // Para viewports
+
         double currentTime = glfwGetTime();
         frameCount++;
 
@@ -91,7 +75,7 @@ void Engine::MainLoopEngine() {
             frameCount = 0;
             //Cambiar titulo añadiendo los FPS
             std::string title = "Vulkan Engine - FPS: " + std::to_string(static_cast<int>(fps));
-            glfwSetWindowTitle(window.GetWindows(0), title.c_str());
+            glfwSetWindowTitle(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, title.c_str());
         }
 
         // Mostrar FPS en consola 
@@ -103,38 +87,16 @@ void Engine::MainLoopEngine() {
     }
         std::cout<<std::endl;
 
-    vkDeviceWaitIdle(logicaldevices.GetLogicalDevice());
+    vkDeviceWaitIdle(VulkanAPI.GetVulkanContext().device);
 
 };
 
 
 void Engine::CleanEngine() {
-    depthbuffer.destroyDepthResources(logicaldevices);
-    swapchain.destroySwapchain(logicaldevices);
-    texture.destroyImageTextureView(logicaldevices);
-    texture.destroyImageTexture(logicaldevices);
 
-    pipeline.DestroyDescriptorSetLayout(logicaldevices);
-
-    vertexbuffer.destroyVertexBuffer(logicaldevices);
-
-    vertexbuffer.destroyUniformBuffer(logicaldevices);
-
-	render.destroyFences(logicaldevices);
-    ComandPool.destroyCommandPool(logicaldevices);
-
-    texture.destroyDescriptorSet(logicaldevices);
-
-    vkDestroyPipeline(logicaldevices.GetLogicalDevice(), pipeline.getGrapicsPipeline(), nullptr);
-    vkDestroyPipelineLayout(logicaldevices.GetLogicalDevice(), pipeline.getGrapicsPipelineLayout(), nullptr);
-    vkDestroyShaderModule(logicaldevices.GetLogicalDevice(), pipeline.getShaderModule(), nullptr);
-
-    vkDestroyDevice(logicaldevices.GetLogicalDevice(), nullptr);
-    //vkDestroySurfaceKHR(instance.getVulkanInstance(, windowsurface.getSurface(), nullptr);
-    
 	VulkanAPI.DestroyVulkan();
 
-	window.DestroyWindowsSistem();
+	VulkanAPI.DestroyWindowSistem();
 
 };
 

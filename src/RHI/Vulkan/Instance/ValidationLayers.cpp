@@ -1,47 +1,53 @@
 #include "ValidationLayers.h"
 
-void VulkanValidation::DestroyDebugUtilsMessengerEXT(VulkanContext context, const VkAllocationCallbacks* pAllocator) {
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(context.instance, "vkDestroyDebugUtilsMessengerEXT");
+void VulkanValidation::DestroyDebugUtilsMessengerEXT(const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(m_Context.instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
-        func(context.instance, context.debuginfo, pAllocator);
+        func(m_Context.instance, m_Context.debuginfo, pAllocator);
     }
 }
 
+void VulkanValidation::DestroyValidationLayers() {
+	if (enableValidationLayers) {
+           DestroyDebugUtilsMessengerEXT(nullptr);
+        }
+
+};
 
 
-VkResult VulkanValidation::CreateDebugUtilsMessengerEXT(VulkanContext context, const VkAllocationCallbacks* pAllocator) {
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(context.instance, "vkCreateDebugUtilsMessengerEXT");
+VkResult VulkanValidation::CreateDebugUtilsMessengerEXT(const VkAllocationCallbacks* pAllocator) {
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(m_Context.instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
-    const VkDebugUtilsMessengerCreateInfoEXT info = createinfodebug;
-        return func(context.instance, &info, pAllocator, &context.debuginfo);
+    const VkDebugUtilsMessengerCreateInfoEXT info = m_Context.createinfodebug;
+
+        return func(m_Context.instance, &info, pAllocator, &m_Context.debuginfo);
     } else {
         return VK_ERROR_EXTENSION_NOT_PRESENT;
     }
 }
 
-void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
-	createInfo = {};
-	createInfo.sType 				= VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	createInfo.messageSeverity 		= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+void VulkanValidation::populateDebugMessengerCreateInfo() {
+	m_Context.createinfodebug = {};
+	m_Context.createinfodebug.sType 				= VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	m_Context.createinfodebug.messageSeverity 		= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
 									  VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
 									  VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 
-	createInfo.messageType 			= VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+	m_Context.createinfodebug.messageType 			= VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
 									  VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
 									  VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
-	createInfo.pfnUserCallback 		= debugCallback;
+	m_Context.createinfodebug.pfnUserCallback 		= debugCallback;
 }
 
-void setupDebugMessenger() {
+void VulkanValidation::setupDebugMessenger() {
 	if (!enableValidationLayers) return;
 
-	VkDebugUtilsMessengerCreateInfoEXT createInfo;
-	populateDebugMessengerCreateInfo(createInfo);
+	populateDebugMessengerCreateInfo();
 
-	//if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
-	//	throw std::runtime_error("failed to set up debug messenger!");
-	//}
+	if (CreateDebugUtilsMessengerEXT(nullptr) != VK_SUCCESS) {
+	throw std::runtime_error("failed to set up debug messenger!");
+	}
 }
 
 bool checkValidationLayerSupport() {
