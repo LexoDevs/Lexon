@@ -208,7 +208,6 @@ void UniformBuffer::createUniformBuffer(){
 
         vkMapMemory(m_Context.device, m_Context.uniformBuffersMemory[i], 0, bufferSize, 0, &m_Context.uniformBuffersMapped[i]);
     }
-
 };
 
 void UniformBuffer::destroyUniformBuffer(){
@@ -227,6 +226,8 @@ void UniformBuffer::updateUniformBuffer(uint32_t currentImage, ObjectInstance me
 
     float aspectratio = m_Context.swapChainExtent.width / (float) m_Context.swapChainExtent.height;
 
+
+    
     mesh.SetMatrixModel(m_Context.UBO, time, glm::vec3(0.0f, 0.0f, 0.0f));
     camera.SetCameraView(m_Context.UBO, aspectratio, time);
 
@@ -253,20 +254,21 @@ void UniformBuffer::updateUniformBuffer(uint32_t currentImage, ObjectInstance me
 
 
 
+void DepthBuffer::createDepthFormat(){
+
+        m_Context.depthformat = findDepthFormat();
 
 
-
-
+}
 
 void DepthBuffer::createDepthResources(){
-        
-        VkFormat depthFormat = findDepthFormat();
+        createDepthFormat();
         
         m_Context.depthsize.height = m_Context.swapChainExtent.height;
         m_Context.depthsize.width = m_Context.swapChainExtent.width;
 
-        createImage(m_Context.depthsize.width, m_Context.depthsize.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Context.depthImage, m_Context.depthImageMemory);
-        m_Context.depthImageView = createImageView(m_Context.depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT );
+        createImage(m_Context.depthsize.width, m_Context.depthsize.height, m_Context.depthformat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Context.depthImage, m_Context.depthImageMemory);
+        m_Context.depthImageView = createImageView(m_Context.depthImage, m_Context.depthformat, VK_IMAGE_ASPECT_DEPTH_BIT );
         
 };
 
@@ -277,12 +279,13 @@ VkFormat DepthBuffer::findSupportedFormat(const std::vector<VkFormat>& candidate
             vkGetPhysicalDeviceFormatProperties(m_Context.physicalDevice, format, &props);
 
             if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+                m_Context.depthformat = format;
                 return format;
             } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+                m_Context.depthformat = format;
                 return format;
             }
         }
-
         throw std::runtime_error("failed to find supported format!");
     }
 
@@ -368,6 +371,7 @@ void DepthBuffer::recordCommandBuffer(uint32_t imageIndex, uint32_t currentFrame
     VkRenderingAttachmentInfo depthAttachment{};
     depthAttachment.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     depthAttachment.imageView   = m_Context.depthImageView;
+    
     depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
     depthAttachment.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp     = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -377,8 +381,7 @@ void DepthBuffer::recordCommandBuffer(uint32_t imageIndex, uint32_t currentFrame
     VkRenderingInfo renderingInfo{};
     renderingInfo.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
     renderingInfo.renderArea.offset    = {0, 0};
-    renderingInfo.renderArea.extent.width    = m_Context.swapChainExtent.width;
-    renderingInfo.renderArea.extent.height    = m_Context.swapChainExtent.height;
+    renderingInfo.renderArea.extent    = m_Context.swapChainExtent;
     renderingInfo.layerCount           = 1;
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments    = &colorAttachment;

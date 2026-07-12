@@ -10,10 +10,10 @@
 
 
 void VulkanTexture::createTextureImage(){
-    int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    
+    stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &m_Context.texWidth, &m_Context.texHeight, &m_Context.texChannels, STBI_rgb_alpha);
 
-    VkDeviceSize imageSize = texWidth * texHeight * 4;
+    VkDeviceSize imageSize = m_Context.texWidth * m_Context.texHeight * 4; //esto es porque se usan 4 bytes por pixel
 
     if (!pixels) {
         throw std::runtime_error("failed to load texture image!");
@@ -24,21 +24,33 @@ void VulkanTexture::createTextureImage(){
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);  //VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                                                                                                                              // indican que la CPU puede escribir directamente en este buffer
 
     void* data;
+    //Se mapea la memoria del Buffer para que la CPU pueda escribir
     vkMapMemory(m_Context.device, stagingBufferMemory, 0, imageSize, 0, &data);
+    // Copia los pixeles cagados en el buffer temporal 
     memcpy(data, pixels, static_cast<size_t>(imageSize));
+    //Se desmapea la memoria para dejar de escribir
     vkUnmapMemory(m_Context.device, stagingBufferMemory);
 
+    //se libera la memoria de stbi (ya se guardo)
     stbi_image_free(pixels);
 
-    createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Context.textureImage, m_Context.textureImageMemory);
+    // Se crea la imagen como tal en la GPU
+    createImage(m_Context.texWidth, m_Context.texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Context.textureImage, m_Context.textureImageMemory);
 
+    // se cambia el layout a VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL para copiar datos
     transitionImageLayout(m_Context.textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(stagingBuffer, m_Context.textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+    
+    //Copia el contenido del buffer temporal a la imagen de la GPU
+    copyBufferToImage(stagingBuffer, m_Context.textureImage, static_cast<uint32_t>(m_Context.texWidth), static_cast<uint32_t>(m_Context.texHeight));
+    
+    //se cambia el layout final a SHADER_READ_ONLY_OPTIMAL para leer textura desde los shaders
     transitionImageLayout(m_Context.textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
+    //Destruye el buffer temporal y libera su memoria
     vkDestroyBuffer(m_Context.device, stagingBuffer, nullptr);
     vkFreeMemory(m_Context.device, stagingBufferMemory, nullptr);
 }

@@ -106,6 +106,8 @@ class BufferI {
         void destroyDepthResources();
         void cleanDepthResources();
 
+        void createDepthFormat();
+
         VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
         VkFormat findDepthFormat();
         bool hasStencilComponent(VkFormat format);

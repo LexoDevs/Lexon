@@ -147,3 +147,14 @@ if (ImGui::BeginMainMenuBar())
     ImGui::EndMainMenuBar();
 }
 };
+
+void EditorLayer::MuestreoImagenes(VulkanRHI& VulkanAPI){
+
+    ImGui::Begin("Vulkan Texture Test");
+    ImGui::Text("pointer = %p", VulkanAPI.GetVulkanContext().textureImage);
+    ImGui::Text("size = %d x %d", VulkanAPI.GetVulkanContext().texWidth, VulkanAPI.GetVulkanContext().texHeight);
+    //ImGui::Image((ImTextureID)VulkanAPI.GetVulkanContext().textureImage, ImVec2(VulkanAPI.GetVulkanContext().texWidth, VulkanAPI.GetVulkanContext().texHeight));
+    ImGui::End();
+
+};
+

@@ -14,7 +14,19 @@
 
 #include <vulkan/vulkan.h>
 
-const std::string MODEL_PATH = "../resources/models/viking_room.obj";
+struct MeshesList{
+std::string path;
+std::string name;
+
+};
+
+static std::vector<MeshesList> LoaderList = {
+    {"../resources/models/viking_room.obj" , "Cuarto Vikingo"},
+    {"../src/Meshes/cube.obj" , "Cubo"}
+} ;
+
+
+
 const std::string TEXTURE_PATH = "../resources/Textures/viking_room.png";
 
 struct Vertex {
@@ -69,3 +81,4 @@ class ObjectInstance {
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
 };
+

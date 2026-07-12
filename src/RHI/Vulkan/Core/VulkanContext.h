@@ -70,6 +70,7 @@ struct VulkanContext
 
     
     VkImage textureImage;
+    int texWidth, texHeight, texChannels;
     VkPhysicalDeviceMemoryProperties memProperties;
     uint32_t VulkanMemoryTypeIndex;
     VkDeviceMemory textureImageMemory;
@@ -108,7 +109,7 @@ struct VulkanContext
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
     VkClearValue clearDepth;
-
+    VkFormat depthformat;
 
     //Semaforos para sincronizacion
     VkSemaphore imageAvailableSemaphore[MAX_FRAMES_IN_FLIGHT];

@@ -1,6 +1,7 @@
 #include "VulkanPipeline.h"
+#include <iostream>
 
-void VulkanPipeline::createGraphicsPipeline(VkFormat formatDepth) {
+void VulkanPipeline::createGraphicsPipeline() {
 
     VkShaderModule shaderModule = createShaderModule(readFile("../shaders/generated/slang.spv"));
 
@@ -151,6 +152,8 @@ void VulkanPipeline::createGraphicsPipeline(VkFormat formatDepth) {
         renderingInfo.colorAttachmentCount = 1;
         renderingInfo.pColorAttachmentFormats = &surfaceFormat.format;
         renderingInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
+        renderingInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
+
 
     VkGraphicsPipelineCreateInfo pipelineCreateInfoChain{};
         pipelineCreateInfoChain.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -244,3 +247,8 @@ void VulkanPipeline::DestroyDescriptorSetLayout() {
 }
 
 
+void VulkanPipeline::recreateGraphicsPipeline()
+{
+    vkDestroyPipeline(m_Context.device, m_Context.Pipeline, nullptr);
+    createGraphicsPipeline();   // Recrear con nuevo formato
+}

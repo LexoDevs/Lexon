@@ -13,4 +13,5 @@ void ImGui_NewFrame();
 void ImGui_Render(VkCommandBuffer cmd);
 void ImGui_EndFrame();
 void VentanaSuperior(VulkanRHI& VulkanAPI);
+void MuestreoImagenes(VulkanRHI& VulkanAPI);
 };

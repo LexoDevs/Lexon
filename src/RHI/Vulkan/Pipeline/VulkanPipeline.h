@@ -14,12 +14,14 @@ public:
     {
     }
 
-	void createGraphicsPipeline(VkFormat formatDepth);
+	void createGraphicsPipeline();
     void CreateDescriptorSetLayout();
     void DestroyDescriptorSetLayout();
 
 	static std::vector<char> readFile(const std::string& filename);
     VkShaderModule createShaderModule(const std::vector<char>& code);
+
+    void recreateGraphicsPipeline();
 
 private:
 

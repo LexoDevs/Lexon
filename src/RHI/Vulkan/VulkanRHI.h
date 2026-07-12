@@ -51,7 +51,7 @@ public:
     
         UniformBuffer&  GetUniformBuffer()  { return uniformBuffer;};
 
-
+    VulkanTexture& GetVulkanTexture() {return texture;};
     VulkanFence&           GetVulkanFence()           { return fences;};
 
 private:

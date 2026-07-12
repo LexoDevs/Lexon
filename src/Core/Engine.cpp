@@ -61,6 +61,7 @@ void Engine::MainLoopEngine() {
     // Aquí dibujas tu interfaz
     ImGui::ShowDemoWindow();
     layersUI.VentanaSuperior(VulkanAPI);
+    layersUI.MuestreoImagenes(VulkanAPI);
 
     VulkanAPI.DrawFrame(camera, mesh);   // ← Dentro hará RecordImGui
 

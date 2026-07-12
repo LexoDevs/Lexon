@@ -41,10 +41,15 @@ VulkanRHI::VulkanRHI()
 	    device.CreateLogicalDevice();
         swapchain.CreateSwapChain();
         swapchain.CreateImageView();
-        pipeline.CreateDescriptorSetLayout();
-        pipeline.createGraphicsPipeline(depthBuffer.findDepthFormat()); //Falta depthbuffer.findDepthFormat(physicaldevice)
-        commandpool.createCommandPool(); 
+
         depthBuffer.createDepthResources();
+        
+        
+
+        pipeline.CreateDescriptorSetLayout();
+        pipeline.createGraphicsPipeline(); 
+
+        commandpool.createCommandPool(); 
         texture.createTextureImage();
         texture.createTextureImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
         texture.createTextureSampler();
@@ -113,21 +118,24 @@ texture.destroyImageTextureView();
         VK_NULL_HANDLE,
         &imageIndex);
 
-    //std::cout<<"Imageindex: "<<imageIndex<<std::endl;
-    //std::cout<<"frameIndex: "<<frameIndex<<std::endl;
-
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+
+        vkDeviceWaitIdle(context.device);
 
         swapchain.RecreateSwapchain();
 
         depthBuffer.cleanDepthResources();
-
         depthBuffer.createDepthResources();
+        
+        pipeline.recreateGraphicsPipeline();
+
         return;   // Salir y reintentar en el próximo ciclo
     }
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
     }
+
+
 
     uniformBuffer.updateUniformBuffer(context.frameIndex, mesh, camera);
     // 3. Resetear fence
@@ -192,11 +200,14 @@ texture.destroyImageTextureView();
         std::cout<<"Post Error"<<std::endl;
 
         context.framebufferResized = false;
-        swapchain.RecreateSwapchain();
-        
-        depthBuffer.cleanDepthResources();
+        vkDeviceWaitIdle(context.device);
 
+        swapchain.RecreateSwapchain();
+
+        depthBuffer.cleanDepthResources();
         depthBuffer.createDepthResources();
+        
+        pipeline.recreateGraphicsPipeline();
     } 
     else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
