@@ -12,7 +12,14 @@
 #include "Descriptors/VulkanDescriptorPool.h"
 
 #include "Command/VulkanCommandPool.h"
+
 #include "Buffers/VulkanVertexBuffer.h"
+#include "Buffers/VulkanIndexBuffer.h"
+#include "Buffers/VulkanUniformBuffer.h"
+#include "Buffers/VulkanDepthBuffer.h"
+
+
+
 #include "Resources/VulkanTexture.h"
 
 #include "Descriptors/VulkanDescriptorSet.h"
@@ -39,7 +46,7 @@ public:
 
     VulkanContext& GetVulkanContext() { return context; };
 
-    VulkanWindow&          GetVulkanWindow()          { return window; }
+    //VulkanWindow&          GetVulkanWindow()          { return window; }
     VulkanInstance&        GetVulkanInstance()        { return instance; }
     VulkanValidation&      GetVulkanValidation()      { return validacionlayers; }
     VulkanSurface&         GetVulkanSurface()         { return surface; }
@@ -58,7 +65,7 @@ private:
     VulkanContext context;
 
         
-    VulkanWindow window;
+    //VulkanWindow window;
     VulkanInstance instance;
     VulkanValidation validacionlayers;
     VulkanSurface surface;

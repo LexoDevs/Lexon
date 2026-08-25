@@ -8,7 +8,6 @@
 
 VulkanRHI::VulkanRHI()
     : context()                    // Primero creamos el contexto
-    , window(context)
     , instance(context)
     , validacionlayers(context)
     , surface(context)
@@ -30,73 +29,103 @@ VulkanRHI::VulkanRHI()
 {
 }
 
-    void VulkanRHI::InitVulkan(){ 
-        instance.CreateInstances();
-        validacionlayers.setupDebugMessenger();
-        surface.CreateWindowSurface();
-        physicaldevice.SelectPhysicalDevices();
-        surface.GetSurfaceCapabilities();
-        surface.GetSurfacePresentationsMode();
-        surface.chooseSwapSurfaceFormat();
-	    device.CreateLogicalDevice();
-        swapchain.CreateSwapChain();
-        swapchain.CreateImageView();
+void VulkanRHI::InitVulkan(){ 
+    
+    instance.CreateInstances();
+    validacionlayers.setupDebugMessenger();
+    surface.CreateWindowSurface();
+    physicaldevice.SelectPhysicalDevices();
+    surface.GetSurfaceCapabilities();
+    surface.GetSurfacePresentationsMode();
+    surface.chooseSwapSurfaceFormat();
+    device.CreateLogicalDevice();
+    swapchain.CreateSwapChain();
+    swapchain.CreateImageView();
 
-        depthBuffer.createDepthResources();
+    depthBuffer.createDepthResources();
         
         
 
-        pipeline.CreateDescriptorSetLayout();
-        pipeline.createGraphicsPipeline(); 
+    pipeline.CreateDescriptorSetLayout();
+    pipeline.createGraphicsPipeline(); 
 
-        commandpool.createCommandPool(); 
-        texture.createTextureImage();
-        texture.createTextureImageView(VK_IMAGE_ASPECT_DEPTH_BIT);
-        texture.createTextureSampler();
-    };
+    commandpool.createCommandPool(); 
+    texture.createTextureImage();
+    texture.createTextureImageView();
+    texture.createTextureSampler();
+};
 
-    void VulkanRHI::InitPostLoadElements(ObjectInstance& mesh){
-        vertexBuffer.createVertexBuffer(mesh);
-        indexBuffer.createIndexBuffer(mesh);
-        uniformBuffer.createUniformBuffer();
-        descriptorpool.createDescriptorPool();
-        descriptorSet.createDescriptorSets();
-        commandBuffer.createCommandBuffer();
-        fences.createSyncObjects();
-    };
+void VulkanRHI::InitPostLoadElements(ObjectInstance& mesh){
+    
+    vertexBuffer.createVertexBuffer(mesh);
+    indexBuffer.createIndexBuffer(mesh);
+    uniformBuffer.createUniformBuffer();
+    descriptorpool.createDescriptorPool();
+    descriptorSet.createDescriptorSets();
+    commandBuffer.createCommandBuffer();
+    fences.createSyncObjects();
+};
 
 
 
 
-    void VulkanRHI::DestroyVulkan(){ 
-        fences.destroyFences();
-        descriptorSet.destroyDescriptorSet();
-descriptorpool.destroyDescriptorPool();
-uniformBuffer.destroyUniformBuffer();
-        indexBuffer.destroyIndexBuffer();
-        vertexBuffer.destroyVertexBuffer();
+void VulkanRHI::DestroyVulkan(){ 
 
-texture.destroyImageTexture();
-texture.destroyImageTextureView();
+    swapchain.destroySwapchain();
 
-        depthBuffer.destroyDepthResources();
-        commandpool.destroyCommandPool();
-        pipeline.DestroyDescriptorSetLayout();
+    pipeline.DestroyPipelineGraphics();
 
-        swapchain.destroySwapchain();
-        physicaldevice.DestroyPhysicalDevices();
-        surface.DestroyVulkanSurface();
-        validacionlayers.DestroyValidationLayers();
-        instance.DestroyInstance();
+    uniformBuffer.destroyUniformBuffer();
+
+    descriptorpool.destroyDescriptorPool();
+
+
+
+    texture.destroyImageTexture();
+    texture.destroyImageTextureView();
+    depthBuffer.destroyDepthResources();
+    
+
+    descriptorSet.destroyDescriptorSet();
+
+    pipeline.DestroyDescriptorSetLayout();
+
+
+    indexBuffer.destroyIndexBuffer();
+
+    vertexBuffer.destroyVertexBuffer();
+    
+    fences.destroyFences();
+
+
+
+    commandpool.destroyCommandPool();
+
+    physicaldevice.DestroyPhysicalDevices();
+
+    validacionlayers.DestroyValidationLayers();
+    
+    surface.DestroyVulkanSurface();
+
+    instance.DestroyInstance();
         
-    };
-
-    void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
+};
 
 
-//std::cout<<"Dentro del draw, esperando frames"<<std::endl;
+void VulkanRHI::InitWindowSistem(){
+    //window.InitWindowsSistem();
+};
+
+void VulkanRHI::DestroyWindowSistem(){
+    //window.DestroyWindowsSistem();
+};
+
+void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
+
+
+    //std::cout<<"Dentro del draw, esperando frames"<<std::endl;
     // 1. Esperar al frame anterior
-   vkDeviceWaitIdle(context.device);    //Solucion del error del index
+   //vkDeviceWaitIdle(context.device);    //Solucion del error del index
 
 
 
@@ -117,11 +146,15 @@ texture.destroyImageTextureView();
         context.imageAvailableSemaphore[context.frameIndex],
         VK_NULL_HANDLE,
         &imageIndex);
-
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-
+/*
+    if (result == VK_ERROR_OUT_OF_DATE_KHR ||
+        result == VK_SUBOPTIMAL_KHR ||
+        window.framebufferResized)
+{
+        window.framebufferResized = false;
         vkDeviceWaitIdle(context.device);
 
+        
         swapchain.RecreateSwapchain();
 
         depthBuffer.cleanDepthResources();
@@ -129,11 +162,13 @@ texture.destroyImageTextureView();
         
         pipeline.recreateGraphicsPipeline();
 
+
+
         return;   // Salir y reintentar en el próximo ciclo
     }
-    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+    else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to acquire swap chain image!");
-    }
+    }*/
 
 
 
@@ -196,19 +231,9 @@ texture.destroyImageTextureView();
 
     result = vkQueuePresentKHR(context.graphicsQueue, &presentInfo); // Posible error, tengo dudas
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || context.framebufferResized) {
-        std::cout<<"Post Error"<<std::endl;
-
-        context.framebufferResized = false;
-        vkDeviceWaitIdle(context.device);
-
-        swapchain.RecreateSwapchain();
-
-        depthBuffer.cleanDepthResources();
-        depthBuffer.createDepthResources();
-        
-        pipeline.recreateGraphicsPipeline();
-    } 
+   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        //window.framebufferResized = true;  // Para que se redimensione en el próximo frame
+    }
     else if (result != VK_SUCCESS) {
         throw std::runtime_error("failed to present swap chain image!");
     }
@@ -216,12 +241,6 @@ texture.destroyImageTextureView();
     // Avanzar al siguiente frame
     context.frameIndex  = (context.frameIndex  + 1) % MAX_FRAMES_IN_FLIGHT;
 
-    };
+};
 
-    void VulkanRHI::InitWindowSistem(){
-        window.InitWindowsSistem();
-    };
 
-    void VulkanRHI::DestroyWindowSistem(){
-        window.DestroyWindowsSistem();
-    };

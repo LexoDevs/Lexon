@@ -144,13 +144,12 @@ void VulkanPipeline::createGraphicsPipeline() {
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
-        VkSurfaceFormatKHR surfaceFormat = m_Context.swapChainSurfaceFormat;
         
 
         VkPipelineRenderingCreateInfo renderingInfo{};
         renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
         renderingInfo.colorAttachmentCount = 1;
-        renderingInfo.pColorAttachmentFormats = &surfaceFormat.format;
+        renderingInfo.pColorAttachmentFormats = &m_Context.swapChainSurfaceFormat.format;
         renderingInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
         renderingInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
 
@@ -160,6 +159,7 @@ void VulkanPipeline::createGraphicsPipeline() {
         pipelineCreateInfoChain.pNext               = &renderingInfo;   
         pipelineCreateInfoChain.stageCount          = 2;
         pipelineCreateInfoChain.pStages             = shaderStages;
+        
         pipelineCreateInfoChain.pVertexInputState   = &vertexInputInfo;
         pipelineCreateInfoChain.pInputAssemblyState = &inputAssembly;
         pipelineCreateInfoChain.pViewportState      = &viewportState;
@@ -171,7 +171,14 @@ void VulkanPipeline::createGraphicsPipeline() {
         pipelineCreateInfoChain.renderPass          = VK_NULL_HANDLE;
         pipelineCreateInfoChain.pDepthStencilState = &depthStencil;
 
+std::cout << "Creating graphics pipeline" << std::endl;
+std::cout << "Depth format: " 
+          << renderingInfo.depthAttachmentFormat 
+          << std::endl;
 
+std::cout << "Color format: "
+          << renderingInfo.pColorAttachmentFormats[0]
+          << std::endl;
 
         if (vkCreateGraphicsPipelines(m_Context.device, VK_NULL_HANDLE, 1, &pipelineCreateInfoChain, nullptr, &m_Context.Pipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
@@ -240,15 +247,20 @@ std::vector<char> VulkanPipeline::readFile(const std::string& filename) {
 void VulkanPipeline::DestroyDescriptorSetLayout() {
     vkDestroyDescriptorSetLayout(m_Context.device, m_Context.descriptorSetLayout, nullptr);
 
+
+
+}
+void VulkanPipeline::DestroyPipelineGraphics() {
     vkDestroyPipeline(m_Context.device, m_Context.Pipeline, nullptr);
     vkDestroyPipelineLayout(m_Context.device, m_Context.pipelineLayout, nullptr);
     vkDestroyShaderModule(m_Context.device, m_Context.shaderModule, nullptr);
-
 }
-
 
 void VulkanPipeline::recreateGraphicsPipeline()
 {
     vkDestroyPipeline(m_Context.device, m_Context.Pipeline, nullptr);
+    vkDestroyPipelineLayout(m_Context.device, m_Context.pipelineLayout, nullptr);
+    vkDestroyShaderModule(m_Context.device, m_Context.shaderModule, nullptr);
+
     createGraphicsPipeline();   // Recrear con nuevo formato
 }

@@ -7,7 +7,7 @@
 // Asumiendo que tienes acceso a tu VkInstance, VkDevice, etc.
 void EditorLayer::ImGui_Init(VulkanRHI& VulkanAPI)
 {
-    VulkanContext context = VulkanAPI.GetVulkanContext();   // Recomiendo pasar por referencia
+    VulkanContext context = VulkanAPI.GetVulkanContext();  
     context.imguiDescriptorPool = VulkanAPI.GetVulkanDescriptorPool().CreateImGuiDescriptorPool();
 
     IMGUI_CHECKVERSION();
@@ -97,11 +97,16 @@ if (ImGui::BeginMainMenuBar())
     // Menú File
     if (ImGui::BeginMenu("File"))
     {
-        if (ImGui::MenuItem("New"))     {}
+        if (ImGui::MenuItem("New"))     {
+            MeshesList cube = {"../src/Meshes/cube.obj" , "Cubo"};
+            LoaderList.emplace_back(cube);
+            
+        
+        }
         if (ImGui::MenuItem("Open"))    {}
         if (ImGui::MenuItem("Save"))    {}
         ImGui::Separator();
-        if (ImGui::MenuItem("Exit"))    { /* glfwSetWindowShouldClose(...); */ }
+        if (ImGui::MenuItem("Exit"))    { glfwSetWindowShouldClose(VulkanAPI.GetVulkanContext().GLFWwindow,GLFW_TRUE); }
         ImGui::EndMenu();
     }
 
@@ -136,7 +141,7 @@ if (ImGui::BeginMainMenuBar())
     if (ImGui::Button("X", ImVec2(40, 20)))
     {
         // Cierra la aplicación
-        glfwSetWindowShouldClose(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, GLFW_TRUE);
+        //glfwSetWindowShouldClose(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, GLFW_TRUE);
     }
 
     ImGui::PopStyleColor(2);  // Pop del botón
@@ -148,13 +153,59 @@ if (ImGui::BeginMainMenuBar())
 }
 };
 
+    static int seleccionado = 0; 
+
 void EditorLayer::MuestreoImagenes(VulkanRHI& VulkanAPI){
+    
 
     ImGui::Begin("Vulkan Texture Test");
-    ImGui::Text("pointer = %p", VulkanAPI.GetVulkanContext().textureImage);
-    ImGui::Text("size = %d x %d", VulkanAPI.GetVulkanContext().texWidth, VulkanAPI.GetVulkanContext().texHeight);
-    //ImGui::Image((ImTextureID)VulkanAPI.GetVulkanContext().textureImage, ImVec2(VulkanAPI.GetVulkanContext().texWidth, VulkanAPI.GetVulkanContext().texHeight));
-    ImGui::End();
 
+    for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
+
+        bool es_seleccionado = (seleccionado == i);
+
+        if (ImGui::Selectable(TEXTURE_PATHS[i].data(), es_seleccionado))
+        {
+            std::cout<<"Textura seleccionada: "<<i<<std::endl;
+            seleccionado = i;
+
+        }
+        if (es_seleccionado){
+
+            ImGui::SetItemDefaultFocus();
+        }
+
+    }
+
+
+    ImGui::Text("pointer = %p", VulkanAPI.GetVulkanContext().textureImageView);
+    ImGui::Text("size = %d x %d", VulkanAPI.GetVulkanContext().texWidth[seleccionado], VulkanAPI.GetVulkanContext().texHeight[seleccionado]);
+
+    ImGui::Image(VulkanAPI.GetVulkanContext().descriptorSets[seleccionado], ImVec2(VulkanAPI.GetVulkanContext().texWidth[seleccionado]/5, VulkanAPI.GetVulkanContext().texHeight[seleccionado]/5));
+
+   ImGui::End();
 };
 
+
+
+
+void EditorLayer::ElementosEnEscena(VulkanRHI& VulkanAPI){
+    ImGui::Begin("Hierachy");
+
+        static ImGuiTableFlags table_flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody;
+
+        if (ImGui::BeginTable("3ways", 3, table_flags))
+        {
+            // The first column will use the default _WidthStretch when ScrollX is Off and _WidthFixed when ScrollX is On
+            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide);
+            ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, 1.0f * 12.0f);
+            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 1.0f * 18.0f);
+            ImGui::TableHeadersRow();
+
+
+
+            ImGui::EndTable();
+        }
+    ImGui::End();
+
+    };

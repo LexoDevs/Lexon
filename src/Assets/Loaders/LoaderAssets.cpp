@@ -53,7 +53,8 @@ void LoaderAssets::LoadModel(std::string path, std::vector<Vertex>& vertices , s
     std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 
     for (const auto& shape : shapes) {
-                std::cout<<"Numero de vertices cargados: "<<&shape.mesh.indices<<std::endl;
+                //std::cout<<"Numero de vertices cargados: "<<shape.mesh.indices.size()<<std::endl;
+                //std::cout<<"Atributos: "<<attrib.GetVertices().size()<<std::endl;
 
         for (const auto& index : shape.mesh.indices) {
             
@@ -96,16 +97,36 @@ void ObjectInstance::AddObject(LoaderAssets loader){
     loader.LoadModel(mesh.path, vertices, indices);
     }
 
-    //loader.LoadModel(MODEL_PATH, vertices, indices);
-    //loader.LoadModel(MODEL_PATH2, vertices, indices);
+
 
 };
 
+void ObjectInstance::TranslateModel(glm::vec3 directionMov){
+    position = position + directionMov; //por delta time
+};
 
-void ObjectInstance::SetMatrixModel(UniformBufferObject& ubo, float time, glm::vec3 pos){
-    glm::mat4 translate = glm::translate(glm::mat4(1.0f), pos);
-    glm::mat4 rotate_z = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+void ObjectInstance::RotateModel(float angulo, char eje){
+    switch(eje){
+        case 'y':
+            rotation.y = rotation.y + angulo;
+            break;
+        case 'x':
+        rotation.x = rotation.x + angulo;
+
+        break;
+    }
+};
+
+void ObjectInstance::SetMatrixModel(UniformBufferObject& ubo, float time){
+    glm::mat4 translate = glm::translate(glm::mat4(1.0f), position);
+
+    glm::mat4 rotate_z = glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotate_y = glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x), glm::vec3(0.0f, 0.0f, 1.0f));
+
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
-    ubo.model = translate * rotate_z * scale;
+    ubo.model = translate * rotate_z *rotate_y* scale;
 };
+
+glm::vec3 ObjectInstance::position = {0.0f, 0.0f, 0.0f};
+glm::vec3 ObjectInstance::rotation = {0.0f, 0.0f, 0.0f};

@@ -4,9 +4,11 @@
 class CameraView {
 
     public:
-    glm::vec3 dir = glm::vec3(2.0f, 2.0f, 2.0f);
-;
-
+    static glm::vec3 front;
+    static glm::vec3 position;
+    static glm::vec3 up;
+    static float speed;
+    
     void SetCameraView(UniformBufferObject& ubo, float aspectratio, float time);
 
 };

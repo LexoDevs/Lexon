@@ -6,6 +6,7 @@ void VulkanDescriptorSet::bindDescriptorSet(uint32_t currentFrame){
 };
 
 void VulkanDescriptorSet::createDescriptorSets() {
+    
         std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_Context.descriptorSetLayout);
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -17,9 +18,8 @@ void VulkanDescriptorSet::createDescriptorSets() {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
 
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-                
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+
     // === 1. Uniform Buffer (binding 0) ===
     VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = m_Context.uniformBuffers[i];
@@ -38,7 +38,7 @@ void VulkanDescriptorSet::createDescriptorSets() {
     // === 2. Combined Image Sampler (binding 1) ===
     VkDescriptorImageInfo imageInfo{};
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = m_Context.textureImageView;
+    imageInfo.imageView = m_Context.textureImageView; //corregir
     imageInfo.sampler = m_Context.textureSampler;
 
     VkWriteDescriptorSet samplerWrite{};
@@ -59,7 +59,7 @@ void VulkanDescriptorSet::createDescriptorSets() {
                            0, nullptr);
         }
 }
-}
+
 
 void VulkanDescriptorSet::destroyDescriptorSet(){
 

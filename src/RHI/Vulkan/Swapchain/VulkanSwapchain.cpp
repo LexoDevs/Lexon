@@ -19,6 +19,7 @@ void VulkanSwapchain::CreateSwapChain()
     // Número de imágenes
     uint32_t imageCount = m_Context.surfaceCapabilities.minImageCount + 1;
 
+
     if (m_Context.surfaceCapabilities.maxImageCount > 0 && imageCount > m_Context.surfaceCapabilities.maxImageCount) {
         imageCount = m_Context.surfaceCapabilities.maxImageCount;
     }
@@ -31,6 +32,13 @@ void VulkanSwapchain::CreateSwapChain()
     swapChainCreateInfo.minImageCount      = imageCount;
     swapChainCreateInfo.imageFormat        = m_Context.swapChainSurfaceFormat.format;
     swapChainCreateInfo.imageColorSpace    = m_Context.swapChainSurfaceFormat.colorSpace;
+
+
+
+
+    std::cout<<"Widht"<<m_Context.swapChainExtent.width<<std::endl;
+    std::cout<<"heith"<<m_Context.swapChainExtent.height<<std::endl;
+
     swapChainCreateInfo.imageExtent        = m_Context.swapChainExtent;
     swapChainCreateInfo.imageArrayLayers   = 1;
     swapChainCreateInfo.imageUsage         = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -112,18 +120,15 @@ void VulkanSwapchain::CreateImageView()
 
 void VulkanSwapchain::cleanSwapchain()
 {
-    // Destruir image views
-    for (auto imageView : m_Context.swapChainImageViews) {
-        if (imageView != VK_NULL_HANDLE){
-            vkDestroyImageView(m_Context.device, imageView, nullptr);
-        }
+
+    vkDeviceWaitIdle(m_Context.device);
+
+
+    // Destruir Swapchain
+    if (m_Context.swapchain != VK_NULL_HANDLE) {
+        vkDestroySwapchainKHR(m_Context.device, m_Context.swapchain, nullptr);
+        m_Context.swapchain = VK_NULL_HANDLE;
     }
-
-    // Destruir swapchain
-    vkDestroySwapchainKHR(m_Context.device, m_Context.swapchain, nullptr);
-
-
-
 
 }
 
@@ -145,20 +150,33 @@ void VulkanSwapchain::RecreateSwapchain()
 {
     std::cout << "\033[1;36m[!] Recreando Swapchain...\033[0m\n";
 
-
-    int width = 0, height = 0;
-    glfwGetFramebufferSize(m_Context.GLFWwindow, &width, &height);
-    while (width == 0 || height == 0) {
+    glfwGetFramebufferSize(m_Context.GLFWwindow, &m_Context.prop.width, &m_Context.prop.height);
+    while (m_Context.prop.width == 0 || m_Context.prop.height == 0) {
         glfwWaitEvents();
-        glfwGetFramebufferSize(m_Context.GLFWwindow, &width, &height);
+        glfwGetFramebufferSize(m_Context.GLFWwindow, &m_Context.prop.width, &m_Context.prop.height);
     }
 
     vkDeviceWaitIdle(m_Context.device);
     cleanSwapchain();
 
+    for (auto imageView : m_Context.swapChainImageViews) {
+        if (imageView != VK_NULL_HANDLE) {
+            vkDestroyImageView(m_Context.device, imageView, nullptr);
+        }
+    }
+
+    m_Context.swapChainExtent = VkExtent2D(m_Context.prop.width,m_Context.prop.height);
+    m_Context.swapChainExtent.width = m_Context.prop.width;
+    m_Context.swapChainExtent.height = m_Context.prop.height;
+
+    // Destruir Image Views del swapchain
+
+    m_Context.swapChainImageViews.clear();
+
     CreateSwapChain();
     CreateImageView();
-    //createdepth;
+
+
 
     std::cout << "[+] Swapchain RECREADO - Handle FINAL: " << m_Context.swapchain << std::endl;
 

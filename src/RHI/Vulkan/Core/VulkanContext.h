@@ -12,13 +12,16 @@
 #include "../Helpers/VulkanFormats.h"
 #include <array>
 #include "../../../Assets/Loaders/LoaderAssets.h"
+#include "../../../Core/WindowSystem/WindowContext.h"
 
 struct VulkanContext
 {
 
     //Ventana (provisional por ahora, hay que generalizarla)
+ 	WindowProperties prop;
+
     GLFWwindow* GLFWwindow;
-    bool framebufferResized;
+    //bool framebufferResized;
 
     //Instancia de vulkan
     VkInstance instance;
@@ -68,15 +71,19 @@ struct VulkanContext
 
 
 
-    
-    VkImage textureImage;
-    int texWidth, texHeight, texChannels;
+    std::vector<uint32_t> mipLevels;
+    std::vector<VkImage> textureImages;
+    std::vector<VkDeviceMemory> textureImageMemories;
+
+    std::vector<int> texWidth, texHeight, texChannels;
+
     VkPhysicalDeviceMemoryProperties memProperties;
     uint32_t VulkanMemoryTypeIndex;
-    VkDeviceMemory textureImageMemory;
+    
     VkImageView textureImageView;
     VkSampler textureSampler;
     VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
+
 
     // Buffer de comandos
     VkCommandBuffer commandBuffers[MAX_FRAMES_IN_FLIGHT];
@@ -113,7 +120,7 @@ struct VulkanContext
 
     //Semaforos para sincronizacion
     VkSemaphore imageAvailableSemaphore[MAX_FRAMES_IN_FLIGHT];
-    VkSemaphore renderFinishedSemaphore[MAX_SWAPCHAIN_IMAGES]; // Uno por imagen del swapchain
+    VkSemaphore renderFinishedSemaphore[MAX_FRAMES_IN_FLIGHT]; // Uno por imagen del swapchain
     VkFence inFlightFence[MAX_FRAMES_IN_FLIGHT];
     uint32_t frameIndex = 0;
 };

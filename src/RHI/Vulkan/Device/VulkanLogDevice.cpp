@@ -2,7 +2,7 @@
 
 #include <set>
 #include <iostream>
-#include "../Resources/VulkanConstants.h"
+#include "../Helpers/VulkanConstants.h"
 
 
 void VulkanLogicalDevice::CreateLogicalDevice() {
@@ -78,7 +78,8 @@ void VulkanLogicalDevice::CreateLogicalDevice() {
 };
 
     void VulkanLogicalDevice::DestroyLogicalDevice(){
-		
+		vkDestroyDevice(m_Context.device, nullptr);
+
 	};
 
 

@@ -17,16 +17,17 @@ class VulkanTexture : public BufferI {
 
     {
     }
-
+        void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
         void createTextureImage();
         
-        void transitionImageLayout(VkImage &image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+        void transitionImageLayout(VkImage &image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 
 
         
         void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
         void destroyImageTexture();
-        void createTextureImageView(VkImageAspectFlags aspectflags);
+
+        void createTextureImageView();
         void destroyImageTextureView();
 
         void createImageViews(VkImageAspectFlags aspectflags);

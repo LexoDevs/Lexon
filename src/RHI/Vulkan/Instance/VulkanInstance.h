@@ -2,7 +2,7 @@
 
 #include "../Core/VulkanContext.h"
 #include "vector"
-#include "../Resources/VulkanConstants.h"
+#include "../Helpers/VulkanConstants.h"
 #include <vulkan/vulkan.h>
 
 class VulkanInstance {

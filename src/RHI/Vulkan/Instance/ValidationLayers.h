@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Resources/VulkanConstants.h"
+#include "../Helpers/VulkanConstants.h"
 #include "../Core/VulkanContext.h"
 #include "vector"
 

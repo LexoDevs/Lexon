@@ -6,104 +6,82 @@
 #include <GLFW/glfw3native.h>
 
 #include "VulkanWindow.h"
-#include "../../../Core/WindowSystem/WindowContext.h"
 
 
 #include "dwmapi.h"
-//############## Clase Window ################//
- 
-void VulkanWindow::CargarGLFW() {
-    
+
+void GLFWWindow::InitWindow(){
     glfwInit();
+    CreateGLFWindow();
+};
 
-}
-
-void VulkanWindow::DesargarGLFW() {
-
+void GLFWWindow::DestroyWindow(){
     glfwTerminate();
+};
 
-}
-
-void VulkanWindow::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+bool GLFWWindow::ShouldClose() const
 {
-    auto app = reinterpret_cast<VulkanWindow*>(glfwGetWindowUserPointer(window));
-    app->m_Context.framebufferResized = true;
-
+    return glfwWindowShouldClose(glfwwindow);
 }
 
-void VulkanWindow::PersonalizarVentana(VulkanContext context){
+void GLFWWindow::PoolEvents() const
+{
+            glfwPollEvents();
+}
 
-    #ifdef _WIN32
-    HWND hwnd = glfwGetWin32Window(m_Context.GLFWwindow);
-    if (hwnd)
-    {
-        // ==================== COLOR DE TÍTULO Y BORDE ====================
-        // Azul personalizado (puedes cambiar los valores RGB)
-        COLORREF captionColor = RGB(0, 100, 255);     // Azul bonito
-        COLORREF borderColor  = RGB(0, 80, 220);      // Azul un poco más oscuro para el borde
-
-        // Color de la barra de título
-        DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, 
-                             &captionColor, sizeof(captionColor));
-
-        // Color del borde de la ventana
-        DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, 
-                             &borderColor, sizeof(borderColor));
-
-        // Opcional: Color del texto del título (blanco para que se vea bien)
-        COLORREF titleTextColor = RGB(255, 255, 255);
-        DwmSetWindowAttribute(hwnd, DWMWA_TEXT_COLOR, 
-                             &titleTextColor, sizeof(titleTextColor));
-
-        // Esquinas redondeadas (Windows 11)
-        DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
-        DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, 
-                             &preference, sizeof(preference));
-    }
-    #endif
+double GLFWWindow::GetTime() const {
+    return glfwGetTime();
 
 };
 
-void VulkanWindow::CrearVentana(const char* name)
-{
-    WindowProperties prop;
+void GLFWWindow::SetWindowTitle(std::string title) const {
+        glfwSetWindowTitle(glfwwindow, title.c_str());
+
+};
+
+void GLFWWindow::SetKeyCallback() const {
+    glfwSetKeyCallback(glfwwindow, GLFW_KeyBoardCallback);
+};
+
+void GLFWWindow::CreateGLFWindow(){
+
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     std::cout << "\033[1;36m[!] Creando ventana...\033[0m\n";
     
-    m_Context.GLFWwindow = glfwCreateWindow(prop.width, prop.height, name, nullptr, nullptr);
-    if (!m_Context.GLFWwindow)
+    glfwwindow = glfwCreateWindow(width, height, "Hola", nullptr, nullptr);
+
+    if (!glfwwindow)
     {
         throw std::runtime_error("Failed to create GLFW window");
     }
 
+    glfwSetWindowUserPointer(glfwwindow, this);
 
-    PersonalizarVentana(m_Context);
+    glfwSetFramebufferSizeCallback(glfwwindow, framebufferResizeCallback);
 
-    glfwSetFramebufferSizeCallback(m_Context.GLFWwindow, framebufferResizeCallback);
-
-    std::cout << "\t\033[1;32m" << name << "\033[0m guardada en \033[1;32m" 
-              << m_Context.GLFWwindow << "\033[0m\n\n";
-
-    glfwSetWindowUserPointer(m_Context.GLFWwindow, this);
-}
-
-
-void VulkanWindow::InitWindowsSistem() {
-    //Cargado de la libreria GLFW para gestionar ventanas
-    CargarGLFW();
-
-    //Creacion de una ventana
-    CrearVentana("Cargando...");
-
+    std::cout << "\t\033[1;32m" << title << "\033[0m guardada en \033[1;32m" 
+              << glfwwindow << "\033[0m\n\n";
     
+    size_t size = sizeof(glfwwindow);
+    double megabytes = static_cast<double>(size) / (1024.0 * 1024.0);
+    std::cout << "Tamaño en bytes: " << size << std::endl;
+
+    std::cout << "Tamaño en MB: " << megabytes << std::endl;
+
 };
 
-void VulkanWindow::DestroyWindowsSistem(){
+void GLFWWindow::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+{
+    auto glfwWindow  = reinterpret_cast<GLFWWindow*>(
+        glfwGetWindowUserPointer(window)
+    );
+    glfwWindow->width = width;
+    glfwWindow->height = height;
 
-    DesargarGLFW();
+    glfwWindow->framebufferResized = true;
 
-};
+}
 

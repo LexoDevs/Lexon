@@ -7,11 +7,12 @@
 class Engine {
 public:
 	void runEngine();
-	void StartDrawFrame();
 	void CleanEngine();
 private:
 	void InitEngine();
 	void MainLoopEngine();
+
+	GLFWWindow window;
 
 	LoaderAssets loader;
 	VulkanRHI VulkanAPI;

@@ -5,34 +5,24 @@
 void Engine::runEngine() {
 
 	InitEngine();
+    std::cout<<"BENCHMARK INICIO DEL ENGINE"<<std::endl;
+
 	MainLoopEngine();
+    std::cout<<"BENCHMARK FIN DEL LOOP DEL ENGINE"<<std::endl;
+
 	CleanEngine();
+    std::cout<<"BENCHMARK FIN DE LIMPIEZA Y CIERRE"<<std::endl;
+
 };
 
-void Engine::StartDrawFrame(){
-
-
-    /*render.drawFrame(
-        structureDraw.ComandPoolstr,
-        structureDraw.swapchainstr,
-        structureDraw.pipelinestr,
-        structureDraw.renderstr,
-        structureDraw.vertexbufferstr,
-        structureDraw.texturestr,
-        structureDraw.depthbufferstr,  
-        structureDraw.meshstr,
-        structureDraw.camerastr
-    );*/
-};
 
 void Engine::InitEngine() {
 
+    window.InitWindow();
 
-    VulkanAPI.InitWindowSistem();
-
-    VulkanRHI* pVulkan = &VulkanAPI;
-    glfwSetWindowUserPointer(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, pVulkan);
-
+    //VulkanRHI* pVulkan = &VulkanAPI;
+    //glfwSetWindowUserPointer(window, pVulkan);
+/*
     VulkanAPI.InitVulkan();
 
     mesh.AddObject(loader);
@@ -40,43 +30,56 @@ void Engine::InitEngine() {
     VulkanAPI.InitPostLoadElements(mesh);
 
     layersUI.ImGui_Init(VulkanAPI);  
-
+*/
 };
+
+/*
+funciones a recrear:
+        glfwSetKeyCallback(glfwwindow, GLFW_KeyBoardCallback);
+
+
+*/
+
 
 void Engine::MainLoopEngine() {
 
+    //Seleccion de ventana
 
-    double previousTime = glfwGetTime();
+    double previousTime = window.GetTime();
     int frameCount = 0;
     double fps = 0.0;
 
-    while (!glfwWindowShouldClose(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow)){
+    while (!window.ShouldClose()){
+        window.SetKeyCallback();
+        window.PoolEvents();
+        //glfwSetMouseButtonCallback(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, GLFW_MouseButtonCallback);  // ← Añadir esta línea
+        //glfwPollEvents();
 
-        glfwSetKeyCallback(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, GLFW_KeyCallback);
-        glfwPollEvents();
+        /*
+        layersUI.ImGui_NewFrame();
+        // Aquí dibujamos la interfaz
+        ImGui::ShowDemoWindow();
+        layersUI.VentanaSuperior(VulkanAPI);
+        layersUI.MuestreoImagenes(VulkanAPI);
+        layersUI.ElementosEnEscena(VulkanAPI);
+        VulkanAPI.DrawFrame(camera, mesh);   // ← Dentro hacemos recordimgui
 
-    // ImGui NewFrame ANTES de DrawFrame
-    layersUI.ImGui_NewFrame();
 
-    // Aquí dibujas tu interfaz
-    ImGui::ShowDemoWindow();
-    layersUI.VentanaSuperior(VulkanAPI);
-    layersUI.MuestreoImagenes(VulkanAPI);
+        layersUI.ImGui_EndFrame();   // Para viewports
 
-    VulkanAPI.DrawFrame(camera, mesh);   // ← Dentro hará RecordImGui
+        */
 
-    layersUI.ImGui_EndFrame();   // Para viewports
-
-        double currentTime = glfwGetTime();
+        double currentTime = window.GetTime();
         frameCount++;
 
         if (currentTime - previousTime >= 1.0) {
             fps = frameCount / (currentTime - previousTime);
             previousTime = currentTime;
             frameCount = 0;
+            
             //Cambiar titulo añadiendo los FPS
             std::string title = "Vulkan Engine - FPS: " + std::to_string(static_cast<int>(fps));
-            glfwSetWindowTitle(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, title.c_str());
+            window.SetWindowTitle(title.c_str());
         }
 
         // Mostrar FPS en consola 
@@ -88,14 +91,15 @@ void Engine::MainLoopEngine() {
     }
         std::cout<<std::endl;
 
-    vkDeviceWaitIdle(VulkanAPI.GetVulkanContext().device);
+    //vkDeviceWaitIdle(VulkanAPI.GetVulkanContext().device);
 
 };
 
 
+
 void Engine::CleanEngine() {
 
-	VulkanAPI.DestroyVulkan();
+	//VulkanAPI.DestroyVulkan();
 
 	VulkanAPI.DestroyWindowSistem();
 

@@ -14,20 +14,40 @@
 
 #include <vulkan/vulkan.h>
 
+#include <filesystem>
+
+
 struct MeshesList{
 std::string path;
 std::string name;
 
 };
 
+static std::vector<std::string> LoadTexturesFolder()
+{
+    namespace fs = std::filesystem;
+
+    std::vector<std::string> textures;
+
+    for (const auto& entry : fs::directory_iterator("../resources/Textures/spoonza/"))
+    {
+        if (entry.path().extension() == ".tga")
+            textures.push_back(entry.path().string());
+    }
+
+    std::sort(textures.begin(), textures.end());
+
+    return textures;
+}
+
+
 static std::vector<MeshesList> LoaderList = {
-    {"../resources/models/viking_room.obj" , "Cuarto Vikingo"},
-    {"../src/Meshes/cube.obj" , "Cubo"}
+    {"../resources/models/sponza.obj" , "Cuarto Vikingo"}
+     //  ,{"../src/Meshes/cube.obj" , "Cubo"}
 } ;
 
 
-
-const std::string TEXTURE_PATH = "../resources/Textures/viking_room.png";
+const std::vector<std::string> TEXTURE_PATHS = LoadTexturesFolder();
 
 struct Vertex {
     glm::vec3 pos;
@@ -58,7 +78,6 @@ namespace std {
     };
 }
 
-
 class LoaderAssets {
     public:
         void LoadModel(std::string path, std::vector<Vertex>& vertex , std::vector<uint32_t>& index);
@@ -72,7 +91,9 @@ class LoaderAssets {
 class ObjectInstance {
     public:
         void AddObject(LoaderAssets loader);
-        void SetMatrixModel(UniformBufferObject& ubo, float time, glm::vec3 pos);
+        void SetMatrixModel(UniformBufferObject& ubo, float time);
+        static void TranslateModel(glm::vec3 directionMov);
+        static void RotateModel(float angulo, char eje);
 
         std::vector<Vertex>& getVertices() {return vertices;};
         std::vector<uint32_t>& getIndices() {return indices;};
@@ -80,5 +101,10 @@ class ObjectInstance {
     private:
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
+        static glm::vec3 position;
+        static glm::vec3 rotation;
+
+        static float yaw;
+        static float pitch;
 };
 
