@@ -5,11 +5,11 @@
 #include "../Helpers/VulkanConstants.h"
 
 
-void VulkanLogicalDevice::CreateLogicalDevice() {
+void VulkanLogicalDevice::CreateLogicalDevice(VkPhysicalDevice physicalDevice) {
 
-	QueueFamilyIndices indices = findQueueFamilies();
+	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
-	m_Context.QueueFamilie = indices;
+	QueueFamilie = indices;
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
@@ -63,45 +63,46 @@ void VulkanLogicalDevice::CreateLogicalDevice() {
 		createInfo.enabledLayerCount = 0;
 	}
 
-	bool DeviceSupportsDynamicRendering = m_Context.physicalDevice;
+	bool DeviceSupportsDynamicRendering = physicalDevice;
 
-	if (vkCreateDevice(m_Context.physicalDevice, &createInfo, nullptr, &m_Context.device) != VK_SUCCESS) {
+	if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create logical device!");
 	}
-	std::cout << "\t\033[1;32mLogical device \033[0mguardado en \033[1;32m" << m_Context.device << "\033[0m\n\n";
+	std::cout << "\t\033[1;32mLogical device \033[0mguardado en \033[1;32m" << device << "\033[0m\n\n";
 
-	vkGetDeviceQueue(m_Context.device, indices.graphicsFamily.value(), 0, &m_Context.graphicsQueue);
+	vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 
-	vkGetDeviceQueue(m_Context.device , indices.presentFamily.value(), 0, &m_Context.transferQueue);
+	vkGetDeviceQueue(device , indices.presentFamily.value(), 0, &transferQueue);
 
 
 };
 
-    void VulkanLogicalDevice::DestroyLogicalDevice(){
-		vkDestroyDevice(m_Context.device, nullptr);
 
-	};
+void VulkanLogicalDevice::DestroyLogicalDevice(){
+	vkDestroyDevice(device, nullptr);
+
+};
 
 
-QueueFamilyIndices VulkanLogicalDevice::findQueueFamilies() {
+QueueFamilyIndices VulkanLogicalDevice::findQueueFamilies(VkPhysicalDevice physicalDevice) {
 	std::cout << "\033[1;36m[!] Buscando familia de colas...\033[0m\n";
 
 	QueueFamilyIndices indices;
 
 	uint32_t count;
-	vkGetPhysicalDeviceQueueFamilyProperties(m_Context.physicalDevice, &count, nullptr);
+	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &count, nullptr);
 	std::cout << "\t\033[1;33mNumero de familias de colas: \033[0m\033[1;32m"<<count<<"\033[0m\n";
 
 	std::vector<VkQueueFamilyProperties> props(count);
-	vkGetPhysicalDeviceQueueFamilyProperties(m_Context.physicalDevice, &count, props.data());
+	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &count, props.data());
 
 
 	for (int i = 0; i <= props.size()-1; i++) {
 		VkQueueFlags flags = props[i].queueFlags;
 
 		if (props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-			m_Context.QueueFamilie.graphicsFamily = i;
-			m_Context.QueueFamilie.presentFamily = i;
+			QueueFamilie.graphicsFamily = i;
+			QueueFamilie.presentFamily = i;
 			std::cout << "\t\033[1;33mFamilia de Colas seleccionada: "<<"\033[0m";
 			std::cout << "\033[1;32mCola [" << i << "] -> Flags = " << flags << " -> ";
 		}
@@ -114,10 +115,10 @@ QueueFamilyIndices VulkanLogicalDevice::findQueueFamilies() {
 
 		std::cout<<"\033[0m\n\n";
 
-		if (m_Context.QueueFamilie.isComplete()) break;
+		if (QueueFamilie.isComplete()) break;
 
 	}
 
 
-	return m_Context.QueueFamilie;
+	return QueueFamilie;
 }

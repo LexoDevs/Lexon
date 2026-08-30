@@ -8,20 +8,24 @@
 
 class VulkanLogicalDevice {
 public:
-    VulkanLogicalDevice(VulkanContext& context)
-        : m_Context(context)
-    {
-    }
+    VulkanLogicalDevice(){};
+    ~VulkanLogicalDevice(){
+    DestroyLogicalDevice();};
 
-
-	void CreateLogicalDevice();
-	QueueFamilyIndices findQueueFamilies();
+	void CreateLogicalDevice(VkPhysicalDevice physicalDevice);
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
     void DestroyLogicalDevice();
 
 
 
 private:
-    VulkanContext& m_Context;
+    //Dispositivo virtual que se usara en la aplicacion a partir del dis. fisico
+    VkDevice device;
+	QueueFamilyIndices QueueFamilie;
+        //Familia de colas del dispositivo fisico
+        VkQueue graphicsQueue;
+        VkQueue transferQueue;
+        VkQueue computeQueue;
 
 
 };

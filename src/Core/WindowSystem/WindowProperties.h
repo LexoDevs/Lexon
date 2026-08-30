@@ -6,9 +6,13 @@
 
 struct WindowProperties {
     std::string title = "Lexon Engine";
-    int width = 1280;
-    int height = 720;
     bool fullscreen = false;
     bool resizable = true;
     bool vsync = true;
+};
+
+struct WindowExtent
+{
+	uint32_t width = 1280;
+	uint32_t height = 720;
 };

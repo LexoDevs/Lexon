@@ -7,12 +7,8 @@
 
 
 VulkanRHI::VulkanRHI()
-    : context()                    // Primero creamos el contexto
-    , instance(context)
-    , validacionlayers(context)
-    , surface(context)
-    , physicaldevice(context)
-    , device(context)
+    : context()
+    // Primero creamos el contexto
     , swapchain(context)
     , pipeline(context)
     , commandpool(context)
@@ -29,23 +25,32 @@ VulkanRHI::VulkanRHI()
 {
 }
 
-void VulkanRHI::InitVulkan(){ 
-    
+void VulkanRHI::InitVulkan(Window& window)
+{
     instance.CreateInstances();
-    validacionlayers.setupDebugMessenger();
-    surface.CreateWindowSurface();
-    physicaldevice.SelectPhysicalDevices();
-    surface.GetSurfaceCapabilities();
-    surface.GetSurfacePresentationsMode();
-    surface.chooseSwapSurfaceFormat();
-    device.CreateLogicalDevice();
+
+    surface.CreateWindowSurface(
+        window.GetNativeWindow(),
+        instance.GetInstance()
+    );
+
+    physicaldevice.SelectPhysicalDevices(
+        instance.GetInstance()
+    );
+
+    physicaldevice.CreateSwapchainSupportDetails(
+        surface.GetSurface()
+    );
+
+    device.CreateLogicalDevice(
+        physicaldevice.GetPhysicalDevice()
+    );
+
     swapchain.CreateSwapChain();
     swapchain.CreateImageView();
-
+/*
     depthBuffer.createDepthResources();
         
-        
-
     pipeline.CreateDescriptorSetLayout();
     pipeline.createGraphicsPipeline(); 
 
@@ -53,7 +58,8 @@ void VulkanRHI::InitVulkan(){
     texture.createTextureImage();
     texture.createTextureImageView();
     texture.createTextureSampler();
-};
+*/
+    };
 
 void VulkanRHI::InitPostLoadElements(ObjectInstance& mesh){
     
@@ -79,17 +85,13 @@ void VulkanRHI::DestroyVulkan(){
 
     descriptorpool.destroyDescriptorPool();
 
-
-
     texture.destroyImageTexture();
     texture.destroyImageTextureView();
     depthBuffer.destroyDepthResources();
-    
 
     descriptorSet.destroyDescriptorSet();
 
     pipeline.DestroyDescriptorSetLayout();
-
 
     indexBuffer.destroyIndexBuffer();
 
@@ -97,27 +99,11 @@ void VulkanRHI::DestroyVulkan(){
     
     fences.destroyFences();
 
-
-
     commandpool.destroyCommandPool();
 
     physicaldevice.DestroyPhysicalDevices();
 
-    validacionlayers.DestroyValidationLayers();
-    
-    surface.DestroyVulkanSurface();
 
-    instance.DestroyInstance();
-        
-};
-
-
-void VulkanRHI::InitWindowSistem(){
-    //window.InitWindowsSistem();
-};
-
-void VulkanRHI::DestroyWindowSistem(){
-    //window.DestroyWindowsSistem();
 };
 
 void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){

@@ -8,21 +8,21 @@
 class VulkanSurface {
 
 	public:
-        VulkanSurface(VulkanContext& context)
-            : m_Context(context)
-        {
-        }
+        VulkanSurface();
+        ~VulkanSurface();
 
-		void CreateWindowSurface();
-		VkSurfaceCapabilitiesKHR GetSurfaceCapabilities();
-		VkPresentModeKHR GetSurfacePresentationsMode();
-		VkExtent2D chooseSwapExtent();
-		std::vector<VkSurfaceFormatKHR> getSurfaceFormats(uint32_t &pSurfaceFormatCount);
-		VkSurfaceFormatKHR chooseSwapSurfaceFormat();
+		void CreateWindowSurface(void* window, VkInstance instance);
 		void DestroyVulkanSurface();
+
+		VkSurfaceKHR GetSurface(){return Surface;};
+
 
 
 	private:
+		VkInstance cp_Instance = VK_NULL_HANDLE;
+    	VkSurfaceKHR Surface = VK_NULL_HANDLE;
+    	GLFWwindow* cp_Window = nullptr;
 
-		VulkanContext& m_Context;
+
+
 };

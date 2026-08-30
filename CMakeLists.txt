@@ -5,20 +5,13 @@ project(LexonEngine LANGUAGES CXX)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD          20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS       ON)
+set(CMAKE_CXX_EXTENSIONS       OFF)
 
 # ==================== Opciones de Vulkan ====================
 option(USE_VALIDATION_LAYERS "Enable Vulkan Validation Layers" OFF)
 
-# ==================== Buscar Vulkan ====================
+# ==================== Incluir Vulkan ====================
 find_package(Vulkan REQUIRED)
-
-if(NOT Vulkan_FOUND)
-    message(FATAL_ERROR "Vulkan SDK no encontrado!")
-endif()
-
-
-
 
 # ==================== GLFW ====================
 include(FetchContent)
@@ -113,6 +106,14 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${stb_image_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/third_party/tinyobjloader
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+
+    ${CMAKE_SOURCE_DIR}/src/Core/WindowSystem/Platform/GLFW
+    ${CMAKE_SOURCE_DIR}/src/Core/WindowSystem
+    ${CMAKE_SOURCE_DIR}/src/Core/Input
+    ${CMAKE_SOURCE_DIR}/src/Core/Input/Platform/GLFW
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

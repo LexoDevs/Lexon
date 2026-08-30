@@ -1,7 +1,6 @@
 #include "Engine.h"
 #include <iostream>
 
-
 void Engine::runEngine() {
 
 	InitEngine();
@@ -15,16 +14,26 @@ void Engine::runEngine() {
 
 };
 
+void Engine::EventManager(){
+
+    KeyCode keyselected;
+    inputSystem.Selector(keyselected);
+
+    switch(keyselected){
+        case KeyCode::Escape:
+            window.CloseWindow();
+        break;
+    }
+
+};
 
 void Engine::InitEngine() {
 
+    window.SetInputSystem(&inputSystem);
     window.InitWindow();
 
-    //VulkanRHI* pVulkan = &VulkanAPI;
-    //glfwSetWindowUserPointer(window, pVulkan);
+    VulkanAPI.InitVulkan(window);
 /*
-    VulkanAPI.InitVulkan();
-
     mesh.AddObject(loader);
 
     VulkanAPI.InitPostLoadElements(mesh);
@@ -32,14 +41,6 @@ void Engine::InitEngine() {
     layersUI.ImGui_Init(VulkanAPI);  
 */
 };
-
-/*
-funciones a recrear:
-        glfwSetKeyCallback(glfwwindow, GLFW_KeyBoardCallback);
-
-
-*/
-
 
 void Engine::MainLoopEngine() {
 
@@ -50,8 +51,13 @@ void Engine::MainLoopEngine() {
     double fps = 0.0;
 
     while (!window.ShouldClose()){
+        window.PollEvents();
         window.SetKeyCallback();
-        window.PoolEvents();
+        EventManager();
+
+
+
+
         //glfwSetMouseButtonCallback(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, GLFW_MouseButtonCallback);  // ← Añadir esta línea
         //glfwPollEvents();
 
@@ -101,7 +107,7 @@ void Engine::CleanEngine() {
 
 	//VulkanAPI.DestroyVulkan();
 
-	VulkanAPI.DestroyWindowSistem();
+	//VulkanAPI.DestroyWindowSistem();
 
 };
 

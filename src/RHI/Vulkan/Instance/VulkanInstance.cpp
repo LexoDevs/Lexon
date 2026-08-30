@@ -9,6 +9,29 @@ struct {
 	int Patch = 0;
 } m_Version;
 
+VulkanInstance::VulkanInstance(){
+	if (m_Initialized)
+    {
+        return;
+    }
+    m_Initialized = true;
+};
+
+VulkanInstance::~VulkanInstance(){
+    if (!m_Initialized)
+    {
+        return;
+    }
+
+	if (&instance != VK_NULL_HANDLE)
+    {
+		std::cout<<"Lanzado desde construcctor de instancia"<<std::endl;
+		m_Validation.DestroyValidationLayers();
+		DestroyInstance();
+    }
+
+    m_Initialized = false;
+};
 
 
 bool checkValidationLayerSupports() {
@@ -34,28 +57,8 @@ bool checkValidationLayerSupports() {
 	}
 
 	return true;
-}
+};
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData)
-{
-    if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-        std::cerr << "\033[1;31m[VALIDATION ERROR] \033[0m" << pCallbackData->pMessage << std::endl;
-    
-    else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-        std::cout << "\033[1;33m[VALIDATION WARNING] \033[0m" << pCallbackData->pMessage << std::endl;
-    
-    else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
-        std::cout << "\033[1;36m[VALIDATION INFO] \033[0m" << pCallbackData->pMessage << std::endl;
-    
-    else
-        std::cout << "\033[1;90m[VALIDATION VERBOSE] \033[0m" << pCallbackData->pMessage << std::endl;
-
-    return VK_FALSE;
-}
 
 void populateDebugMessengerCreateInfos(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
 	createInfo = {};
@@ -103,8 +106,6 @@ std::vector<const char*> VulkanInstance::GetInstanceExtensionsRequireds() {
 
 void VulkanInstance::CreateInstances() {
 
-
-
 	std::cout << "\033[1;36m[!] Creando instancia de Vulkan...\033[0m\n";
 	std::cout << "\033[1;33m\tComprobando version...\033[0m\n";
 
@@ -112,7 +113,7 @@ void VulkanInstance::CreateInstances() {
 
 	VkApplicationInfo appInfo{};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName = "Hello Triangle";
+	appInfo.pApplicationName = "Lexon";
 	appInfo.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
 	appInfo.pEngineName = "No Engine";
 	appInfo.engineVersion = VK_MAKE_VERSION(0, 1, 0);
@@ -155,23 +156,25 @@ void VulkanInstance::CreateInstances() {
 		createInfo.pNext = nullptr;
 	}
     //...............................
-	std::cout << '\t' <<"\033[1;32mInstancia\033[0m guardada en \033[1;32m" << &m_Context.instance << "\033[0m\n\n";
+	std::cout << '\t' <<"\033[1;32mInstancia\033[0m guardada en \033[1;32m" << &instance << "\033[0m\n\n";
 
-	if (vkCreateInstance(&createInfo, nullptr, &m_Context.instance) != VK_SUCCESS) {
+	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create instance!");
 	}
 
-	//m_Context.instance = GetInstance();
-
-	std::cout << '\t' <<"\033[1;32mInstancia\033[0m guardada en \033[1;32m" << &m_Context.instance << "\033[0m\n\n";
+	//Creacion de capas de validacion
+	m_Validation.Init(instance);
 
 
 }
 
 
+
 void VulkanInstance::DestroyInstance() {
 
-	vkDestroyInstance(m_Context.instance, nullptr);
+
+	std::cout<<"Instancia de vulkan destruida"<<std::endl;
+	vkDestroyInstance(instance, nullptr);
 
 };
 

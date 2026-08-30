@@ -38,3 +38,10 @@ struct QueueFamilyIndices {
 		return graphicsFamily.has_value() && presentFamily.has_value();
 	}
 };
+
+struct SwapchainSupportDetails
+{
+    VkSurfaceCapabilitiesKHR capabilities;
+	VkPresentModeKHR presentMode;
+    VkSurfaceFormatKHR format;
+};

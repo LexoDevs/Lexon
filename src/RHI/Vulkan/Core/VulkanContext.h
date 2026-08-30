@@ -12,32 +12,29 @@
 #include "../Helpers/VulkanFormats.h"
 #include <array>
 #include "../../../Assets/Loaders/LoaderAssets.h"
-#include "../../../Core/WindowSystem/WindowContext.h"
+#include <WindowProperties.h>
 
 struct VulkanContext
 {
 
-    //Ventana (provisional por ahora, hay que generalizarla)
- 	WindowProperties prop;
-
-    GLFWwindow* GLFWwindow;
-    //bool framebufferResized;
 
     //Instancia de vulkan
     VkInstance instance;
 
     //Log de mensajes de las capas de validacion de vulkan
-    VkDebugUtilsMessengerEXT debuginfo;
-    VkDebugUtilsMessengerCreateInfoEXT createinfodebug;
 
-    
     //Superficie virtual de ventana
     VkSurfaceKHR surface;
+
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     VkPresentModeKHR presentationsurface;
-    VkExtent2D swapExtent;
     std::vector<VkSurfaceFormatKHR> availableFormats;
     VkSurfaceFormatKHR surfaceformats;
+
+
+    
+    VkExtent2D swapExtent;
+
 
     //Dispositivo fisico seleccionado (la gráfica)
     VkPhysicalDevice physicalDevice;

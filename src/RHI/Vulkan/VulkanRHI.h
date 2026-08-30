@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/VulkanContext.h"
 
-#include "Windows/VulkanWindow.h"
+#include <GLFWWindow.h>
 #include "Instance/VulkanInstance.h"
 #include "Windows/VulkanSurface.h"
 #include "Instance/ValidationLayers.h"
@@ -35,10 +35,7 @@ class VulkanRHI
 public:
     VulkanRHI();
 
-
-    void InitWindowSistem();
-    void DestroyWindowSistem();
-    void InitVulkan();
+    void InitVulkan(Window& window);
     void InitPostLoadElements(ObjectInstance& mesh);
     void DestroyVulkan();
     void DrawFrame(CameraView& camera,ObjectInstance& mesh);
@@ -48,8 +45,8 @@ public:
 
     //VulkanWindow&          GetVulkanWindow()          { return window; }
     VulkanInstance&        GetVulkanInstance()        { return instance; }
-    VulkanValidation&      GetVulkanValidation()      { return validacionlayers; }
-    VulkanSurface&         GetVulkanSurface()         { return surface; }
+    //VulkanValidation&      GetVulkanValidation()      { return validacionlayers; }
+    //VulkanSurface&         GetVulkanSurface()         { return surface; }
     VulkanPhysicalDevice&  GetVulkanPhysicalDevice()  { return physicaldevice; }
     VulkanLogicalDevice&   GetVulkanLogicalDevice()   { return device; }
     VulkanPipeline&        GetVulkanPipelineGraph()   { return pipeline; }
@@ -69,6 +66,8 @@ private:
     VulkanInstance instance;
     VulkanValidation validacionlayers;
     VulkanSurface surface;
+
+    
     VulkanPhysicalDevice physicaldevice;
     VulkanLogicalDevice device;
     VulkanSwapchain swapchain;

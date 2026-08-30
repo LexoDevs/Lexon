@@ -1,30 +1,27 @@
 #pragma once
 
-#include "../Core/VulkanContext.h"
 #include "vector"
 #include "../Helpers/VulkanConstants.h"
+
 #include <vulkan/vulkan.h>
+#include "ValidationLayers.h"
+
 
 class VulkanInstance {
 public:
-    VulkanInstance(VulkanContext& context)
-        : m_Context(context)
-    {
-    }
+    VulkanInstance();
+	~VulkanInstance();
 
-	//Destroy y Create
 	void CreateInstances();
 	void DestroyInstance();
+	VkInstance GetInstance() {return instance;};
+private: 
 
-	//Get
-
-private:
-	//Contexto de vulkan (Datos)
-    VulkanContext& m_Context;
-	
-
-	//Funciones auxiliares/internas de la instancia
 	void GetInstanceVersions();
 	std::vector<const char*> GetInstanceExtensionsRequireds();
 
+	VkInstance instance;
+	VulkanValidation m_Validation;
+
+	bool m_Initialized = false;
 };

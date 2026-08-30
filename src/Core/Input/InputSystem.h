@@ -1,41 +1,29 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-#include "../../RHI/Vulkan/VulkanRHI.h"
-#include "../../Renderer/Camera.h"
-#include "../../Assets/Loaders/LoaderAssets.h"
+//#include <vulkan/vulkan.h>
+//#include "../../RHI/Vulkan/VulkanRHI.h"
+//#include "../../Renderer/Camera.h"
+//#include "../../Assets/Loaders/LoaderAssets.h"
 
-static bool keys[GLFW_KEY_LAST + 1]{};
+//static bool keys[GLFW_KEY_LAST + 1]{};
+#include <InputCodes.h>
+#include <array>
 
-static glm::vec3 VectorFrontalCamara(glm::vec3 v) {
-    float modulo = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+class InputSystem
+{
+public:
 
-    return {v.x/(modulo), v.y/(modulo) , v.z/(modulo)};
-}
+    void SetKeyState( KeyCode key, bool pressed );
 
-static glm::vec3 multiplicarMatrizVector(glm::vec3 vec) {
-        std::vector<std::vector<double>> matriz = {
-        {0.0, -1.0, 0.0},
-        {1.0, 0.0, 0.0},
-        {0.0, 0.0, 1.0}
-    };
+    bool IsKeyPressed( KeyCode key ) const;
 
-    int filas = matriz.size();
-    int columnas = matriz[0].size();
-    
-    glm::vec3 resultado;
+    void Selector(KeyCode &keysactives);
+private:
 
-    for (int i = 0; i < filas; ++i) {
-        for (int j = 0; j < columnas; ++j) {
-            resultado[i] += matriz[i][j] * vec[j];
-        }
-    }
+    std::array<bool,static_cast<size_t>(KeyCode::Count)> m_Keys{};
+};
 
-    return resultado;
-}
-
-
-
+/*
 static void InputActionSelector(VulkanRHI& vulkanAPI, int input, int action) {
         CameraView::front;
         CameraView::position;
@@ -112,7 +100,6 @@ static void InputActionSelector(VulkanRHI& vulkanAPI, int input, int action) {
 
 
 
-
     if ((input == GLFW_MOUSE_BUTTON_RIGHT) && (action == GLFW_PRESS))
     {
         std::cout << "Click derecho detectado!" << std::endl;
@@ -150,4 +137,5 @@ static void GLFW_MouseButtonCallback(GLFWwindow* window, int button, int action,
     VulkanRHI* vulkanAPI = static_cast<VulkanRHI*>(glfwGetWindowUserPointer(window));
     if (vulkanAPI)
     InputActionSelector(*vulkanAPI, button, action); 
-}
+}*/
+

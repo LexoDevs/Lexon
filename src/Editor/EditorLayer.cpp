@@ -5,7 +5,7 @@
 
 
 // Asumiendo que tienes acceso a tu VkInstance, VkDevice, etc.
-void EditorLayer::ImGui_Init(VulkanRHI& VulkanAPI)
+/*void EditorLayer::ImGui_Init(VulkanRHI& VulkanAPI)
 {
     VulkanContext context = VulkanAPI.GetVulkanContext();  
     context.imguiDescriptorPool = VulkanAPI.GetVulkanDescriptorPool().CreateImGuiDescriptorPool();
@@ -208,4 +208,4 @@ void EditorLayer::ElementosEnEscena(VulkanRHI& VulkanAPI){
         }
     ImGui::End();
 
-    };
+    };*/

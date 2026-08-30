@@ -4,6 +4,8 @@
 #include "Input/InputSystem.h"
 #include "../Editor/EditorLayer.h"
 
+#include <GLFWWindow.h>
+
 class Engine {
 public:
 	void runEngine();
@@ -12,7 +14,10 @@ private:
 	void InitEngine();
 	void MainLoopEngine();
 
+	void EventManager();
 	GLFWWindow window;
+	InputSystem inputSystem;
+
 
 	LoaderAssets loader;
 	VulkanRHI VulkanAPI;

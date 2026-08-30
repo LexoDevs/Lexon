@@ -145,7 +145,7 @@ void VulkanSwapchain::destroySwapchain(){
     vkDestroySwapchainKHR(m_Context.device, m_Context.swapchain, nullptr);
 
 };
-
+/*
 void VulkanSwapchain::RecreateSwapchain()
 {
     std::cout << "\033[1;36m[!] Recreando Swapchain...\033[0m\n";
@@ -185,5 +185,5 @@ void VulkanSwapchain::RecreateSwapchain()
             << m_Context.swapChainExtent.height << ")\n";
 
 
-};
+};*/
 

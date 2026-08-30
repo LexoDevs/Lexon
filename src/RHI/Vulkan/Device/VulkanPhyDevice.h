@@ -6,20 +6,31 @@
 #include <iostream>
 #include <set>
 
-struct VulkanContext;
+struct SwapchainSupportDetails
+{
+    VkSurfaceCapabilitiesKHR capabilities;
+	VkPresentModeKHR presentMode;
+    VkSurfaceFormatKHR format;
+};
 
 class VulkanPhysicalDevice {
 public:
-    VulkanPhysicalDevice(VulkanContext& context)
-        : m_Context(context)
-    {
-    }
-
-	void SelectPhysicalDevices();
+    VulkanPhysicalDevice();
+	void SelectPhysicalDevices(VkInstance instance);
     void DestroyPhysicalDevices();
-private:
-    VulkanContext& m_Context;
+    void CreateSwapchainSupportDetails(VkSurfaceKHR Surface);
+    VkPhysicalDevice GetPhysicalDevice(){return physicalDevice;};
 
+private:
+		VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceKHR Surface);
+		VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(VkSurfaceKHR Surface);
+		VkPresentModeKHR GetSurfacePresentationsMode(VkSurfaceKHR Surface);
+		std::vector<VkSurfaceFormatKHR> getSurfaceFormats(VkSurfaceKHR Surface, uint32_t &pSurfaceFormatCount);
+		VkExtent2D chooseSwapExtent();
+
+        
+        VkPhysicalDevice physicalDevice;
+        SwapchainSupportDetails swapDetails;
 
     bool IsDeviceSelectable(VkPhysicalDevice physicaldevice);
 	bool checkDeviceExtensionSupport(VkPhysicalDevice physicaldevice);

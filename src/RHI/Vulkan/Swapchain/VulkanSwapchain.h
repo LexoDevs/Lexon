@@ -4,23 +4,27 @@
 
 class VulkanSwapchain { 
 public:
-    VulkanSwapchain(VulkanContext& context)
-        : m_Context(context)
+    VulkanSwapchain()
+
     {
     }
     
-	void CreateSwapChain();
+	void CreateSwapChain(VkDevice device, VkSurfaceKHR surface, SwapchainSupportDetails details);
 	void CreateImageView();
 	void cleanSwapchain();
 	void destroySwapchain();
 
-	void RecreateSwapchain();
+	//void RecreateSwapchain();
+    VkSwapchainKHR swapchain;
+	VkExtent2D swapChainExtent;
+	VkSurfaceFormatKHR swapChainSurfaceFormat;
+	VkFormat swapChainImageFormat;
 
-
-
+	std::vector<VkImage> swapchainImages;
+	std::vector<VkImageView> swapChainImageViews;
 private:
-	//Contexto de vulkan (Datos)
-    VulkanContext& m_Context;
+
+
 
 
 
