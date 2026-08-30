@@ -9,67 +9,91 @@
 VulkanRHI::VulkanRHI()
     : context()
     // Primero creamos el contexto
-    , swapchain(context)
     , pipeline(context)
-    , commandpool(context)
     , descriptorpool(context)
-    , fences(context)
     , depthBuffer(context)
     , texture(context)
     , vertexBuffer(context)
     , indexBuffer(context)
     , uniformBuffer(context)
     , descriptorSet(context)
-    , commandBuffer(context)
+
 
 {
 }
 
 void VulkanRHI::InitVulkan(Window& window)
 {
+    // Instancia de vulkan
     instance.CreateInstances();
 
+    // Superficie de Ventana
     surface.CreateWindowSurface(
         window.GetNativeWindow(),
         instance.GetInstance()
     );
 
+    // Seleccion de GPU
     physicaldevice.SelectPhysicalDevices(
         instance.GetInstance()
     );
 
+    // Buscar capacidades de la grafica y la ventana
     physicaldevice.CreateSwapchainSupportDetails(
         surface.GetSurface()
     );
 
+    // Crear dispositivo virtual y colas (Queues)
     device.CreateLogicalDevice(
         physicaldevice.GetPhysicalDevice()
     );
 
-    swapchain.CreateSwapChain();
+    commandpool.createCommandPool(
+        device.GetHandle(),
+        device.GetQueueFamily()
+    ); 
+
+    swapchain.CreateSwapChain(
+        device.GetHandle(),
+        surface.GetSurface(),
+        physicaldevice.GetSwapDetails(),
+        device.GetQueueFamily()
+    );
+
     swapchain.CreateImageView();
+
+    fences.createSyncObjects(
+        device.GetHandle()
+    );
+
+    commandBuffers.createCommandBuffer(
+        device.GetHandle(),
+        commandpool.GetHandle());
+    };
+
+
+    void VulkanRHI::InitRenderer(){
 /*
     depthBuffer.createDepthResources();
-        
-    pipeline.CreateDescriptorSetLayout();
-    pipeline.createGraphicsPipeline(); 
 
-    commandpool.createCommandPool(); 
+    pipeline.CreateDescriptorSetLayout();
+    pipeline.createGraphicsPipeline();
+
+    uniformBuffer.createUniformBuffer();
+    descriptorpool.createDescriptorPool();
+    descriptorSet.createDescriptorSets();
+
     texture.createTextureImage();
     texture.createTextureImageView();
     texture.createTextureSampler();
 */
     };
 
-void VulkanRHI::InitPostLoadElements(ObjectInstance& mesh){
+void VulkanRHI::UploadMesh(ObjectInstance& mesh){
     
     vertexBuffer.createVertexBuffer(mesh);
     indexBuffer.createIndexBuffer(mesh);
-    uniformBuffer.createUniformBuffer();
-    descriptorpool.createDescriptorPool();
-    descriptorSet.createDescriptorSets();
-    commandBuffer.createCommandBuffer();
-    fences.createSyncObjects();
+
 };
 
 
@@ -77,7 +101,6 @@ void VulkanRHI::InitPostLoadElements(ObjectInstance& mesh){
 
 void VulkanRHI::DestroyVulkan(){ 
 
-    swapchain.destroySwapchain();
 
     pipeline.DestroyPipelineGraphics();
 
@@ -97,41 +120,48 @@ void VulkanRHI::DestroyVulkan(){
 
     vertexBuffer.destroyVertexBuffer();
     
-    fences.destroyFences();
+    //fences.destroyFences();
 
-    commandpool.destroyCommandPool();
-
-    physicaldevice.DestroyPhysicalDevices();
+    //commandpool.destroyCommandPool();
 
 
 };
 
 void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
 
+    //0. Inicializar recursos
+    const uint32_t frame = currentFrame;
+
+
+    VkDevice vkDevice = device.GetHandle();
+
+    VkFence fence = fences.GetinFlightFence(frame);
+
+    VkSemaphore imageAvailable = fences.GetimageAvailableSemaphore(frame);
+
+
+    VkCommandBuffer commandBuffer = commandBuffers.GetCommandBuffer(frame);
 
     //std::cout<<"Dentro del draw, esperando frames"<<std::endl;
-    // 1. Esperar al frame anterior
    //vkDeviceWaitIdle(context.device);    //Solucion del error del index
 
-
-
-    vkWaitForFences(context.device, 1, 
-                    &context.inFlightFence[context.frameIndex], VK_TRUE, UINT64_MAX);
+    // 1. Esperar al frame anterior
+    vkWaitForFences(device.GetHandle(), 1, &fence, VK_TRUE, UINT64_MAX);
 
 
     // 2. Adquirir imagen del swapchain
-
     uint32_t imageIndex;
-    //std::cout<<"swapchain: "<<context.swapchain<<std::endl;
-
 
     VkResult result = vkAcquireNextImageKHR(
-        context.device,
-        context.swapchain,
+        vkDevice,
+        swapchain.GetSwapchain(),
         UINT64_MAX,
-        context.imageAvailableSemaphore[context.frameIndex],
+        imageAvailable,
         VK_NULL_HANDLE,
         &imageIndex);
+
+    VkSemaphore renderFinished = fences.GetrenderFinishedSemaphore(imageIndex);
+
 /*
     if (result == VK_ERROR_OUT_OF_DATE_KHR ||
         result == VK_SUBOPTIMAL_KHR ||
@@ -158,46 +188,38 @@ void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
 
 
 
-    uniformBuffer.updateUniformBuffer(context.frameIndex, mesh, camera);
-    // 3. Resetear fence
-    vkResetFences(context.device, 1, &context.inFlightFence[context.frameIndex]);
-
-        // 4. Grabar comandos
-    vkResetCommandBuffer(context.commandBuffers[context.frameIndex], 0);
-
-    VkCommandBuffer cmd = context.commandBuffers[context.frameIndex];
-
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    //uniformBuffer.updateUniformBuffer(context.frameIndex, mesh, camera);
     
-    //vkBeginCommandBuffer(cmd, &beginInfo);
+    
+    // 3. Resetear fence
+    vkResetFences(vkDevice, 1, &fence);
 
-    // Tu renderizado normal
-    depthBuffer.recordCommandBuffer(imageIndex, context.frameIndex, mesh);
+    // 4. Grabar comandos
+    vkResetCommandBuffer(commandBuffer, 0);
 
 
+//Aqui empieza el grabado de comandos a la gráfica
+    recordCommandBuffer(frame,imageIndex, mesh);
 
     // 5. Submit
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     
-    VkSemaphore waitSemaphores[] = {context.imageAvailableSemaphore[context.frameIndex]};
+    VkSemaphore waitSemaphores[] = {imageAvailable};
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submitInfo.waitSemaphoreCount   = 1;
     submitInfo.pWaitSemaphores      = waitSemaphores;
     submitInfo.pWaitDstStageMask    = waitStages;
 
     submitInfo.commandBufferCount   = 1;
-    submitInfo.pCommandBuffers      = &context.commandBuffers[context.frameIndex];
+    submitInfo.pCommandBuffers      = &commandBuffer;
 
-    VkSemaphore signalSemaphores[] = {context.renderFinishedSemaphore[context.frameIndex]};
+    VkSemaphore signalSemaphores[] = {renderFinished};
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores    = signalSemaphores;  
 
 
-
-    if (vkQueueSubmit(context.graphicsQueue, 1, &submitInfo, 
-                      context.inFlightFence[context.frameIndex]) != VK_SUCCESS) {
+    if (vkQueueSubmit(device.GetGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
         throw std::runtime_error("failed to submit draw command buffer!");
     }
 
@@ -209,13 +231,13 @@ void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores    = signalSemaphores;
 
-    VkSwapchainKHR swapChains[] = {context.swapchain};
+    VkSwapchainKHR swapChains[] = {swapchain.GetSwapchain()};
     presentInfo.swapchainCount     = 1;
     presentInfo.pSwapchains   = swapChains;
 
     presentInfo.pImageIndices = &imageIndex;
 
-    result = vkQueuePresentKHR(context.graphicsQueue, &presentInfo); // Posible error, tengo dudas
+    result = vkQueuePresentKHR(device.GetGraphicsQueue(), &presentInfo); // Posible error, tengo dudas
 
    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
         //window.framebufferResized = true;  // Para que se redimensione en el próximo frame
@@ -225,8 +247,160 @@ void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
     }
 
     // Avanzar al siguiente frame
-    context.frameIndex  = (context.frameIndex  + 1) % MAX_FRAMES_IN_FLIGHT;
+    currentFrame  = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 };
+
+
+void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectInstance mesh)
+{
+
+    VkCommandBuffer cmd = commandBuffers.GetCommandBuffer(frame);
+
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+    if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS) {
+        throw std::runtime_error("failed to begin recording command buffer!");
+    }
+    
+
+    transition_image_layout(
+        cmd,
+        swapchain.GetSwapchainImages(imageIndex),
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        0,                                                // srcAccessMask
+        VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+        VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT,             // srcStage
+        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT  // dstStage
+    );
+    
+    /*
+    // Transición del Depth Image
+    transition_image_layout(
+        cmd,
+        m_Context.depthImage,
+        VK_IMAGE_LAYOUT_UNDEFINED,
+        VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_ASPECT_DEPTH_BIT,
+        VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+        VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+        VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
+        VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT
+    );
+*/
+        // ====================== INICIO DEL RENDERING ======================
+    VkClearValue clearValues[1] = {};
+    clearValues[0].color = { {0.5f, 0.5f, 0.5f, 1.0f} };
+    //clearValues[1].depthStencil = { 1.0f, 0 };
+
+    VkRenderingAttachmentInfo colorAttachment{};
+    colorAttachment.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachment.imageView   = swapchain.GetSwapChainImageViews(imageIndex);
+    colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachment.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.clearValue  = clearValues[0];
+
+
+/*
+    VkRenderingAttachmentInfo depthAttachment{};
+    depthAttachment.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    depthAttachment.imageView   = m_Context.depthImageView;
+
+
+    depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+    depthAttachment.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp     = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.clearValue  = clearValues[1];
+*/
+
+    VkRenderingInfo renderingInfo{};
+    renderingInfo.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderingInfo.renderArea.offset    = {0, 0};
+    renderingInfo.renderArea.extent    = {swapchain.GetSwapchainExtent().width,swapchain.GetSwapchainExtent().height};
+    renderingInfo.layerCount           = 1;
+    renderingInfo.colorAttachmentCount = 1;
+    renderingInfo.pColorAttachments    = &colorAttachment;
+    //renderingInfo.pDepthAttachment     = &depthAttachment;
+
+    
+
+    vkCmdBeginRendering(cmd, &renderingInfo);
+
+    // Bind del pipeline gráfico
+    //vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Context.Pipeline);
+
+    vkCmdSetDepthTestEnable(cmd, VK_TRUE);
+vkCmdSetDepthWriteEnable(cmd, VK_TRUE);
+vkCmdSetDepthCompareOp(cmd, VK_COMPARE_OP_LESS);
+
+vkCmdSetDepthBiasEnable(cmd, VK_FALSE);
+vkCmdSetDepthBias(cmd, 0.0f, 0.0f, 0.0f);
+
+vkCmdSetStencilTestEnable(cmd, VK_FALSE);
+
+vkCmdSetDepthBoundsTestEnable(cmd, VK_FALSE);
+vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
+
+    // Viewport y Scissor (dynamic state)
+    VkViewport viewport{};
+    viewport.x        = 0.0f;
+    viewport.y        = 0.0f;
+    viewport.width    = static_cast<float>(1280);//window.width
+    viewport.height   = static_cast<float>(720);//window.height
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+    // Scissor
+    VkRect2D scissor{};
+    scissor.offset = {0, 0};
+    scissor.extent = swapchain.GetSwapchainExtent();
+
+    vkCmdSetViewport(cmd, 0, 1, &viewport); //??
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+
+    //VkBuffer vertexBuffers[] = { m_Context.vertexBuffer };
+    VkDeviceSize offsets[]   = { 0 };
+    
+    //vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
+    //vkCmdBindIndexBuffer(cmd, m_Context.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+    /*vkCmdBindDescriptorSets(cmd, 
+                        VK_PIPELINE_BIND_POINT_GRAPHICS, 
+                        m_Context.pipelineLayout, 
+                        0, 1, 
+                        &m_Context.descriptorSets[frame],   // Asumiendo que es un método de Texture
+                        0, nullptr);
+
+    vkCmdDrawIndexed(cmd, static_cast<uint32_t>(mesh.getIndices().size()), 1, 0, 0, 0);
+
+    ImGui::Render();
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
+*/
+    vkCmdEndRendering(cmd);
+
+
+    transition_image_layout(
+        cmd,
+        swapchain.GetSwapchainImages(imageIndex),
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        VK_IMAGE_ASPECT_COLOR_BIT,
+        VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
+        0,
+        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
+    );
+
+    if (vkEndCommandBuffer(cmd) != VK_SUCCESS) {
+        throw std::runtime_error("failed to record command buffer!");
+    }
+}
+
 
 

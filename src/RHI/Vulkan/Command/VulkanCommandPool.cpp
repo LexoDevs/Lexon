@@ -1,23 +1,36 @@
 #include "VulkanCommandPool.h"
 
-void VulkanCommandPool::createCommandPool() {
+VulkanCommandPool::VulkanCommandPool(){
+
+};
+
+VulkanCommandPool::~VulkanCommandPool(){
+destroyCommandPool();
+};
+
+
+void VulkanCommandPool::createCommandPool(VkDevice device, QueueFamilyIndices QueueFamilie) {
+    cp_device = device;
+
+    std::cout << "\033[1;36m[!] Creando cadena pool de instrucciones...\033[0m\n";
+
 
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-    auto queueFamilyIndextemp = m_Context.QueueFamilie.graphicsFamily.value();
+    auto queueFamilyIndextemp = QueueFamilie.graphicsFamily.value();
     poolInfo.queueFamilyIndex = queueFamilyIndextemp;
 
-    if (vkCreateCommandPool(m_Context.device, &poolInfo, nullptr, &m_Context.commandPool) != VK_SUCCESS) {
+    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
     throw std::runtime_error("failed to create command pool!");
     }
-    std::cout<<"comand pool creado"<<std::endl;
+    std::cout << "\t\033[1;32m CommandPool\033[0m creada correctamente en \033[1;32m" << commandPool << "\033[0m\n";
 
 }
 
 void VulkanCommandPool::destroyCommandPool() {
-
-    vkDestroyCommandPool(m_Context.device, m_Context.commandPool, nullptr);
+    std::cout<<"Se ha destruido el command pool"<<std::endl;
+    vkDestroyCommandPool(cp_device, commandPool, nullptr);
 
 }

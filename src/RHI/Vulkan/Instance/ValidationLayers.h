@@ -8,9 +8,9 @@
 
 struct MessageVisibility{
     bool error=true;
-    bool warning=false;
+    bool warning=true;
     bool severity=true; 
-    bool verbose=false;
+    bool verbose=true;
 };
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(

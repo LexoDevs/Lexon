@@ -1,19 +1,6 @@
 #include "Engine.h"
 #include <iostream>
 
-void Engine::runEngine() {
-
-	InitEngine();
-    std::cout<<"BENCHMARK INICIO DEL ENGINE"<<std::endl;
-
-	MainLoopEngine();
-    std::cout<<"BENCHMARK FIN DEL LOOP DEL ENGINE"<<std::endl;
-
-	CleanEngine();
-    std::cout<<"BENCHMARK FIN DE LIMPIEZA Y CIERRE"<<std::endl;
-
-};
-
 void Engine::EventManager(){
 
     KeyCode keyselected;
@@ -27,16 +14,32 @@ void Engine::EventManager(){
 
 };
 
+
+void Engine::runEngine() {
+
+	InitEngine();
+    std::cout<<"BENCHMARK INICIO DEL ENGINE"<<std::endl;
+
+	MainLoopEngine();
+    std::cout<<"BENCHMARK FIN DEL LOOP DEL ENGINE"<<std::endl;
+
+	CleanEngine();
+    std::cout<<"BENCHMARK FIN DE LIMPIEZA Y CIERRE"<<std::endl;
+
+};
+
 void Engine::InitEngine() {
 
     window.SetInputSystem(&inputSystem);
     window.InitWindow();
 
     VulkanAPI.InitVulkan(window);
-/*
-    mesh.AddObject(loader);
 
-    VulkanAPI.InitPostLoadElements(mesh);
+    VulkanAPI.InitRenderer();
+
+ /*     mesh.AddObject(loader);
+
+    VulkanAPI.UploadMesh(mesh);
 
     layersUI.ImGui_Init(VulkanAPI);  
 */
@@ -68,8 +71,10 @@ void Engine::MainLoopEngine() {
         layersUI.VentanaSuperior(VulkanAPI);
         layersUI.MuestreoImagenes(VulkanAPI);
         layersUI.ElementosEnEscena(VulkanAPI);
-        VulkanAPI.DrawFrame(camera, mesh);   // ← Dentro hacemos recordimgui
 
+        */
+        VulkanAPI.DrawFrame(camera, mesh);   // ← Dentro hacemos recordimgui
+/*
 
         layersUI.ImGui_EndFrame();   // Para viewports
 
@@ -97,7 +102,7 @@ void Engine::MainLoopEngine() {
     }
         std::cout<<std::endl;
 
-    //vkDeviceWaitIdle(VulkanAPI.GetVulkanContext().device);
+    vkDeviceWaitIdle(VulkanAPI.GetVulkanLogicalDevice().GetHandle());
 
 };
 

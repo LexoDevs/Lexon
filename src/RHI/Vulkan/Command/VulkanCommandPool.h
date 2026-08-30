@@ -4,15 +4,16 @@
 #include <iostream>
 
 class VulkanCommandPool {
-public:
-    VulkanCommandPool(VulkanContext& context)
-        : m_Context(context)
-    {
-    }
+    public:
+        VulkanCommandPool();
+        ~VulkanCommandPool();
 
-    void createCommandPool();
-    void destroyCommandPool();
+        void createCommandPool(VkDevice device, QueueFamilyIndices QueueFamilie);
+        void destroyCommandPool();
+        VkCommandPool GetHandle() {return commandPool;};
+
 
     private:
-        VulkanContext& m_Context;
+        VkCommandPool commandPool;
+        VkDevice cp_device;
 };

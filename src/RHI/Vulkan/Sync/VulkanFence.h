@@ -5,19 +5,25 @@
 class VulkanFence {
 
     public:
-    VulkanFence(VulkanContext& context)
-        : m_Context(context)
-    {
-    }
+    VulkanFence();
+    ~VulkanFence();
 
-    void createSyncObjects();
+
+    void createSyncObjects(VkDevice device);
     void destroyFences();
-    void cleanSync();
-    
+    //void cleanSync();
+    VkSemaphore GetimageAvailableSemaphore(int frame) {return imageAvailableSemaphore[frame];};
+    VkSemaphore GetrenderFinishedSemaphore(int frame) {return renderFinishedSemaphore[frame];};
+    VkFence GetinFlightFence(uint32_t frame) {return inFlightFence[frame];};
 
     private:
-    VulkanContext& m_Context;
+    VkSemaphore imageAvailableSemaphore[MAX_FRAMES_IN_FLIGHT]{};
+    VkSemaphore renderFinishedSemaphore[MAX_SWAPCHAIN_IMAGES]{};
+    VkFence inFlightFence[MAX_FRAMES_IN_FLIGHT]{};
+    
 
+
+    VkDevice cp_device = VK_NULL_HANDLE;
 
 
 

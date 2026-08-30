@@ -10,7 +10,7 @@
 
 
 //CONSTRUCCION Y DESTRUCCION
-GLFWWindow::GLFWWindow(){ InitWindow(); };
+GLFWWindow::GLFWWindow(){};
 
 GLFWWindow::~GLFWWindow(){ DestroyWindow(); };
 

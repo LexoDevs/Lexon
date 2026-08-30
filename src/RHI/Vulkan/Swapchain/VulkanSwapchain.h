@@ -4,17 +4,26 @@
 
 class VulkanSwapchain { 
 public:
-    VulkanSwapchain()
+    VulkanSwapchain();
+    ~VulkanSwapchain();
 
-    {
-    }
     
-	void CreateSwapChain(VkDevice device, VkSurfaceKHR surface, SwapchainSupportDetails details);
+	void CreateSwapChain(VkDevice device, VkSurfaceKHR surface, SwapchainSupportDetails details,QueueFamilyIndices QueueFamilie);
+	void DestroySwapchain();
 	void CreateImageView();
-	void cleanSwapchain();
-	void destroySwapchain();
+
+	VkSwapchainKHR GetSwapchain(){return swapchain;};
+	VkExtent2D GetSwapchainExtent() {return swapChainExtent;};
+
+	VkImage &GetSwapchainImages(uint32_t frame ){return swapchainImages[frame];};
+	VkImageView &GetSwapChainImageViews(uint32_t frame ){return swapChainImageViews[frame];};
+
+	//void cleanSwapchain();
+	//void destroySwapchain();
 
 	//void RecreateSwapchain();
+	VkDevice cp_device = VK_NULL_HANDLE;
+
     VkSwapchainKHR swapchain;
 	VkExtent2D swapChainExtent;
 	VkSurfaceFormatKHR swapChainSurfaceFormat;

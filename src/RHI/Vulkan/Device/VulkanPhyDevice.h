@@ -6,12 +6,7 @@
 #include <iostream>
 #include <set>
 
-struct SwapchainSupportDetails
-{
-    VkSurfaceCapabilitiesKHR capabilities;
-	VkPresentModeKHR presentMode;
-    VkSurfaceFormatKHR format;
-};
+#include <VulkanFormats.h>
 
 class VulkanPhysicalDevice {
 public:
@@ -20,6 +15,7 @@ public:
     void DestroyPhysicalDevices();
     void CreateSwapchainSupportDetails(VkSurfaceKHR Surface);
     VkPhysicalDevice GetPhysicalDevice(){return physicalDevice;};
+    SwapchainSupportDetails GetSwapDetails(){return swapDetails;};
 
 private:
 		VkSurfaceFormatKHR chooseSwapSurfaceFormat(VkSurfaceKHR Surface);

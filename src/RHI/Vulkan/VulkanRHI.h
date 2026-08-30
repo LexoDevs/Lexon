@@ -36,12 +36,12 @@ public:
     VulkanRHI();
 
     void InitVulkan(Window& window);
-    void InitPostLoadElements(ObjectInstance& mesh);
+    void InitRenderer();
+    void UploadMesh(ObjectInstance& mesh);
     void DestroyVulkan();
     void DrawFrame(CameraView& camera,ObjectInstance& mesh);
+    void recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectInstance mesh);
 
-
-    VulkanContext& GetVulkanContext() { return context; };
 
     //VulkanWindow&          GetVulkanWindow()          { return window; }
     VulkanInstance&        GetVulkanInstance()        { return instance; }
@@ -80,7 +80,9 @@ private:
     IndexBuffer indexBuffer;
     UniformBuffer uniformBuffer;
     VulkanDescriptorSet descriptorSet;
-    CommandBuffer commandBuffer;
+    CommandBuffer commandBuffers;
     VulkanFence fences;
 
+
+    uint32_t currentFrame = 0;
 }; 

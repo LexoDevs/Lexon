@@ -1,63 +1,75 @@
 #include "VulkanSwapchain.h"
 #include <iostream>
-#include "../Helpers/VulkanFormats.h"
+#include <VulkanFormats.h>
 
-void VulkanSwapchain::CreateSwapChain() 
+VulkanSwapchain::VulkanSwapchain(){
+
+};
+
+VulkanSwapchain::~VulkanSwapchain(){
+DestroySwapchain();
+
+};
+
+void VulkanSwapchain::DestroySwapchain(){
+    for (auto imageView : swapChainImageViews) {
+        if (imageView != VK_NULL_HANDLE){
+            vkDestroyImageView(cp_device, imageView, nullptr);
+        }
+    }
+    
+    if (swapchain != VK_NULL_HANDLE) {
+        vkDestroySwapchainKHR(cp_device, swapchain, nullptr);
+        swapchain = VK_NULL_HANDLE;
+    }
+}
+
+void VulkanSwapchain::CreateSwapChain(VkDevice device, VkSurfaceKHR surface, SwapchainSupportDetails details, QueueFamilyIndices QueueFamilie ) 
 {
+    cp_device = device;
+
     std::cout << "\033[1;36m[!] Creando cadena de intercambio...\033[0m\n";
 
-    m_Context.swapChainExtent = m_Context.surfaceCapabilities.currentExtent;
+    swapChainExtent = details.capabilities.currentExtent;
 
-    // Formato
-    std::vector<VkSurfaceFormatKHR> availableFormats = m_Context.availableFormats;
+    swapChainSurfaceFormat = details.format;
 
-    m_Context.swapChainSurfaceFormat = m_Context.surfaceformats;
+    uint32_t imageCount = details.capabilities.minImageCount + 1;
 
-    // Present mode
-    VkPresentModeKHR presentationmode = m_Context.presentationsurface;
-
-    // Número de imágenes
-    uint32_t imageCount = m_Context.surfaceCapabilities.minImageCount + 1;
-
-
-    if (m_Context.surfaceCapabilities.maxImageCount > 0 && imageCount > m_Context.surfaceCapabilities.maxImageCount) {
-        imageCount = m_Context.surfaceCapabilities.maxImageCount;
+    if (details.capabilities.maxImageCount > 0 && imageCount > details.capabilities.maxImageCount) {
+        imageCount = details.capabilities.maxImageCount;
     }
 
 
     // Crear Swapchain
     VkSwapchainCreateInfoKHR swapChainCreateInfo{};
     swapChainCreateInfo.sType              = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapChainCreateInfo.surface            = m_Context.surface;
+    swapChainCreateInfo.surface            = surface;
     swapChainCreateInfo.minImageCount      = imageCount;
-    swapChainCreateInfo.imageFormat        = m_Context.swapChainSurfaceFormat.format;
-    swapChainCreateInfo.imageColorSpace    = m_Context.swapChainSurfaceFormat.colorSpace;
+    swapChainCreateInfo.imageFormat        = swapChainSurfaceFormat.format;
+    swapChainCreateInfo.imageColorSpace    = swapChainSurfaceFormat.colorSpace;
 
 
+    VkPresentModeKHR presentationmode = details.presentMode;
 
-
-    std::cout<<"Widht"<<m_Context.swapChainExtent.width<<std::endl;
-    std::cout<<"heith"<<m_Context.swapChainExtent.height<<std::endl;
-
-    swapChainCreateInfo.imageExtent        = m_Context.swapChainExtent;
+    swapChainCreateInfo.imageExtent        = swapChainExtent;
     swapChainCreateInfo.imageArrayLayers   = 1;
     swapChainCreateInfo.imageUsage         = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    swapChainCreateInfo.preTransform       = m_Context.surfaceCapabilities.currentTransform;
+    swapChainCreateInfo.preTransform       = details.capabilities.currentTransform;
     swapChainCreateInfo.compositeAlpha     = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapChainCreateInfo.presentMode        = presentationmode;
     swapChainCreateInfo.clipped            = VK_TRUE;
 
 
-    QueueFamilyIndices indices = m_Context.QueueFamilie;
+    QueueFamilyIndices indices = QueueFamilie;
 
-    std::cout << "\033[1;36m[!] 2\033[0m"<<indices.graphicsFamily.value()<<"\n";
+    //std::cout << "\033[1;36m[!] 2\033[0m"<<indices.graphicsFamily.value()<<"\n";
 
     uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(),
                                       indices.presentFamily.value() };
     
-    std::cout << "\033[1;36m[!] 1\033[0m\n";
 
-    if (m_Context.QueueFamilie.graphicsFamily != m_Context.QueueFamilie.presentFamily) {
+    if (QueueFamilie.graphicsFamily != QueueFamilie.presentFamily) {
         swapChainCreateInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
         swapChainCreateInfo.queueFamilyIndexCount = 2;
         swapChainCreateInfo.pQueueFamilyIndices   = queueFamilyIndices;
@@ -66,41 +78,41 @@ void VulkanSwapchain::CreateSwapChain()
     }
 
     // Crear el swapchain
-    if (vkCreateSwapchainKHR(m_Context.device, &swapChainCreateInfo, nullptr, &m_Context.swapchain) != VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(device, &swapChainCreateInfo, nullptr, &swapchain) != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
     }
 
-    std::cout << "\t\033[1;32mSwapchain\033[0m creada correctamente en \033[1;32m" << m_Context.swapchain << "\033[0m\n";
+    std::cout << "\t\033[1;32mSwapchain\033[0m creada correctamente en \033[1;32m" << swapchain << "\033[0m\n";
 
     // Obtener las imágenes
-    vkGetSwapchainImagesKHR(m_Context.device, m_Context.swapchain, &imageCount, nullptr);
-    m_Context.swapchainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(m_Context.device, m_Context.swapchain, &imageCount, m_Context.swapchainImages.data());
+    vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
+    swapchainImages.resize(imageCount);
+    vkGetSwapchainImagesKHR(device, swapchain, &imageCount, swapchainImages.data());
 
-    m_Context.swapChainImageFormat = m_Context.swapChainSurfaceFormat.format;
+    swapChainImageFormat = swapChainSurfaceFormat.format;
 
     std::cout << "\t\033[1;33mSwapchain creado con \033[0m\033[1;32m" << imageCount << "\033[0m\033[1;33m imagenes\033[0m\n";
 
     for (int i = 0; i<imageCount; i++){
-        std::cout << m_Context.swapchainImages[i]<<"\n";
+        std::cout<< "\t\t\033[1;33m Vista "<<i+1<<" guardada en \033[0m\033[1;32m" << swapchainImages[i]<<"\n";
     }
 }
 
 
-
 void VulkanSwapchain::CreateImageView()
 {
-    m_Context.swapChainImageViews.resize(m_Context.swapchainImages.size());
+    swapChainImageViews.resize(swapchainImages.size());
+
+    std::cout << "\033[1;36m[!] Creando vista de imagen\033[0m\n";
 
 
-
-    for (size_t i = 0; i < m_Context.swapchainImages.size(); i++) {
+    for (size_t i = 0; i < swapchainImages.size(); i++) {
         VkImageViewCreateInfo imageViewCreateInfo{};
         imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 
         imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        imageViewCreateInfo.format = m_Context.swapChainSurfaceFormat.format;
-        imageViewCreateInfo.image = m_Context.swapchainImages[i];
+        imageViewCreateInfo.format = swapChainSurfaceFormat.format;
+        imageViewCreateInfo.image = swapchainImages[i];
         imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
         imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
         imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -112,77 +124,50 @@ void VulkanSwapchain::CreateImageView()
         imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
         imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(m_Context.device, &imageViewCreateInfo, nullptr, &m_Context.swapChainImageViews[i]) != VK_SUCCESS) {
+        if (vkCreateImageView(cp_device, &imageViewCreateInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create image views!");
         }
     }
 };
 
-void VulkanSwapchain::cleanSwapchain()
-{
-
-    vkDeviceWaitIdle(m_Context.device);
-
-
-    // Destruir Swapchain
-    if (m_Context.swapchain != VK_NULL_HANDLE) {
-        vkDestroySwapchainKHR(m_Context.device, m_Context.swapchain, nullptr);
-        m_Context.swapchain = VK_NULL_HANDLE;
-    }
-
-}
-
-
-void VulkanSwapchain::destroySwapchain(){
-    
-    for (auto imageView : m_Context.swapChainImageViews) {
-        if (imageView != VK_NULL_HANDLE){
-            vkDestroyImageView(m_Context.device, imageView, nullptr);
-        }
-    }
-
-    // Destruir swapchain
-    vkDestroySwapchainKHR(m_Context.device, m_Context.swapchain, nullptr);
-
-};
 /*
 void VulkanSwapchain::RecreateSwapchain()
 {
     std::cout << "\033[1;36m[!] Recreando Swapchain...\033[0m\n";
 
-    glfwGetFramebufferSize(m_Context.GLFWwindow, &m_Context.prop.width, &m_Context.prop.height);
-    while (m_Context.prop.width == 0 || m_Context.prop.height == 0) {
+    glfwGetFramebufferSize(GLFWwindow, &prop.width, &prop.height);
+    while (prop.width == 0 || prop.height == 0) {
         glfwWaitEvents();
-        glfwGetFramebufferSize(m_Context.GLFWwindow, &m_Context.prop.width, &m_Context.prop.height);
+        glfwGetFramebufferSize(GLFWwindow, &prop.width, &prop.height);
     }
 
-    vkDeviceWaitIdle(m_Context.device);
+    vkDeviceWaitIdle(device);
     cleanSwapchain();
 
-    for (auto imageView : m_Context.swapChainImageViews) {
+    for (auto imageView : swapChainImageViews) {
         if (imageView != VK_NULL_HANDLE) {
-            vkDestroyImageView(m_Context.device, imageView, nullptr);
+            vkDestroyImageView(device, imageView, nullptr);
         }
     }
 
-    m_Context.swapChainExtent = VkExtent2D(m_Context.prop.width,m_Context.prop.height);
-    m_Context.swapChainExtent.width = m_Context.prop.width;
-    m_Context.swapChainExtent.height = m_Context.prop.height;
+    swapChainExtent = VkExtent2D(prop.width,prop.height);
+    swapChainExtent.width = prop.width;
+    swapChainExtent.height = prop.height;
 
     // Destruir Image Views del swapchain
 
-    m_Context.swapChainImageViews.clear();
+    swapChainImageViews.clear();
 
     CreateSwapChain();
     CreateImageView();
 
 
 
-    std::cout << "[+] Swapchain RECREADO - Handle FINAL: " << m_Context.swapchain << std::endl;
+    std::cout << "[+] Swapchain RECREADO - Handle FINAL: " << swapchain << std::endl;
 
     std::cout << "[+] Swapchain recreado correctamente (" 
-            << m_Context.swapChainExtent.width << "x" 
-            << m_Context.swapChainExtent.height << ")\n";
+            << swapChainExtent.width << "x" 
+            << swapChainExtent.height << ")\n";
 
 
 };*/
