@@ -5,14 +5,19 @@
 #include "../RHI/Vulkan/VulkanRHI.h"
 
 
+
 class EditorLayer{
 
 public:
-void ImGui_Init(VulkanRHI& VulkanAPI);
+void ImGui_Init(VulkanRHI& VulkanAPI, void* window);
 void ImGui_NewFrame();
 void ImGui_Render(VkCommandBuffer cmd);
 void ImGui_EndFrame();
 void VentanaSuperior(VulkanRHI& VulkanAPI);
 void MuestreoImagenes(VulkanRHI& VulkanAPI);
 void ElementosEnEscena(VulkanRHI& VulkanAPI);
+
+
+private:
+
 };

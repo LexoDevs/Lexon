@@ -1,8 +1,12 @@
 #include "VulkanCommandBuffer.h"
 
-    CommandBuffer::CommandBuffer(){
+CommandBuffer::CommandBuffer(){
 
-    };
+};
+
+CommandBuffer::~CommandBuffer(){
+    //destroyCommandBuffer();
+};
 
 void CommandBuffer::createCommandBuffer(VkDevice device, VkCommandPool commandPool){
 
@@ -18,6 +22,7 @@ void CommandBuffer::createCommandBuffer(VkDevice device, VkCommandPool commandPo
         throw std::runtime_error("failed to allocate command buffers!");
     }
 }
+
 
 
 

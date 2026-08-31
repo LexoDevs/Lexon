@@ -8,17 +8,19 @@
 
 class VulkanDescriptorPool {
 public:
-    VulkanDescriptorPool(VulkanContext& context)
-        : m_Context(context)
-    {
-    }
-    void createDescriptorPool();
+    VulkanDescriptorPool(){};
+    ~VulkanDescriptorPool();
+
+    void createDescriptorPool(VkDevice device);
     void destroyDescriptorPool();
 
-    VkDescriptorPool CreateImGuiDescriptorPool();
+    void CreateImGuiDescriptorPool(VkDevice device);
+    VkDescriptorPool GetDescriptorPool(){ return descriptorPool;};
 
 private:
-        VulkanContext& m_Context;
+    VkDescriptorPool descriptorPool;
+    VkDevice cp_device;
 
+    bool initialiced = false;
 
 };

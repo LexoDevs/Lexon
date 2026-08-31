@@ -52,11 +52,17 @@ public:
     VulkanPipeline&        GetVulkanPipelineGraph()   { return pipeline; }
     VulkanCommandPool&     GetVulkanCommandPool()     { return commandpool;};
     VulkanDescriptorPool&  GetVulkanDescriptorPool()  { return descriptorpool;};
-    
+    VulkanDescriptorPool&  GetLayerDescriptorPool()  { return layerdescriptorpool;};
+
+    CommandBuffer& GetVulkanCommandBuffer() {return commandBuffers;};
+    VulkanSwapchain& GetVulkanSwapchain() {return swapchain;};
+
         UniformBuffer&  GetUniformBuffer()  { return uniformBuffer;};
 
     VulkanTexture& GetVulkanTexture() {return texture;};
     VulkanFence&           GetVulkanFence()           { return fences;};
+
+        uint32_t GetCurrentFrame() {return currentFrame;};
 
 private:
     VulkanContext context;
@@ -74,6 +80,8 @@ private:
     VulkanPipeline pipeline;
     VulkanCommandPool commandpool;
     VulkanDescriptorPool descriptorpool;
+    VulkanDescriptorPool layerdescriptorpool;
+
     DepthBuffer depthBuffer;
     VulkanTexture texture;
     VertexBuffer vertexBuffer;

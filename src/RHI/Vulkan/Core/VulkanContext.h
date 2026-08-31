@@ -103,7 +103,7 @@ struct VulkanContext
 
 
     //IMGUI
-    VkDescriptorPool imguiDescriptorPool; 
+
 
 
 

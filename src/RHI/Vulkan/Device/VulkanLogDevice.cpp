@@ -7,6 +7,7 @@
 
 void VulkanLogicalDevice::CreateLogicalDevice(VkPhysicalDevice physicalDevice) {
 
+
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 	QueueFamilie = indices;
@@ -74,12 +75,18 @@ void VulkanLogicalDevice::CreateLogicalDevice(VkPhysicalDevice physicalDevice) {
 
 	vkGetDeviceQueue(device , indices.presentFamily.value(), 0, &transferQueue);
 
+	initialized = true;
 
 };
 
 
 void VulkanLogicalDevice::DestroyLogicalDevice(){
+	if (initialized == false){
+		return;
+	}
+
 	vkDestroyDevice(device, nullptr);
+	initialized = false;
 
 };
 

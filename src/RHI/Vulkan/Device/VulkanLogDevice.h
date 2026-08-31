@@ -28,5 +28,6 @@ private:
         VkQueue transferQueue;
         VkQueue computeQueue;
 
+    bool initialized = false;
 
 };

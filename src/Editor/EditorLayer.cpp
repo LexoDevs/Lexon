@@ -1,14 +1,14 @@
 
 
-
 #include "EditorLayer.h"
 
 
 // Asumiendo que tienes acceso a tu VkInstance, VkDevice, etc.
-/*void EditorLayer::ImGui_Init(VulkanRHI& VulkanAPI)
+void EditorLayer::ImGui_Init(VulkanRHI& VulkanAPI, void* window)
 {
-    VulkanContext context = VulkanAPI.GetVulkanContext();  
-    context.imguiDescriptorPool = VulkanAPI.GetVulkanDescriptorPool().CreateImGuiDescriptorPool();
+    GLFWwindow* cp_Window = static_cast<GLFWwindow*>(window); 
+
+    
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -20,26 +20,29 @@
     ImGui::StyleColorsDark();
 
     // Platform backend
-    ImGui_ImplGlfw_InitForVulkan(context.GLFWwindow, true);
+    ImGui_ImplGlfw_InitForVulkan(cp_Window, true);
 
     // Renderer backend (Vulkan)
     ImGui_ImplVulkan_InitInfo init_info = {};
-    init_info.Instance        = context.instance;
-    init_info.PhysicalDevice  = context.physicalDevice;
-    init_info.Device          = context.device;
-    init_info.QueueFamily     = context.QueueFamilie.graphicsFamily.value();  // ← importante usar graphics
-    init_info.Queue           = context.graphicsQueue;                // ← NO uses transferQueue
+    init_info.Instance        = VulkanAPI.GetVulkanInstance().GetInstance();
+    init_info.PhysicalDevice  = VulkanAPI.GetVulkanPhysicalDevice().GetPhysicalDevice();
+    init_info.Device          = VulkanAPI.GetVulkanLogicalDevice().GetHandle();
+    init_info.QueueFamily     = VulkanAPI.GetVulkanLogicalDevice().GetQueueFamily().graphicsFamily.value(); 
+    init_info.Queue           = VulkanAPI.GetVulkanLogicalDevice().GetGraphicsQueue();        
     init_info.PipelineCache   = VK_NULL_HANDLE;
-    init_info.DescriptorPool  = context.imguiDescriptorPool;
+    init_info.DescriptorPool  = VulkanAPI.GetLayerDescriptorPool().GetDescriptorPool();
     init_info.MinImageCount   = 2;
-    init_info.ImageCount      = (uint32_t)context.swapchainImages.size();
+    init_info.ImageCount      = (uint32_t)VulkanAPI.GetVulkanSwapchain().GetSwapchainImagesRef().size();
     init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     init_info.UseDynamicRendering = true;
     
     VkPipelineRenderingCreateInfoKHR pipelineRenderingInfo = {};
     pipelineRenderingInfo.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR;
     pipelineRenderingInfo.colorAttachmentCount    = 1;
-    pipelineRenderingInfo.pColorAttachmentFormats = &context.swapChainImageFormat;
+
+    
+    VkFormat swapimageformat_p = VulkanAPI.GetVulkanSwapchain().GetSwapChainImageFormat();
+    pipelineRenderingInfo.pColorAttachmentFormats = &swapimageformat_p;
 
         init_info.PipelineInfoMain.PipelineRenderingCreateInfo = pipelineRenderingInfo;
 
@@ -52,7 +55,7 @@
         std::cerr << "ImGui_ImplVulkan_Init failed!\n";
     }
 
-    VkCommandBuffer cmd = VulkanAPI.GetVulkanContext().commandBuffer;
+    //VkCommandBuffer cmd = VulkanAPI.GetVulkanCommandBuffer().GetCommandBuffer(VulkanAPI.GetCurrentFrame());
     //ImGui_ImplVulkan_CreateFontsTexture(cmd);
 }
 
@@ -82,6 +85,7 @@ void EditorLayer::ImGui_EndFrame()
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
     }
+    
 }
 
 void EditorLayer::VentanaSuperior(VulkanRHI& VulkanAPI){
@@ -106,7 +110,7 @@ if (ImGui::BeginMainMenuBar())
         if (ImGui::MenuItem("Open"))    {}
         if (ImGui::MenuItem("Save"))    {}
         ImGui::Separator();
-        if (ImGui::MenuItem("Exit"))    { glfwSetWindowShouldClose(VulkanAPI.GetVulkanContext().GLFWwindow,GLFW_TRUE); }
+        if (ImGui::MenuItem("Exit"))    { /*glfwSetWindowShouldClose(Window.().GLFWwindow,GLFW_TRUE);*/ }
         ImGui::EndMenu();
     }
 
@@ -178,10 +182,10 @@ void EditorLayer::MuestreoImagenes(VulkanRHI& VulkanAPI){
     }
 
 
-    ImGui::Text("pointer = %p", VulkanAPI.GetVulkanContext().textureImageView);
-    ImGui::Text("size = %d x %d", VulkanAPI.GetVulkanContext().texWidth[seleccionado], VulkanAPI.GetVulkanContext().texHeight[seleccionado]);
+    //ImGui::Text("pointer = %p", VulkanAPI.GetVulkanContext().textureImageView);
+    //ImGui::Text("size = %d x %d", VulkanAPI.GetVulkanContext().texWidth[seleccionado], VulkanAPI.GetVulkanContext().texHeight[seleccionado]);
 
-    ImGui::Image(VulkanAPI.GetVulkanContext().descriptorSets[seleccionado], ImVec2(VulkanAPI.GetVulkanContext().texWidth[seleccionado]/5, VulkanAPI.GetVulkanContext().texHeight[seleccionado]/5));
+    //ImGui::Image(VulkanAPI.GetVulkanContext().descriptorSets[seleccionado], ImVec2(VulkanAPI.GetVulkanContext().texWidth[seleccionado]/5, VulkanAPI.GetVulkanContext().texHeight[seleccionado]/5));
 
    ImGui::End();
 };
@@ -208,4 +212,4 @@ void EditorLayer::ElementosEnEscena(VulkanRHI& VulkanAPI){
         }
     ImGui::End();
 
-    };*/
+    };

@@ -10,7 +10,7 @@ VulkanRHI::VulkanRHI()
     : context()
     // Primero creamos el contexto
     , pipeline(context)
-    , descriptorpool(context)
+
     , depthBuffer(context)
     , texture(context)
     , vertexBuffer(context)
@@ -80,7 +80,12 @@ void VulkanRHI::InitVulkan(Window& window)
     pipeline.createGraphicsPipeline();
 
     uniformBuffer.createUniformBuffer();
-    descriptorpool.createDescriptorPool();
+
+*/
+    descriptorpool.createDescriptorPool(device.GetHandle());
+    layerdescriptorpool.CreateImGuiDescriptorPool(device.GetHandle());
+
+/*    
     descriptorSet.createDescriptorSets();
 
     texture.createTextureImage();
@@ -120,9 +125,7 @@ void VulkanRHI::DestroyVulkan(){
 
     vertexBuffer.destroyVertexBuffer();
     
-    //fences.destroyFences();
 
-    //commandpool.destroyCommandPool();
 
 
 };
@@ -256,6 +259,7 @@ void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectI
 {
 
     VkCommandBuffer cmd = commandBuffers.GetCommandBuffer(frame);
+    VkImage swapchainimages = swapchain.GetSwapchainImages(imageIndex);
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -267,7 +271,7 @@ void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectI
 
     transition_image_layout(
         cmd,
-        swapchain.GetSwapchainImages(imageIndex),
+        swapchainimages,
         VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         VK_IMAGE_ASPECT_COLOR_BIT,
@@ -378,16 +382,16 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
                         0, nullptr);
 
     vkCmdDrawIndexed(cmd, static_cast<uint32_t>(mesh.getIndices().size()), 1, 0, 0, 0);
-
+*/
     ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
-*/
+
     vkCmdEndRendering(cmd);
 
 
     transition_image_layout(
         cmd,
-        swapchain.GetSwapchainImages(imageIndex),
+        swapchainimages,
         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         VK_IMAGE_ASPECT_COLOR_BIT,

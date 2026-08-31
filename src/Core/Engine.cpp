@@ -37,12 +37,13 @@ void Engine::InitEngine() {
 
     VulkanAPI.InitRenderer();
 
- /*     mesh.AddObject(loader);
+     //mesh.AddObject(loader);
 
-    VulkanAPI.UploadMesh(mesh);
+    //VulkanAPI.UploadMesh(mesh);
 
-    layersUI.ImGui_Init(VulkanAPI);  
-*/
+    layersUI.ImGui_Init(VulkanAPI, window.GetNativeWindow());  
+    std::cout<<"Error despues"<<std::endl;
+
 };
 
 void Engine::MainLoopEngine() {
@@ -64,21 +65,21 @@ void Engine::MainLoopEngine() {
         //glfwSetMouseButtonCallback(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, GLFW_MouseButtonCallback);  // ← Añadir esta línea
         //glfwPollEvents();
 
-        /*
+
         layersUI.ImGui_NewFrame();
         // Aquí dibujamos la interfaz
         ImGui::ShowDemoWindow();
+        
         layersUI.VentanaSuperior(VulkanAPI);
         layersUI.MuestreoImagenes(VulkanAPI);
         layersUI.ElementosEnEscena(VulkanAPI);
 
-        */
+        
         VulkanAPI.DrawFrame(camera, mesh);   // ← Dentro hacemos recordimgui
-/*
+
 
         layersUI.ImGui_EndFrame();   // Para viewports
 
-        */
 
         double currentTime = window.GetTime();
         frameCount++;
@@ -109,7 +110,6 @@ void Engine::MainLoopEngine() {
 
 
 void Engine::CleanEngine() {
-
 	//VulkanAPI.DestroyVulkan();
 
 	//VulkanAPI.DestroyWindowSistem();
