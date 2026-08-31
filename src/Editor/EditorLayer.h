@@ -9,6 +9,8 @@
 class EditorLayer{
 
 public:
+
+~EditorLayer();
 void ImGui_Init(VulkanRHI& VulkanAPI, void* window);
 void ImGui_NewFrame();
 void ImGui_Render(VkCommandBuffer cmd);

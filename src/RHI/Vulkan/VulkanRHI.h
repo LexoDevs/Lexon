@@ -65,6 +65,9 @@ public:
         uint32_t GetCurrentFrame() {return currentFrame;};
 
 private:
+void RecreateSwapchain(Window* window);
+    Window* activeWindow = nullptr; 
+
     VulkanContext context;
 
         

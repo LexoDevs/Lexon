@@ -2,6 +2,12 @@
 
 #include "EditorLayer.h"
 
+EditorLayer::~EditorLayer(){
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+};
 
 // Asumiendo que tienes acceso a tu VkInstance, VkDevice, etc.
 void EditorLayer::ImGui_Init(VulkanRHI& VulkanAPI, void* window)

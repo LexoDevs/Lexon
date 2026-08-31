@@ -74,7 +74,9 @@ void Engine::MainLoopEngine() {
         layersUI.MuestreoImagenes(VulkanAPI);
         layersUI.ElementosEnEscena(VulkanAPI);
 
-        
+        ImGui::Render();
+        //ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
+
         VulkanAPI.DrawFrame(camera, mesh);   // ← Dentro hacemos recordimgui
 
 

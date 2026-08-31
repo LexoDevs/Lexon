@@ -24,6 +24,7 @@ VulkanRHI::VulkanRHI()
 
 void VulkanRHI::InitVulkan(Window& window)
 {
+    activeWindow = &window;
     // Instancia de vulkan
     instance.CreateInstances();
 
@@ -131,10 +132,12 @@ void VulkanRHI::DestroyVulkan(){
 };
 
 void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
-
-    //0. Inicializar recursos
     const uint32_t frame = currentFrame;
 
+    //ImGui::Render();
+    //ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffers.GetCommandBuffer(frame));
+
+    //0. Inicializar recursos
 
     VkDevice vkDevice = device.GetHandle();
 
@@ -151,6 +154,10 @@ void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
     // 1. Esperar al frame anterior
     vkWaitForFences(device.GetHandle(), 1, &fence, VK_TRUE, UINT64_MAX);
 
+    if (activeWindow != nullptr && activeWindow->WindowWasResiced()) {
+        RecreateSwapchain(activeWindow);
+        return;
+    }
 
     // 2. Adquirir imagen del swapchain
     uint32_t imageIndex;
@@ -163,36 +170,21 @@ void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
         VK_NULL_HANDLE,
         &imageIndex);
 
-    VkSemaphore renderFinished = fences.GetrenderFinishedSemaphore(imageIndex);
-
-/*
-    if (result == VK_ERROR_OUT_OF_DATE_KHR ||
-        result == VK_SUBOPTIMAL_KHR ||
-        window.framebufferResized)
-{
-        window.framebufferResized = false;
-        vkDeviceWaitIdle(context.device);
-
-        
-        swapchain.RecreateSwapchain();
-
-        depthBuffer.cleanDepthResources();
-        depthBuffer.createDepthResources();
-        
-        pipeline.recreateGraphicsPipeline();
-
-
-
-        return;   // Salir y reintentar en el próximo ciclo
+   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        RecreateSwapchain(activeWindow);
+        return;
+        //window.framebufferResized = true;  // Para que se redimensione en el próximo frame
     }
-    else if (result != VK_SUCCESS) {
+    
+    if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to acquire swap chain image!");
-    }*/
+    }
 
+    const bool acquireWasSuboptimal = (result == VK_SUBOPTIMAL_KHR);
+    VkSemaphore renderFinished = fences.GetrenderFinishedSemaphore(imageIndex);
 
 
     //uniformBuffer.updateUniformBuffer(context.frameIndex, mesh, camera);
-    
     
     // 3. Resetear fence
     vkResetFences(vkDevice, 1, &fence);
@@ -242,23 +234,31 @@ void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
 
     result = vkQueuePresentKHR(device.GetGraphicsQueue(), &presentInfo); // Posible error, tengo dudas
 
-   if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-        //window.framebufferResized = true;  // Para que se redimensione en el próximo frame
-    }
-    else if (result != VK_SUCCESS) {
+    if (result != VK_SUCCESS &&
+        result != VK_ERROR_OUT_OF_DATE_KHR &&
+        result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("failed to present swap chain image!");
     }
 
-    // Avanzar al siguiente frame
-    currentFrame  = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
+    if (result == VK_ERROR_OUT_OF_DATE_KHR ||
+        result == VK_SUBOPTIMAL_KHR ||
+        acquireWasSuboptimal ||
+        (activeWindow != nullptr && activeWindow->WindowWasResiced())) {
+        RecreateSwapchain(activeWindow);
+    }
+    else {
+        // Avanzar al siguiente frame solo si conservamos el swapchain actual.
+        currentFrame  = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    }
 };
 
 
 void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectInstance mesh)
 {
-
     VkCommandBuffer cmd = commandBuffers.GetCommandBuffer(frame);
+
+
+
     VkImage swapchainimages = swapchain.GetSwapchainImages(imageIndex);
 
     VkCommandBufferBeginInfo beginInfo{};
@@ -383,7 +383,7 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
 
     vkCmdDrawIndexed(cmd, static_cast<uint32_t>(mesh.getIndices().size()), 1, 0, 0, 0);
 */
-    ImGui::Render();
+    //ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
 
     vkCmdEndRendering(cmd);
@@ -407,4 +407,51 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
 }
 
 
+/**/
+void VulkanRHI::RecreateSwapchain(Window* window)
+{
+    std::cout << "\033[1;36m[!] Recreando Swapchain...\033[0m\n";
 
+    if (activeWindow == nullptr) {
+        throw std::runtime_error("Cannot recreate swapchain without a window");
+    }
+
+    while (activeWindow->GetWidth() == 0 || activeWindow->GetHeight() == 0) {
+        activeWindow->WaitEvents();
+    }
+
+    VkDevice vkDevice = device.GetHandle();
+    vkDeviceWaitIdle(vkDevice);
+
+    fences.destroyFences();
+    swapchain.DestroySwapchain();
+
+    physicaldevice.CreateSwapchainSupportDetails(surface.GetSurface());
+
+    swapchain.CreateSwapChain(
+        vkDevice,
+        surface.GetSurface(),
+        physicaldevice.GetSwapDetails(),
+        device.GetQueueFamily()
+        );
+    swapchain.CreateImageView();
+
+    fences.createSyncObjects(vkDevice);
+
+    if (ImGui::GetCurrentContext() != nullptr) {
+        //ImGui_ImplVulkan_SetMinImageCount(swapchain.GetMinImageCount());
+    }
+
+    currentFrame = 0;
+    activeWindow->ResetResizeFlag();
+
+
+
+    std::cout << "[+] Swapchain RECREADO - Handle FINAL: " << swapchain.GetSwapchain() << std::endl;
+
+    std::cout << "[+] Swapchain recreado correctamente (" 
+            << swapchain.GetSwapchainExtent().width << "x" 
+            << swapchain.GetSwapchainExtent().height << ")\n";
+
+
+};

@@ -14,4 +14,4 @@ const std::vector<char const*> validationLayers = {
 };
 
 const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-const uint32_t MAX_SWAPCHAIN_IMAGES = 3;
+const uint32_t MAX_SWAPCHAIN_IMAGES = 6;
