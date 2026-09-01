@@ -39,8 +39,8 @@ public:
     void InitRenderer();
     void UploadMesh(ObjectInstance& mesh);
     void DestroyVulkan();
-    void DrawFrame(CameraView& camera,ObjectInstance& mesh);
-    void recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectInstance mesh);
+    void DrawFrame(CameraView& camera,ObjectInstance& mesh, bool& UIVis);
+    void recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectInstance mesh, bool& UIVisibility);
 
 
     //VulkanWindow&          GetVulkanWindow()          { return window; }

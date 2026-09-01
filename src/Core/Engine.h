@@ -3,7 +3,7 @@
 #include "../RHI/Vulkan/VulkanRHI.h"
 #include "Input/InputSystem.h"
 #include "../Editor/EditorLayer.h"
-
+#include "../Assets/Importer/AssimpImporter.h"
 #include <GLFWWindow.h>
 
 class Engine {
@@ -17,14 +17,13 @@ private:
 	void EventManager();
 	GLFWWindow window;
 	InputSystem inputSystem;
-
+	AssimpModelLoader assimploader;
 
 	LoaderAssets loader;
 	VulkanRHI VulkanAPI;
 	ObjectInstance mesh;
 	CameraView camera;
 	EditorLayer layersUI;
-
 };
 
 

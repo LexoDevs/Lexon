@@ -22,9 +22,11 @@ class GLFWWindow : public Window {
 		void SetInputSystem(InputSystem* inputSystem) { m_InputSystem = inputSystem;};
 		void OnKeyEvent(int key,int action);
 		void WaitEvents() const;
+		bool& GetHUDVisibility() {return HUDVisibility;};
+		void SetHUDVisibility(bool value) { HUDVisibility = value;};
 
 	private:
-
+		bool HUDVisibility = true;
 		void CreateGLFWindow();
 		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 		

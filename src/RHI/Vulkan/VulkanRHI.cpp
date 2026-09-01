@@ -131,7 +131,7 @@ void VulkanRHI::DestroyVulkan(){
 
 };
 
-void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
+void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh, bool& UIVis){
     const uint32_t frame = currentFrame;
 
     //ImGui::Render();
@@ -193,8 +193,11 @@ void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
     vkResetCommandBuffer(commandBuffer, 0);
 
 
+
 //Aqui empieza el grabado de comandos a la gráfica
-    recordCommandBuffer(frame,imageIndex, mesh);
+    recordCommandBuffer(frame,imageIndex, mesh, UIVis);
+
+
 
     // 5. Submit
     VkSubmitInfo submitInfo{};
@@ -253,7 +256,7 @@ void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh){
 };
 
 
-void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectInstance mesh)
+void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectInstance mesh, bool& UIVisibility)
 {
     VkCommandBuffer cmd = commandBuffers.GetCommandBuffer(frame);
 
@@ -383,8 +386,12 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
 
     vkCmdDrawIndexed(cmd, static_cast<uint32_t>(mesh.getIndices().size()), 1, 0, 0, 0);
 */
-    //ImGui::Render();
+
+if ( UIVisibility == true){
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
+
+}
+//std::cout<<UIVisibility<<std::endl;;
 
     vkCmdEndRendering(cmd);
 

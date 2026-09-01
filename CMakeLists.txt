@@ -69,6 +69,34 @@ target_include_directories(imgui PUBLIC
 )
 
 target_link_libraries(imgui PUBLIC glfw Vulkan::Vulkan)
+
+
+# ==================== Assimp ====================
+
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+set(ASSIMP_NO_EXPORT ON CACHE BOOL "" FORCE)
+set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+
+# De momento solo compilamos los importadores que necesitamos.
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    assimp
+    GIT_REPOSITORY https://github.com/assimp/assimp.git
+    GIT_TAG        392a658f9c271be965271f45e7521a1b80ea4392 # v6.0.5
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_MakeAvailable(assimp)
+
 # ==================== Cargar shaders ====================
 
 function (add_slang_shader_target TARGET)
@@ -122,6 +150,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Vulkan::Vulkan
     glfw
     imgui
+    assimp::assimp
+
 )
 
 if(WIN32)

@@ -1,5 +1,7 @@
 #include "Engine.h"
 #include <iostream>
+#include <chrono> 
+#include <thread>
 
 void Engine::EventManager(){
 
@@ -8,9 +10,29 @@ void Engine::EventManager(){
 
     switch(keyselected){
         case KeyCode::Escape:
+
             window.CloseWindow();
         break;
+
+        case KeyCode::W:
+            if (window.GetHUDVisibility()==true)
+            {
+                window.SetHUDVisibility(false);
+                std::cout<<"Visibilidad de HUD:"<<window.GetHUDVisibility()<<std::endl;
+            }
+            else
+            {
+                window.SetHUDVisibility(true);
+                std::cout<<"Visibilidad de HUD:"<<window.GetHUDVisibility()<<std::endl;
+
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+
+        break;
+
     }
+
 
 };
 
@@ -37,8 +59,25 @@ void Engine::InitEngine() {
 
     VulkanAPI.InitRenderer();
 
-     //mesh.AddObject(loader);
+    std::filesystem::path path = "../resources/models/sponza.obj";
+    CpuModel model = assimploader.Load(path);
+    // mesh.AddObject(loader);
+            std::cout
+                << "Modelo cargado: "
+                << model.sourcePath
+                << '\n';
 
+            std::cout
+                << "Meshes: "
+                << model.meshes.size()
+                << '\n';
+
+            std::cout
+                << "Materiales: "
+                << model.materialNames.size()
+                << '\n';
+
+            assimploader.PrintNode(model.rootNode, model, 0);
     //VulkanAPI.UploadMesh(mesh);
 
     layersUI.ImGui_Init(VulkanAPI, window.GetNativeWindow());  
@@ -76,8 +115,9 @@ void Engine::MainLoopEngine() {
 
         ImGui::Render();
         //ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
+        //std::cout<<window.GetHUDVisibility()<<std::endl;;
 
-        VulkanAPI.DrawFrame(camera, mesh);   // ← Dentro hacemos recordimgui
+        VulkanAPI.DrawFrame(camera, mesh, window.GetHUDVisibility() );   // ← Dentro hacemos recordimgui
 
 
         layersUI.ImGui_EndFrame();   // Para viewports

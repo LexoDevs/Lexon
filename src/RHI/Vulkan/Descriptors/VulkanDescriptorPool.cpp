@@ -44,6 +44,7 @@ void VulkanDescriptorPool::destroyDescriptorPool() {
 
 void VulkanDescriptorPool::CreateImGuiDescriptorPool(VkDevice device)
 {
+    std::cout << "\033[1;36m[!] Creando Descriptor Pool del HUD...\033[0m\n";
 
     cp_device = device;
     const uint32_t maxSets = 1000;   // Suficiente para docking + viewports
