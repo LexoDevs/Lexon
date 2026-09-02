@@ -14,5 +14,7 @@
             VkBuffer indexBuffer;
             VkDeviceMemory indexBufferMemory;
 std::vector<GPUMeshRange> meshRanges;
-            VkDevice cp_device;
+
+            //VkDevice cp_device;
+            //VkCommandPool cp_commandPool;
     };

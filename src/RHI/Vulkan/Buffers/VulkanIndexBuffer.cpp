@@ -1,14 +1,14 @@
 #include "VulkanIndexBuffer.h"
 
         IndexBuffer::~IndexBuffer(){
-
+destroyIndexBuffer();
         };
 
 
 void IndexBuffer::createIndexBuffer(CpuModel& mesh, VkDevice device, VkPhysicalDevice physicalDevice,VkCommandPool commandPool, VkQueue graphicsQueue, VkCommandBuffer commandBuffer){
 
     cp_device = device;
-
+    cp_commandPool = commandPool;
     std::vector<uint32_t> allindex;
     size_t totalindex = 0;
 
@@ -20,7 +20,7 @@ for (const auto& submesh : mesh.meshes)
 
     allindex.reserve(totalindex);
 
-meshRanges.clear();
+
 
     meshRanges.reserve(mesh.meshes.size());
 
@@ -46,6 +46,8 @@ meshRanges.clear();
     }
 
     VkDeviceSize bufferSize = sizeof(uint32_t) * allindex.size();
+    std::cout<<"Numero de indices: "<<totalindex<<std::endl;
+    std::cout<<"Tamano de buffer: "<<std::setprecision(3)<<(float)bufferSize/1000000<<" Mb"<<std::endl;
 
 
     VkBuffer stagingBuffer;

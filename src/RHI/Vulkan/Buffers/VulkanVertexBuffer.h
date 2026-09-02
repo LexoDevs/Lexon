@@ -26,7 +26,7 @@ struct VertexRange
 
                         VkBuffer GetBuffer() { return vertexBuffer;};
 
-        private:
+        protected:
 
             VkBuffer vertexBuffer;
             VkDeviceMemory vertexBufferMemory;

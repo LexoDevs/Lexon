@@ -88,9 +88,8 @@ void VertexBuffer::createVertexBuffer(CpuModel& mesh, VkDevice device, VkPhysica
 
 
     void* data;
-    std::cout<<device<<std::endl;
     vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, allVertices.data(), (size_t) bufferSize);
+        memcpy(data, allVertices.data(), static_cast<size_t>(bufferSize));
     vkUnmapMemory(device, stagingBufferMemory);
 
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,device,physicalDevice,vertexBuffer,vertexBufferMemory);
@@ -128,12 +127,15 @@ uint32_t VertexBuffer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags
 
 
 void VertexBuffer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size,VkQueue graphicsQueue,VkCommandBuffer commandBuffer) {
+    std::cout<<"error int"<<std::endl;
 
     VkCommandBuffer newcommandBuffer = beginSingleTimeCommands(cp_commandPool, cp_device, commandBuffer);
+    std::cout<<"error int"<<std::endl;
 
     VkBufferCopy copyRegion{};
     copyRegion.size = size;
     vkCmdCopyBuffer(newcommandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    std::cout<<"error int"<<std::endl;
 
     endSingleTimeCommands(cp_commandPool, cp_device, newcommandBuffer, graphicsQueue);
 
@@ -158,6 +160,7 @@ VkCommandBuffer VertexBuffer::beginSingleTimeCommands(VkCommandPool commandPool,
 }
 
 void VertexBuffer::endSingleTimeCommands(VkCommandPool commandPool, VkDevice device,VkCommandBuffer commandBuffer,VkQueue graphicsQueue) {
+    std::cout<<"error previo"<<std::endl;
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo{};
