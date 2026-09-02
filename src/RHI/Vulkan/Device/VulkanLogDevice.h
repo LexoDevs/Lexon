@@ -14,7 +14,7 @@ public:
 	void CreateLogicalDevice(VkPhysicalDevice physicalDevice);
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice);
     void DestroyLogicalDevice();
-    VkDevice GetHandle() { return device;};
+    VkDevice& GetHandle() { return device;};
     QueueFamilyIndices GetQueueFamily() { return QueueFamilie;};
     VkQueue GetGraphicsQueue() { return graphicsQueue;};
 

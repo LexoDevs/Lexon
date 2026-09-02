@@ -1,19 +1,17 @@
 #pragma once
-#include "VulkanBuffer.h"    
+#include "VulkanVertexBuffer.h"    
     
-    class IndexBuffer : public BufferI {
+    class IndexBuffer : public VertexBuffer {
         public:
-        IndexBuffer(VulkanContext& context)
-        : BufferI(context),
-        m_Context(context)              
-    {
-    }
+            IndexBuffer(){};
+            ~IndexBuffer();
 
-            void createIndexBuffer(ObjectInstance& mesh);
+            void createIndexBuffer(CpuModel& mesh, VkDevice device, VkPhysicalDevice physicalDevice,VkCommandPool commandPool, VkQueue graphicsQueue, VkCommandBuffer commandBuffer);
             void destroyIndexBuffer();
 
         private:
-            VulkanContext& m_Context;
+            VkBuffer indexBuffer;
+            VkDeviceMemory indexBufferMemory;
 
-
+            VkDevice cp_device;
     };

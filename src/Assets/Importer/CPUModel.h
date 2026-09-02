@@ -48,3 +48,14 @@ struct CpuModel
 
     CpuNode rootNode;
 };
+
+struct GPUMeshRange
+{
+    uint32_t firstVertex = 0;
+    uint32_t vertexCount = 0;
+
+    uint32_t firstIndex = 0;
+    uint32_t indexCount = 0;
+
+    uint32_t materialIndex = 0;
+};

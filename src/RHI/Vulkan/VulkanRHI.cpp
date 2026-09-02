@@ -5,16 +5,14 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h" 
 
+#include <iostream>
 
 VulkanRHI::VulkanRHI()
     : context()
     // Primero creamos el contexto
     , pipeline(context)
-
     , depthBuffer(context)
     , texture(context)
-    , vertexBuffer(context)
-    , indexBuffer(context)
     , uniformBuffer(context)
     , descriptorSet(context)
 
@@ -66,10 +64,14 @@ void VulkanRHI::InitVulkan(Window& window)
     fences.createSyncObjects(
         device.GetHandle()
     );
+            std::cout<<device.GetHandle()<<std::endl;
 
     commandBuffers.createCommandBuffer(
         device.GetHandle(),
         commandpool.GetHandle());
+
+            std::cout<<device.GetHandle()<<std::endl;
+
     };
 
 
@@ -95,11 +97,26 @@ void VulkanRHI::InitVulkan(Window& window)
 */
     };
 
-void VulkanRHI::UploadMesh(ObjectInstance& mesh){
+void VulkanRHI::UploadMesh(CpuModel mesh){
     
-    vertexBuffer.createVertexBuffer(mesh);
-    indexBuffer.createIndexBuffer(mesh);
 
+    vertexBuffer.createVertexBuffer(
+        mesh,
+        GetVulkanLogicalDevice().GetHandle(),
+        physicaldevice.GetPhysicalDevice(),
+        commandpool.GetHandle(),
+        device.GetGraphicsQueue(),
+    commandBuffers.GetCommandBuffer(0));
+
+/*
+    indexBuffer.createIndexBuffer(
+        mesh,
+        GetVulkanLogicalDevice().GetHandle(),
+        physicaldevice.GetPhysicalDevice(),
+        commandpool.GetHandle(),
+        device.GetGraphicsQueue(),
+    commandBuffers.GetCommandBuffer(0));;
+*/
 };
 
 
@@ -131,7 +148,7 @@ void VulkanRHI::DestroyVulkan(){
 
 };
 
-void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh, bool& UIVis){
+void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& UIVis){
     const uint32_t frame = currentFrame;
 
     //ImGui::Render();
@@ -256,7 +273,7 @@ void VulkanRHI::DrawFrame( CameraView& camera,ObjectInstance& mesh, bool& UIVis)
 };
 
 
-void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectInstance mesh, bool& UIVisibility)
+void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, std::vector<CpuMesh> mesh, bool& UIVisibility)
 {
     VkCommandBuffer cmd = commandBuffers.GetCommandBuffer(frame);
 
@@ -384,7 +401,12 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
                         &m_Context.descriptorSets[frame],   // Asumiendo que es un método de Texture
                         0, nullptr);
 
-    vkCmdDrawIndexed(cmd, static_cast<uint32_t>(mesh.getIndices().size()), 1, 0, 0, 0);
+    vkCmdDrawIndexed(cmd, 
+    static_cast<uint32_t>(mesh.getIndices().size()),
+     1, 
+     0, 
+     0,
+     0);
 */
 
 if ( UIVisibility == true){

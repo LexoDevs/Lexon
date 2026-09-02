@@ -24,6 +24,9 @@ private:
 	ObjectInstance mesh;
 	CameraView camera;
 	EditorLayer layersUI;
+
+
+	CpuModel model;
 };
 
 

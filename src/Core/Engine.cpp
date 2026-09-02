@@ -54,15 +54,17 @@ void Engine::InitEngine() {
 
     window.SetInputSystem(&inputSystem);
     window.InitWindow();
+    window.SetKeyCallback();
+
 
     VulkanAPI.InitVulkan(window);
 
     VulkanAPI.InitRenderer();
 
     std::filesystem::path path = "../resources/models/sponza.obj";
-    CpuModel model = assimploader.Load(path);
+    model = assimploader.Load(path);
     // mesh.AddObject(loader);
-            std::cout
+ /*           std::cout
                 << "Modelo cargado: "
                 << model.sourcePath
                 << '\n';
@@ -78,7 +80,8 @@ void Engine::InitEngine() {
                 << '\n';
 
             assimploader.PrintNode(model.rootNode, model, 0);
-    //VulkanAPI.UploadMesh(mesh);
+            */
+    VulkanAPI.UploadMesh(model);
 
     layersUI.ImGui_Init(VulkanAPI, window.GetNativeWindow());  
     std::cout<<"Error despues"<<std::endl;
@@ -95,31 +98,18 @@ void Engine::MainLoopEngine() {
 
     while (!window.ShouldClose()){
         window.PollEvents();
-        window.SetKeyCallback();
         EventManager();
-
-
-
-
-        //glfwSetMouseButtonCallback(VulkanAPI.GetVulkanWindow().getContext().GLFWwindow, GLFW_MouseButtonCallback);  // ← Añadir esta línea
-        //glfwPollEvents();
-
 
         layersUI.ImGui_NewFrame();
         // Aquí dibujamos la interfaz
         ImGui::ShowDemoWindow();
-        
         layersUI.VentanaSuperior(VulkanAPI);
         layersUI.MuestreoImagenes(VulkanAPI);
         layersUI.ElementosEnEscena(VulkanAPI);
 
         ImGui::Render();
-        //ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
-        //std::cout<<window.GetHUDVisibility()<<std::endl;;
 
-        VulkanAPI.DrawFrame(camera, mesh, window.GetHUDVisibility() );   // ← Dentro hacemos recordimgui
-
-
+        VulkanAPI.DrawFrame(camera, model.meshes, window.GetHUDVisibility() );   // ← Dentro hacemos recordimgui
         layersUI.ImGui_EndFrame();   // Para viewports
 
 

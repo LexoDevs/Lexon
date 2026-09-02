@@ -35,9 +35,9 @@ void BufferI::endSingleTimeCommands() {
 }
 
 
-void BufferI::createBuffer(VkDeviceSize size,
-    VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-    VkBuffer& buffer, VkDeviceMemory& bufferMemory){
+void BufferI::createeBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+    VkMemoryPropertyFlags properties, VkBuffer& buffer, 
+    VkDeviceMemory& bufferMemory){
 
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;

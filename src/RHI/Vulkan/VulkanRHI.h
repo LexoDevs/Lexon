@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/VulkanContext.h"
 
+#include "../../Assets/Importer/CPUModel.h"
+
 #include <GLFWWindow.h>
 #include "Instance/VulkanInstance.h"
 #include "Windows/VulkanSurface.h"
@@ -37,10 +39,10 @@ public:
 
     void InitVulkan(Window& window);
     void InitRenderer();
-    void UploadMesh(ObjectInstance& mesh);
+    void UploadMesh(CpuModel mesh);
     void DestroyVulkan();
-    void DrawFrame(CameraView& camera,ObjectInstance& mesh, bool& UIVis);
-    void recordCommandBuffer(uint32_t frame, uint32_t imageIndex, ObjectInstance mesh, bool& UIVisibility);
+    void DrawFrame(CameraView& camera,std::vector<CpuMesh> mesh, bool& UIVis);
+    void recordCommandBuffer(uint32_t frame, uint32_t imageIndex, std::vector<CpuMesh> mesh, bool& UIVisibility);
 
 
     //VulkanWindow&          GetVulkanWindow()          { return window; }
