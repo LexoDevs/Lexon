@@ -61,7 +61,7 @@ void Engine::InitEngine() {
 
     VulkanAPI.InitRenderer();
 
-    std::filesystem::path path = "../resources/models/sponza.obj";
+    std::filesystem::path path = "../resources/models/sponza.fbx";
     model = assimploader.Load(path);
     // mesh.AddObject(loader);
  /*           std::cout
@@ -105,7 +105,7 @@ void Engine::MainLoopEngine() {
         ImGui::ShowDemoWindow();
         layersUI.VentanaSuperior(VulkanAPI);
         layersUI.MuestreoImagenes(VulkanAPI);
-        layersUI.ElementosEnEscena(VulkanAPI);
+        layersUI.ElementosEnEscena(model);
 
         ImGui::Render();
 

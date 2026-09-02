@@ -128,7 +128,7 @@ uint32_t VertexBuffer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags
 
 
 void VertexBuffer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size,VkQueue graphicsQueue,VkCommandBuffer commandBuffer) {
-    
+
     VkCommandBuffer newcommandBuffer = beginSingleTimeCommands(cp_commandPool, cp_device, commandBuffer);
 
     VkBufferCopy copyRegion{};

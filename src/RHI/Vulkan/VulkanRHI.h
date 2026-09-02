@@ -66,6 +66,10 @@ public:
 
         uint32_t GetCurrentFrame() {return currentFrame;};
 
+    VertexBuffer&  GetVertexBuffer()  { return vertexBuffer;};
+    IndexBuffer&  GetIndexBuffer()  { return indexBuffer;};
+
+
 private:
 void RecreateSwapchain(Window* window);
     Window* activeWindow = nullptr; 

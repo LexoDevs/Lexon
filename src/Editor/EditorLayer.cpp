@@ -199,23 +199,170 @@ void EditorLayer::MuestreoImagenes(VulkanRHI& VulkanAPI){
 
 
 
-void EditorLayer::ElementosEnEscena(VulkanRHI& VulkanAPI){
-    ImGui::Begin("Hierachy");
+void EditorLayer::ElementosEnEscena(const CpuModel& model)
+{
+    ImGui::Begin("Hierarchy");
 
-        static ImGuiTableFlags table_flags = ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg | ImGuiTableFlags_NoBordersInBody;
+    ImGui::Text(
+        "Model: %s",
+        model.sourcePath.filename().string().c_str()
+    );
 
-        if (ImGui::BeginTable("3ways", 3, table_flags))
-        {
-            // The first column will use the default _WidthStretch when ScrollX is Off and _WidthFixed when ScrollX is On
-            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_NoHide);
-            ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, 1.0f * 12.0f);
-            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 1.0f * 18.0f);
-            ImGui::TableHeadersRow();
+    ImGui::Text(
+        "%zu meshes | %zu materials",
+        model.meshes.size(),
+        model.materialNames.size()
+    );
 
+    ImGui::Separator();
 
+    constexpr ImGuiTableFlags tableFlags =
+        ImGuiTableFlags_BordersV |
+        ImGuiTableFlags_BordersOuterH |
+        ImGuiTableFlags_Resizable |
+        ImGuiTableFlags_RowBg |
+        ImGuiTableFlags_NoBordersInBody |
+        ImGuiTableFlags_ScrollY;
 
-            ImGui::EndTable();
-        }
+    if (ImGui::BeginTable(
+            "SceneHierarchyTable",
+            3,
+            tableFlags,
+            ImVec2(0.0f, 0.0f)))
+    {
+        ImGui::TableSetupColumn(
+            "Name",
+            ImGuiTableColumnFlags_NoHide |
+            ImGuiTableColumnFlags_WidthStretch
+        );
+
+        ImGui::TableSetupColumn(
+            "Size",
+            ImGuiTableColumnFlags_WidthFixed,
+            120.0f
+        );
+
+        ImGui::TableSetupColumn(
+            "Type / Material",
+            ImGuiTableColumnFlags_WidthFixed,
+            180.0f
+        );
+
+        ImGui::TableSetupScrollFreeze(0, 1);
+        ImGui::TableHeadersRow();
+
+        DrawNode(model.rootNode, model);
+
+        ImGui::EndTable();
+    }
+
     ImGui::End();
+}
 
-    };
+void EditorLayer::DrawNode(
+    const CpuNode& node,
+    const CpuModel& model)
+{
+    ImGui::TableNextRow();
+    ImGui::TableSetColumnIndex(0);
+
+    const bool hasChildren =
+        !node.children.empty() ||
+        !node.meshIndices.empty();
+
+    ImGuiTreeNodeFlags nodeFlags =
+        ImGuiTreeNodeFlags_SpanAllColumns |
+        ImGuiTreeNodeFlags_OpenOnArrow |
+        ImGuiTreeNodeFlags_OpenOnDoubleClick;
+
+    if (!hasChildren)
+    {
+        nodeFlags |=
+            ImGuiTreeNodeFlags_Leaf |
+            ImGuiTreeNodeFlags_NoTreePushOnOpen;
+    }
+
+    ImGui::PushID(&node);
+
+    const bool nodeOpen = ImGui::TreeNodeEx(
+        "Node",
+        nodeFlags,
+        "%s",
+        node.name.empty() ? "Unnamed Node" : node.name.c_str()
+    );
+
+    ImGui::TableSetColumnIndex(1);
+    ImGui::Text("%zu", node.meshIndices.size());
+
+    ImGui::TableSetColumnIndex(2);
+    ImGui::TextUnformatted("Node");
+
+    if (nodeOpen && hasChildren)
+    {
+        for (uint32_t meshIndex : node.meshIndices)
+        {
+            if (meshIndex >= model.meshes.size())
+            {
+                continue;
+            }
+
+            const CpuMesh& mesh = model.meshes[meshIndex];
+
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+
+            ImGui::PushID(static_cast<int>(meshIndex));
+
+            const bool selected = static_cast<int32_t>(meshIndex);
+
+            const std::string meshName =
+                mesh.name.empty()
+                    ? "Unnamed Mesh"
+                    : mesh.name;
+
+            if (ImGui::Selectable(
+                    meshName.c_str(),
+                    selected,
+                    ImGuiSelectableFlags_SpanAllColumns))
+            {
+                //selectedMeshIndex =
+                    static_cast<int32_t>(meshIndex);
+            }
+
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text(
+                "%zu V / %zu I",
+                mesh.vertices.size(),
+                mesh.indices.size()
+            );
+
+            ImGui::TableSetColumnIndex(2);
+
+            if (mesh.materialIndex < model.materialNames.size())
+            {
+                ImGui::Text(
+                    "Mesh | %s",
+                    model.materialNames[mesh.materialIndex].c_str()
+                );
+            }
+            else
+            {
+                ImGui::Text(
+                    "Mesh | Material %u",
+                    mesh.materialIndex
+                );
+            }
+
+            ImGui::PopID();
+        }
+
+        for (const CpuNode& child : node.children)
+        {
+            DrawNode(child, model);
+        }
+
+        ImGui::TreePop();
+    }
+
+    ImGui::PopID();
+}

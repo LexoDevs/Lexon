@@ -24,12 +24,14 @@ struct VertexRange
             VkCommandBuffer beginSingleTimeCommands(VkCommandPool commandPool, VkDevice device,VkCommandBuffer commandBuffer);
             void endSingleTimeCommands(VkCommandPool commandPool, VkDevice device,VkCommandBuffer commandBuffer,VkQueue graphicsQueue);
 
+                        VkBuffer GetBuffer() { return vertexBuffer;};
+
         private:
 
             VkBuffer vertexBuffer;
             VkDeviceMemory vertexBufferMemory;
             std::vector<GPUMeshRange> meshRanges;
-            
+
             VkPhysicalDeviceMemoryProperties memProperties;
             uint32_t VulkanMemoryTypeIndex;
 

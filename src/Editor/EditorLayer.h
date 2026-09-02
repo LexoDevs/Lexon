@@ -17,9 +17,8 @@ void ImGui_Render(VkCommandBuffer cmd);
 void ImGui_EndFrame();
 void VentanaSuperior(VulkanRHI& VulkanAPI);
 void MuestreoImagenes(VulkanRHI& VulkanAPI);
-void ElementosEnEscena(VulkanRHI& VulkanAPI);
-
-
+void ElementosEnEscena(const CpuModel& model);
+void DrawNode(const CpuNode& node, const CpuModel& model);
 private:
 
 };

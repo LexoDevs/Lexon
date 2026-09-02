@@ -108,7 +108,7 @@ void VulkanRHI::UploadMesh(CpuModel mesh){
         device.GetGraphicsQueue(),
     commandBuffers.GetCommandBuffer(0));
 
-/*
+
     indexBuffer.createIndexBuffer(
         mesh,
         GetVulkanLogicalDevice().GetHandle(),
@@ -116,7 +116,8 @@ void VulkanRHI::UploadMesh(CpuModel mesh){
         commandpool.GetHandle(),
         device.GetGraphicsQueue(),
     commandBuffers.GetCommandBuffer(0));;
-*/
+    std::cout<<"De locos"<<std::endl;
+
 };
 
 
@@ -150,10 +151,7 @@ void VulkanRHI::DestroyVulkan(){
 
 void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& UIVis){
     const uint32_t frame = currentFrame;
-
-    //ImGui::Render();
-    //ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffers.GetCommandBuffer(frame));
-
+    
     //0. Inicializar recursos
 
     VkDevice vkDevice = device.GetHandle();
@@ -388,11 +386,11 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
 
-    //VkBuffer vertexBuffers[] = { m_Context.vertexBuffer };
+    VkBuffer vertexBuffers =  vertexBuffer.GetBuffer() ;
     VkDeviceSize offsets[]   = { 0 };
     
-    //vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
-    //vkCmdBindIndexBuffer(cmd, m_Context.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(cmd, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
     /*vkCmdBindDescriptorSets(cmd, 
                         VK_PIPELINE_BIND_POINT_GRAPHICS, 
@@ -400,14 +398,15 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
                         0, 1, 
                         &m_Context.descriptorSets[frame],   // Asumiendo que es un método de Texture
                         0, nullptr);
-
+*/
+mesh[0].indices.size();
     vkCmdDrawIndexed(cmd, 
-    static_cast<uint32_t>(mesh.getIndices().size()),
+    static_cast<uint32_t>(mesh[0].indices.size()),
      1, 
      0, 
      0,
      0);
-*/
+
 
 if ( UIVisibility == true){
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
