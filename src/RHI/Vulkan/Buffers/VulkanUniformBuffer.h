@@ -17,7 +17,7 @@
     VkBuffer uniformBuffers[MAX_FRAMES_IN_FLIGHT];
     std::vector<VkDeviceMemory> uniformBuffersMemory;
     std::vector<void*> uniformBuffersMapped;
-    UniformBufferObject UBO;
+    UniformBufferObject UBO{};
 
 //VkDevice cp_device;
 

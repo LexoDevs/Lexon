@@ -117,7 +117,7 @@ void ObjectInstance::RotateModel(float angulo, char eje){
     }
 };
 
-void ObjectInstance::SetMatrixModel(std::vector<CpuMesh>& ubo, float time){
+void ObjectInstance::SetMatrixModel(UniformBufferObject& ubo){
     glm::mat4 translate = glm::translate(glm::mat4(1.0f), position);
 
     glm::mat4 rotate_z = glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -125,7 +125,7 @@ void ObjectInstance::SetMatrixModel(std::vector<CpuMesh>& ubo, float time){
 
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
-    //ubo[0].vertices[0].position = translate;
+    ubo.model = translate*rotate_y*rotate_z*scale;
 };
 
 glm::vec3 ObjectInstance::position = {0.0f, 0.0f, 0.0f};

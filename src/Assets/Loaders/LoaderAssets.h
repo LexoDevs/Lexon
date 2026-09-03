@@ -91,7 +91,7 @@ class LoaderAssets {
 class ObjectInstance {
     public:
         void AddObject(LoaderAssets loader);
-        void SetMatrixModel(std::vector<CpuMesh>& ubo, float time);
+        void SetMatrixModel(UniformBufferObject& ubo);
         static void TranslateModel(glm::vec3 directionMov);
         static void RotateModel(float angulo, char eje);
 

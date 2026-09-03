@@ -42,10 +42,10 @@ void UniformBuffer::updateUniformBuffer(uint32_t currentImage, std::vector<CpuMe
 
     float aspectratio = swapChainExtent.width / (float) swapChainExtent.height;
 
+ObjectInstance model{};
 
-    
-    //mesh.SetMatrixModel(UBO, time);
-    camera.SetCameraView(UBO, aspectratio, time);
+    model.SetMatrixModel(UBO);
+    camera.SetCameraView(UBO, aspectratio);
 
     memcpy(uniformBuffersMapped[currentImage], &UBO, sizeof(UBO));
 

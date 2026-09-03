@@ -10,7 +10,6 @@
 VulkanRHI::VulkanRHI()
     : context()
     // Primero creamos el contexto
-    , depthBuffer(context)
     , texture(context)
 
 
@@ -73,9 +72,9 @@ void VulkanRHI::InitVulkan(Window& window)
 
 
     void VulkanRHI::InitRenderer(){
-/*
-    depthBuffer.createDepthResources();
-*/
+
+    depthBuffer.createDepthResources(device.GetHandle(),swapchain.GetSwapchainExtent(),physicaldevice.GetPhysicalDevice());
+
     descriptorSet.CreateDescriptorSetLayout(device.GetHandle());
 
     pipeline.createGraphicsPipeline(device.GetHandle(),swapchain.GetSwapchainExtent(),swapchain.GetSwapChainSurfaceFormat(),descriptorSet.GetDescriptorSetLayout());
@@ -124,20 +123,11 @@ void VulkanRHI::UploadMesh(CpuModel mesh){
 void VulkanRHI::DestroyVulkan(){ 
 
 
-    pipeline.DestroyPipelineGraphics();
 
-
-    descriptorpool.destroyDescriptorPool();
 
     texture.destroyImageTexture();
     texture.destroyImageTextureView();
-    depthBuffer.destroyDepthResources();
 
-    descriptorSet.destroyDescriptorSet();
-
-
-
-    
 
 
 
@@ -177,6 +167,7 @@ void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& U
 
    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         RecreateSwapchain(activeWindow);
+        
         return;
     }
     
@@ -188,7 +179,7 @@ void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& U
     VkSemaphore renderFinished = fences.GetrenderFinishedSemaphore(imageIndex);
 
 
-    uniformBuffer.updateUniformBuffer(context.frameIndex, mesh, camera,swapchain.GetSwapchainExtent());
+    uniformBuffer.updateUniformBuffer(frame, mesh, camera,swapchain.GetSwapchainExtent());
     
     // 3. Resetear fence
     vkResetFences(vkDevice, 1, &fence);
@@ -197,10 +188,8 @@ void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& U
     vkResetCommandBuffer(commandBuffer, 0);
 
 
-
 //Aqui empieza el grabado de comandos a la gráfica
     recordCommandBuffer(frame,imageIndex, mesh, UIVis);
-
 
 
     // 5. Submit
@@ -288,11 +277,11 @@ void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, std::ve
         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT  // dstStage
     );
     
-    /*
+VkImage image = depthBuffer.GetDepthImage();
     // Transición del Depth Image
     transition_image_layout(
         cmd,
-        m_Context.depthImage,
+        image,
         VK_IMAGE_LAYOUT_UNDEFINED,
         VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
         VK_IMAGE_ASPECT_DEPTH_BIT,
@@ -301,11 +290,11 @@ void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, std::ve
         VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
         VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT
     );
-*/
+
         // ====================== INICIO DEL RENDERING ======================
-    VkClearValue clearValues[1] = {};
-    clearValues[0].color = { {0.5f, 0.5f, 0.5f, 1.0f} };
-    //clearValues[1].depthStencil = { 1.0f, 0 };
+    VkClearValue clearValues[2] = {};
+    clearValues[0].color = { {0.5f, 0.5f, 0.5f, 0.0f} };
+    clearValues[1].depthStencil = { 1.0f, 0 };
 
     VkRenderingAttachmentInfo colorAttachment{};
     colorAttachment.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
@@ -316,17 +305,17 @@ void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, std::ve
     colorAttachment.clearValue  = clearValues[0];
 
 
-/*
+
     VkRenderingAttachmentInfo depthAttachment{};
     depthAttachment.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    depthAttachment.imageView   = m_Context.depthImageView;
+    depthAttachment.imageView   = depthBuffer.GetDepthImageView();
 
 
     depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
     depthAttachment.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp     = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depthAttachment.clearValue  = clearValues[1];
-*/
+
 
     VkRenderingInfo renderingInfo{};
     renderingInfo.sType                = VK_STRUCTURE_TYPE_RENDERING_INFO;
@@ -335,7 +324,7 @@ void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, std::ve
     renderingInfo.layerCount           = 1;
     renderingInfo.colorAttachmentCount = 1;
     renderingInfo.pColorAttachments    = &colorAttachment;
-    //renderingInfo.pDepthAttachment     = &depthAttachment;
+    renderingInfo.pDepthAttachment     = &depthAttachment;
 
     
 
@@ -452,6 +441,7 @@ void VulkanRHI::RecreateSwapchain(Window* window)
     vkDeviceWaitIdle(vkDevice);
 
     fences.destroyFences();
+    depthBuffer.destroyBuffer();
     swapchain.DestroySwapchain();
 
     physicaldevice.CreateSwapchainSupportDetails(surface.GetSurface());
@@ -463,7 +453,7 @@ void VulkanRHI::RecreateSwapchain(Window* window)
         device.GetQueueFamily()
         );
     swapchain.CreateImageView();
-
+depthBuffer.createDepthResources(device.GetHandle(),swapchain.GetSwapchainExtent(),physicaldevice.GetPhysicalDevice());
     fences.createSyncObjects(vkDevice);
 
     if (ImGui::GetCurrentContext() != nullptr) {

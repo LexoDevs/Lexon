@@ -31,10 +31,10 @@ void Engine::EventManager(){
 
         break;
 
-        case KeyCode::E:
-            glm::vec3 in = glm::vec3(0.0f, 0.0f, 0.0f);
-            camera.GerPos() =+ in;
-        break;
+        //case KeyCode::E:
+        //    glm::vec3 in = glm::vec3(0.0f, 0.0f, 0.0f);
+        //    camera.alante();
+        //break;
     }
 
 
@@ -65,7 +65,7 @@ void Engine::InitEngine() {
 
     VulkanAPI.InitRenderer();
 
-    std::filesystem::path path = "../resources/models/sponza.fbx";
+    std::filesystem::path path = "../resources/models/sponza.obj";
     model = assimploader.Load(path);
     // mesh.AddObject(loader);
  /*           std::cout

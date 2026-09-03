@@ -13,6 +13,9 @@ void IndexBuffer::createIndexBuffer(CpuModel& mesh, VkDevice device, VkPhysicalD
     std::vector<uint32_t> allindex;
     size_t totalindex = 0;
 
+uint32_t firstIndex = 0;
+uint32_t firstVertex = 0;
+
 for (const auto& submesh : mesh.meshes)
     {
         totalindex += submesh.indices.size();
@@ -35,6 +38,10 @@ for (const auto& submesh : mesh.meshes)
         range.indexCount =
             static_cast<uint32_t>(submesh.indices.size());
 
+        range.firstVertex = firstVertex;
+        range.vertexCount =
+        static_cast<uint32_t>(submesh.vertices.size());
+
         meshRanges.push_back(range);
 
         allindex.insert(
@@ -44,6 +51,8 @@ for (const auto& submesh : mesh.meshes)
         );
 
         firstindex += range.indexCount;
+            firstVertex += range.vertexCount;
+
     }
 
     VkDeviceSize bufferSize = sizeof(uint32_t) * allindex.size();
