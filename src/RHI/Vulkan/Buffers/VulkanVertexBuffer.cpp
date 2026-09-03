@@ -3,7 +3,8 @@
 
 
 VertexBuffer::~VertexBuffer(){
-    destroyVertexBuffer();
+
+    destroyBuffer();
 };
 
 
@@ -100,11 +101,13 @@ void VertexBuffer::createVertexBuffer(CpuModel& mesh, VkDevice device, VkPhysica
     vkFreeMemory(device, stagingBufferMemory, nullptr);
 }
 
-void VertexBuffer::destroyVertexBuffer(){
+void VertexBuffer::destroyBuffer(){
 
+        std::cout<<"Vertex Buffer destruido"<<std::endl;
         vkDestroyBuffer(cp_device, vertexBuffer, nullptr);
         vkFreeMemory(cp_device, vertexBufferMemory, nullptr);
-        
+
+
 }
 
 

@@ -16,7 +16,7 @@ struct VertexRange
             ~VertexBuffer();
 
             void createVertexBuffer(CpuModel& mesh, VkDevice device, VkPhysicalDevice physicalDevice,VkCommandPool commandPool,VkQueue graphicsQueue,VkCommandBuffer commandBuffer);
-            void destroyVertexBuffer();
+            virtual void destroyBuffer();
             void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkDevice device,VkPhysicalDevice physicalDevice,VkBuffer& buffer, VkDeviceMemory& bufferMemory);
             uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice physicalDevice);
             void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size,VkQueue graphicsQueue,VkCommandBuffer commandBuffer);
@@ -28,9 +28,9 @@ struct VertexRange
 
         protected:
 
-            VkBuffer vertexBuffer;
-            VkDeviceMemory vertexBufferMemory;
-            std::vector<GPUMeshRange> meshRanges;
+            VkBuffer vertexBuffer = VK_NULL_HANDLE;
+            VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
+            std::vector<GPUMeshRange> meshRanges = {};
 
             VkPhysicalDeviceMemoryProperties memProperties;
             uint32_t VulkanMemoryTypeIndex;
@@ -38,6 +38,7 @@ struct VertexRange
             VkDevice cp_device;
             VkCommandPool cp_commandPool;
 
+            bool init = false;
     };
 
 

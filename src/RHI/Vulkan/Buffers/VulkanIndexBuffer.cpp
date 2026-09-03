@@ -1,8 +1,9 @@
 #include "VulkanIndexBuffer.h"
 
-        IndexBuffer::~IndexBuffer(){
-destroyIndexBuffer();
-        };
+IndexBuffer::~IndexBuffer(){
+
+    destroyBuffer();
+};
 
 
 void IndexBuffer::createIndexBuffer(CpuModel& mesh, VkDevice device, VkPhysicalDevice physicalDevice,VkCommandPool commandPool, VkQueue graphicsQueue, VkCommandBuffer commandBuffer){
@@ -68,11 +69,12 @@ for (const auto& submesh : mesh.meshes)
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);
     std::cout<<"error"<<std::endl;
-
 }
 
-void IndexBuffer::destroyIndexBuffer(){
-    
-        vkDestroyBuffer(cp_device, indexBuffer, nullptr);
+void IndexBuffer::destroyBuffer(){
+
+    std::cout<<"Index Buffer destruido"<<std::endl;
+    vkDestroyBuffer(cp_device, indexBuffer, nullptr);
     vkFreeMemory(cp_device, indexBufferMemory, nullptr);
+
 }

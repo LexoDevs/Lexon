@@ -7,7 +7,7 @@
             ~IndexBuffer();
 
             void createIndexBuffer(CpuModel& mesh, VkDevice device, VkPhysicalDevice physicalDevice,VkCommandPool commandPool, VkQueue graphicsQueue, VkCommandBuffer commandBuffer);
-            void destroyIndexBuffer();
+            void destroyBuffer() override;
             VkBuffer GetBuffer() {return indexBuffer;};
 
         private:

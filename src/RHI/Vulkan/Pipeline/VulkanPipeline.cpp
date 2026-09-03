@@ -1,7 +1,20 @@
 #include "VulkanPipeline.h"
-#include <iostream>
 
-void VulkanPipeline::createGraphicsPipeline() {
+#include <iostream>
+VulkanPipeline::VulkanPipeline(){
+
+};
+
+VulkanPipeline::~VulkanPipeline(){
+DestroyPipelineGraphics();
+};
+
+
+void VulkanPipeline::createGraphicsPipeline(VkDevice device,VkExtent2D swapChainExtent,VkSurfaceFormatKHR  swapChainSurfaceFormat, VkDescriptorSetLayout descriptorsetlayout) {
+    cp_device = device;
+cp_swapChainExtent =swapChainExtent;
+cp_swapChainSurfaceFormat  =swapChainSurfaceFormat;
+cp_descriptorsetlayout = descriptorsetlayout;
 
     VkShaderModule shaderModule = createShaderModule(readFile("../shaders/generated/slang.spv"));
 
@@ -38,14 +51,14 @@ void VulkanPipeline::createGraphicsPipeline() {
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float) m_Context.swapChainExtent.width;
-    viewport.height = (float) m_Context.swapChainExtent.height;
+    viewport.width = (float) swapChainExtent.width;
+    viewport.height = (float) swapChainExtent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = m_Context.swapChainExtent;
+    scissor.extent = swapChainExtent;
 
     VkPipelineViewportStateCreateInfo viewportState{};
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -134,13 +147,13 @@ void VulkanPipeline::createGraphicsPipeline() {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1; // Optional
-        pipelineLayoutInfo.pSetLayouts = &m_Context.descriptorSetLayout; // Optional
+        pipelineLayoutInfo.pSetLayouts = &descriptorsetlayout; // Optional
         pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
         pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
 
 
-        if (vkCreatePipelineLayout(m_Context.device, &pipelineLayoutInfo, nullptr, &m_Context.pipelineLayout) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
@@ -149,7 +162,7 @@ void VulkanPipeline::createGraphicsPipeline() {
         VkPipelineRenderingCreateInfo renderingInfo{};
         renderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
         renderingInfo.colorAttachmentCount = 1;
-        renderingInfo.pColorAttachmentFormats = &m_Context.swapChainSurfaceFormat.format;
+        renderingInfo.pColorAttachmentFormats = &swapChainSurfaceFormat.format;
         renderingInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
         renderingInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
 
@@ -167,7 +180,7 @@ void VulkanPipeline::createGraphicsPipeline() {
         pipelineCreateInfoChain.pMultisampleState   = &multisampling;
         pipelineCreateInfoChain.pColorBlendState    = &colorBlending;
         pipelineCreateInfoChain.pDynamicState       = &dynamicState;
-        pipelineCreateInfoChain.layout              = m_Context.pipelineLayout;
+        pipelineCreateInfoChain.layout              = pipelineLayout;
         pipelineCreateInfoChain.renderPass          = VK_NULL_HANDLE;
         pipelineCreateInfoChain.pDepthStencilState = &depthStencil;
 
@@ -180,39 +193,14 @@ std::cout << "Color format: "
           << renderingInfo.pColorAttachmentFormats[0]
           << std::endl;
 
-        if (vkCreateGraphicsPipelines(m_Context.device, VK_NULL_HANDLE, 1, &pipelineCreateInfoChain, nullptr, &m_Context.Pipeline) != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCreateInfoChain, nullptr, &Pipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
         
 
 };
 
-void VulkanPipeline::CreateDescriptorSetLayout(){
-        VkDescriptorSetLayoutBinding uboLayoutBinding{};
-        uboLayoutBinding.binding = 0;
-        uboLayoutBinding.descriptorCount = 1;
-        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uboLayoutBinding.pImmutableSamplers = nullptr;
-        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-        samplerLayoutBinding.binding = 1;
-        samplerLayoutBinding.descriptorCount = 1;
-        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.pImmutableSamplers = nullptr;
-        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-        layoutInfo.pBindings = bindings.data();
-
-        if (vkCreateDescriptorSetLayout(m_Context.device, &layoutInfo, nullptr, &m_Context.descriptorSetLayout) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor set layout!");
-        }
-
-}
 
 std::vector<char> VulkanPipeline::readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -236,31 +224,26 @@ std::vector<char> VulkanPipeline::readFile(const std::string& filename) {
     shadermodulecreateInfo.codeSize = code.size() * sizeof(char);
     shadermodulecreateInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
-    if (vkCreateShaderModule(m_Context.device, &shadermodulecreateInfo, nullptr, &m_Context.shaderModule) != VK_SUCCESS) {
+    if (vkCreateShaderModule(cp_device, &shadermodulecreateInfo, nullptr, &shaderModule) != VK_SUCCESS) {
         throw std::runtime_error("failed to create shader module!");
     }
 
-    return m_Context.shaderModule;
+    return shaderModule;
 
 }
 
-void VulkanPipeline::DestroyDescriptorSetLayout() {
-    vkDestroyDescriptorSetLayout(m_Context.device, m_Context.descriptorSetLayout, nullptr);
 
-
-
-}
 void VulkanPipeline::DestroyPipelineGraphics() {
-    vkDestroyPipeline(m_Context.device, m_Context.Pipeline, nullptr);
-    vkDestroyPipelineLayout(m_Context.device, m_Context.pipelineLayout, nullptr);
-    vkDestroyShaderModule(m_Context.device, m_Context.shaderModule, nullptr);
+    vkDestroyPipeline(cp_device, Pipeline, nullptr);
+    vkDestroyPipelineLayout(cp_device, pipelineLayout, nullptr);
+    vkDestroyShaderModule(cp_device, shaderModule, nullptr);
 }
 
 void VulkanPipeline::recreateGraphicsPipeline()
 {
-    vkDestroyPipeline(m_Context.device, m_Context.Pipeline, nullptr);
-    vkDestroyPipelineLayout(m_Context.device, m_Context.pipelineLayout, nullptr);
-    vkDestroyShaderModule(m_Context.device, m_Context.shaderModule, nullptr);
+    vkDestroyPipeline(cp_device, Pipeline, nullptr);
+    vkDestroyPipelineLayout(cp_device, pipelineLayout, nullptr);
+    vkDestroyShaderModule(cp_device, shaderModule, nullptr);
 
-    createGraphicsPipeline();   // Recrear con nuevo formato
+    createGraphicsPipeline(cp_device,cp_swapChainExtent,cp_swapChainSurfaceFormat, cp_descriptorsetlayout);   // Recrear con nuevo formato
 }

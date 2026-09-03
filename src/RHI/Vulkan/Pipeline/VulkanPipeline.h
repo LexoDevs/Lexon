@@ -9,25 +9,27 @@
 
 class VulkanPipeline {
 public:
-    VulkanPipeline(VulkanContext& context)
-        : m_Context(context)
-    {
-    }
+    VulkanPipeline();
+~VulkanPipeline();
 
-	void createGraphicsPipeline();
-    void CreateDescriptorSetLayout();
-    void DestroyDescriptorSetLayout();
+	void createGraphicsPipeline(VkDevice device,VkExtent2D swapChainExtent,VkSurfaceFormatKHR  swapChainSurfaceFormat, VkDescriptorSetLayout descriptorsetlayout);
     void DestroyPipelineGraphics();
     
 	static std::vector<char> readFile(const std::string& filename);
     VkShaderModule createShaderModule(const std::vector<char>& code);
 
     void recreateGraphicsPipeline();
+	VkPipeline GetPipeline() {return Pipeline;};
+	VkPipelineLayout GetPipelineLeyout() {return pipelineLayout;};
+
 
 private:
+	VkShaderModule shaderModule;
+	VkPipelineLayout pipelineLayout;
+	VkPipeline Pipeline;
 
-
-    VulkanContext& m_Context;
-
-
+VkDevice cp_device;
+VkExtent2D cp_swapChainExtent;
+VkSurfaceFormatKHR  cp_swapChainSurfaceFormat;
+VkDescriptorSetLayout cp_descriptorsetlayout;
 };

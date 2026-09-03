@@ -1,22 +1,25 @@
 #pragma once
-#include "VulkanBuffer.h"
+#include "VulkanVertexBuffer.h"
 #include "../../../Renderer/Camera.h"
 
-    class UniformBuffer : public BufferI {
+    class UniformBuffer : public VertexBuffer {
         public:
-        UniformBuffer(VulkanContext& context)
-        : BufferI(context),
-        m_Context(context)              
-    {
-    }
+        UniformBuffer();
+        ~UniformBuffer();
 
-            void createUniformBuffer();
-            void destroyUniformBuffer();
-            void updateUniformBuffer(uint32_t currentImage, ObjectInstance mesh, CameraView camera);
+            void createUniformBuffer(VkDevice device, VkPhysicalDevice physicaldevice);
+            void destroyBuffer() override;
+            void updateUniformBuffer(uint32_t currentImage, std::vector<CpuMesh> mesh, CameraView camera,VkExtent2D swapChainExtent);
+            VkBuffer* GetUniformBuffer() { return uniformBuffers;};
+
 
         private:
-            VulkanContext& m_Context;
+    VkBuffer uniformBuffers[MAX_FRAMES_IN_FLIGHT];
+    std::vector<VkDeviceMemory> uniformBuffersMemory;
+    std::vector<void*> uniformBuffersMapped;
+    UniformBufferObject UBO;
 
+//VkDevice cp_device;
 
 
     };

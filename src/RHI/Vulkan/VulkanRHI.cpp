@@ -10,11 +10,8 @@
 VulkanRHI::VulkanRHI()
     : context()
     // Primero creamos el contexto
-    , pipeline(context)
     , depthBuffer(context)
     , texture(context)
-    , uniformBuffer(context)
-    , descriptorSet(context)
 
 
 {
@@ -78,19 +75,20 @@ void VulkanRHI::InitVulkan(Window& window)
     void VulkanRHI::InitRenderer(){
 /*
     depthBuffer.createDepthResources();
-
-    pipeline.CreateDescriptorSetLayout();
-    pipeline.createGraphicsPipeline();
-
-    uniformBuffer.createUniformBuffer();
-
 */
+    descriptorSet.CreateDescriptorSetLayout(device.GetHandle());
+
+    pipeline.createGraphicsPipeline(device.GetHandle(),swapchain.GetSwapchainExtent(),swapchain.GetSwapChainSurfaceFormat(),descriptorSet.GetDescriptorSetLayout());
+
+
+    uniformBuffer.createUniformBuffer(device.GetHandle(),physicaldevice.GetPhysicalDevice());
+
     descriptorpool.createDescriptorPool(device.GetHandle());
     layerdescriptorpool.CreateImGuiDescriptorPool(device.GetHandle());
 
-/*    
-    descriptorSet.createDescriptorSets();
-
+  
+    descriptorSet.createDescriptorSets(device.GetHandle(),descriptorpool.GetDescriptorPool(),uniformBuffer.GetUniformBuffer());
+/* 
     texture.createTextureImage();
     texture.createTextureImageView();
     texture.createTextureSampler();
@@ -128,7 +126,6 @@ void VulkanRHI::DestroyVulkan(){
 
     pipeline.DestroyPipelineGraphics();
 
-    uniformBuffer.destroyUniformBuffer();
 
     descriptorpool.destroyDescriptorPool();
 
@@ -138,11 +135,8 @@ void VulkanRHI::DestroyVulkan(){
 
     descriptorSet.destroyDescriptorSet();
 
-    pipeline.DestroyDescriptorSetLayout();
 
-    indexBuffer.destroyIndexBuffer();
 
-    vertexBuffer.destroyVertexBuffer();
     
 
 
@@ -153,18 +147,14 @@ void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& U
     const uint32_t frame = currentFrame;
     
     //0. Inicializar recursos
-
     VkDevice vkDevice = device.GetHandle();
 
     VkFence fence = fences.GetinFlightFence(frame);
 
     VkSemaphore imageAvailable = fences.GetimageAvailableSemaphore(frame);
 
-
     VkCommandBuffer commandBuffer = commandBuffers.GetCommandBuffer(frame);
 
-    //std::cout<<"Dentro del draw, esperando frames"<<std::endl;
-   //vkDeviceWaitIdle(context.device);    //Solucion del error del index
 
     // 1. Esperar al frame anterior
     vkWaitForFences(device.GetHandle(), 1, &fence, VK_TRUE, UINT64_MAX);
@@ -188,7 +178,6 @@ void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& U
    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         RecreateSwapchain(activeWindow);
         return;
-        //window.framebufferResized = true;  // Para que se redimensione en el próximo frame
     }
     
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
@@ -199,7 +188,7 @@ void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& U
     VkSemaphore renderFinished = fences.GetrenderFinishedSemaphore(imageIndex);
 
 
-    //uniformBuffer.updateUniformBuffer(context.frameIndex, mesh, camera);
+    uniformBuffer.updateUniformBuffer(context.frameIndex, mesh, camera,swapchain.GetSwapchainExtent());
     
     // 3. Resetear fence
     vkResetFences(vkDevice, 1, &fence);
@@ -353,7 +342,7 @@ void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, std::ve
     vkCmdBeginRendering(cmd, &renderingInfo);
 
     // Bind del pipeline gráfico
-    //vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Context.Pipeline);
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.GetPipeline());
 
     vkCmdSetDepthTestEnable(cmd, VK_TRUE);
 vkCmdSetDepthWriteEnable(cmd, VK_TRUE);
@@ -382,7 +371,7 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
     scissor.offset = {0, 0};
     scissor.extent = swapchain.GetSwapchainExtent();
 
-    vkCmdSetViewport(cmd, 0, 1, &viewport); //??
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
 
@@ -392,27 +381,28 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
     vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffers, offsets);
     vkCmdBindIndexBuffer(cmd, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-    /*vkCmdBindDescriptorSets(cmd, 
+    const VkDescriptorSet descriptorsettemporal = descriptorSet.GetDescriptorSet(frame);
+    vkCmdBindDescriptorSets(cmd, 
                         VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                        m_Context.pipelineLayout, 
+                        pipeline.GetPipelineLeyout(), 
                         0, 1, 
-                        &m_Context.descriptorSets[frame],   // Asumiendo que es un método de Texture
+                        &descriptorsettemporal,   // Asumiendo que es un método de Texture
                         0, nullptr);
-*/
-mesh[0].indices.size();
+
+
+//for(int i = 0 ; i<mesh[0].indices.size();i++){
     vkCmdDrawIndexed(cmd, 
     static_cast<uint32_t>(mesh[0].indices.size()),
      1, 
      0, 
      0,
      0);
-
+//}
 
 if ( UIVisibility == true){
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
 
 }
-//std::cout<<UIVisibility<<std::endl;;
 
     vkCmdEndRendering(cmd);
 

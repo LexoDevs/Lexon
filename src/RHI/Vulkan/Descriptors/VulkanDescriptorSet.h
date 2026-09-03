@@ -5,16 +5,21 @@
 
 class VulkanDescriptorSet {
     public:
-        VulkanDescriptorSet(VulkanContext& context)
-        : m_Context(context)              
-    {
-    }
-        void createDescriptorSets();
-        void destroyDescriptorSet();
-        void bindDescriptorSet(uint32_t currentFrame);
+        VulkanDescriptorSet();
+        ~VulkanDescriptorSet();
 
+        void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkBuffer uniformBuffers[]);
+        void destroyDescriptorSet();
+        void bindDescriptorSet(uint32_t currentFrame,VkCommandBuffer commandBuffers[], VkPipelineLayout pipelineLayout);
+void DestroyDescriptorSetLayout();
+        void CreateDescriptorSetLayout(VkDevice device);
+        VkDescriptorSetLayout GetDescriptorSetLayout(){return descriptorSetLayout;};
+        VkDescriptorSet GetDescriptorSet(int frame){return descriptorSets[frame];};
 
     private:
-    VulkanContext& m_Context;
-
+    VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
+    VkImageView textureImageView;
+    VkSampler textureSampler;
+    VkDescriptorSetLayout descriptorSetLayout;
+VkDevice cp_device;
 };

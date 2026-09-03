@@ -18,6 +18,7 @@ public:
 	std::vector<VkImage> GetSwapchainImagesRef(){return swapchainImages;};
 	VkImage GetSwapchainImages(uint32_t frame ){return swapchainImages[frame];};
 	VkFormat GetSwapChainImageFormat() {return swapChainImageFormat;};
+	VkSurfaceFormatKHR GetSwapChainSurfaceFormat() {return swapChainSurfaceFormat;};
 
 	VkImageView GetSwapChainImageViews(uint32_t frame ){return swapChainImageViews[frame];};
 
