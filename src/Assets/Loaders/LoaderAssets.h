@@ -15,7 +15,7 @@
 #include <vulkan/vulkan.h>
 
 #include <filesystem>
-
+#include <CPUModel.h>
 
 struct MeshesList{
 std::string path;
@@ -91,7 +91,7 @@ class LoaderAssets {
 class ObjectInstance {
     public:
         void AddObject(LoaderAssets loader);
-        void SetMatrixModel(UniformBufferObject& ubo, float time);
+        void SetMatrixModel(std::vector<CpuMesh>& ubo, float time);
         static void TranslateModel(glm::vec3 directionMov);
         static void RotateModel(float angulo, char eje);
 

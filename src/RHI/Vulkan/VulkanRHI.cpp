@@ -378,6 +378,8 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
     VkBuffer vertexBuffers =  vertexBuffer.GetBuffer() ;
     VkDeviceSize offsets[]   = { 0 };
     
+
+    
     vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffers, offsets);
     vkCmdBindIndexBuffer(cmd, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
@@ -385,19 +387,27 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
     vkCmdBindDescriptorSets(cmd, 
                         VK_PIPELINE_BIND_POINT_GRAPHICS, 
                         pipeline.GetPipelineLeyout(), 
-                        0, 1, 
+                        0,
+                        1, 
                         &descriptorsettemporal,   // Asumiendo que es un método de Texture
-                        0, nullptr);
+                        0,
+                         nullptr);
 
 
-//for(int i = 0 ; i<mesh[0].indices.size();i++){
-    vkCmdDrawIndexed(cmd, 
-    static_cast<uint32_t>(mesh[0].indices.size()),
-     1, 
-     0, 
-     0,
-     0);
-//}
+    for (const GPUMeshRange& range : indexBuffer.GetGPURangues()){
+            if (range.indexCount == 0)
+            {
+                continue;
+            }
+
+            vkCmdDrawIndexed(
+                cmd,
+                range.indexCount,
+                1,
+                range.firstIndex,
+                static_cast<int32_t>(range.firstVertex),
+                0);
+    }
 
 if ( UIVisibility == true){
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);

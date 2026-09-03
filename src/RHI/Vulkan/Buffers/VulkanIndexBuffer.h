@@ -9,6 +9,7 @@
             void createIndexBuffer(CpuModel& mesh, VkDevice device, VkPhysicalDevice physicalDevice,VkCommandPool commandPool, VkQueue graphicsQueue, VkCommandBuffer commandBuffer);
             void destroyBuffer() override;
             VkBuffer GetBuffer() {return indexBuffer;};
+            std::vector<GPUMeshRange> GetGPURangues() {return meshRanges;};
 
         private:
             VkBuffer indexBuffer;

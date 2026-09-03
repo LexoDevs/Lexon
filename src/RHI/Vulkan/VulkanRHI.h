@@ -77,7 +77,6 @@ void RecreateSwapchain(Window* window);
     VulkanContext context;
 
         
-    //VulkanWindow window;
     VulkanInstance instance;
     VulkanValidation validacionlayers;
     VulkanSurface surface;

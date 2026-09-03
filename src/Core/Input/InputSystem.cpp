@@ -22,10 +22,17 @@ void InputSystem::Selector(KeyCode &keysactives){
         keysactives = KeyCode::Escape;
         std::cout<<"Se ha pulsado escape"<<std::endl;
     }
-        if (IsKeyPressed(KeyCode::W))
+    
+    if (IsKeyPressed(KeyCode::W))
     {
         keysactives = KeyCode::W;
         std::cout<<"Se ha pulsado w"<<std::endl;
+    }
+    
+    if (IsKeyPressed(KeyCode::E))
+    {
+        keysactives = KeyCode::E;
+        std::cout<<"Se ha pulsado e"<<std::endl;
     }
 
 

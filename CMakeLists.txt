@@ -142,6 +142,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src/Core/WindowSystem
     ${CMAKE_SOURCE_DIR}/src/Core/Input
     ${CMAKE_SOURCE_DIR}/src/Core/Input/Platform/GLFW
+    ${CMAKE_SOURCE_DIR}/src/Assets/Importer
 
     ${CMAKE_SOURCE_DIR}/src/RHI/Vulkan/Helpers
 )
