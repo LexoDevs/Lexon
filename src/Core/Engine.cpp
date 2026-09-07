@@ -26,7 +26,7 @@ void Engine::EventManager(){
                 std::cout<<"Visibilidad de HUD:"<<window.GetHUDVisibility()<<std::endl;
 
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            //std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 
         break;
@@ -102,7 +102,7 @@ void Engine::MainLoopEngine() {
 
     while (!window.ShouldClose()){
         window.PollEvents();
-        EventManager();
+        //EventManager();
 
         layersUI.ImGui_NewFrame();
         // Aquí dibujamos la interfaz
@@ -113,7 +113,7 @@ void Engine::MainLoopEngine() {
 
         ImGui::Render();
 
-        VulkanAPI.DrawFrame(camera, model.meshes, window.GetHUDVisibility() );   // ← Dentro hacemos recordimgui
+        VulkanAPI.DrawFrame(camera, window.GetHUDVisibility() );   // ← Dentro hacemos recordimgui
         layersUI.ImGui_EndFrame();   // Para viewports
 
 

@@ -34,7 +34,7 @@ void UniformBuffer::destroyBuffer(){
 
 }
 
-void UniformBuffer::updateUniformBuffer(uint32_t currentImage, std::vector<CpuMesh> mesh, CameraView camera,VkExtent2D swapChainExtent) {
+void UniformBuffer::updateUniformBuffer(uint32_t currentImage, CameraView camera,VkExtent2D swapChainExtent) {
     
     static auto startTime = std::chrono::high_resolution_clock::now();
     auto currentTime = std::chrono::high_resolution_clock::now();

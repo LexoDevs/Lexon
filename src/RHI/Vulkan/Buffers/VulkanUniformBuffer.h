@@ -9,7 +9,7 @@
 
             void createUniformBuffer(VkDevice device, VkPhysicalDevice physicaldevice);
             void destroyBuffer() override;
-            void updateUniformBuffer(uint32_t currentImage, std::vector<CpuMesh> mesh, CameraView camera,VkExtent2D swapChainExtent);
+            void updateUniformBuffer(uint32_t currentImage, CameraView camera,VkExtent2D swapChainExtent);
             VkBuffer* GetUniformBuffer() { return uniformBuffers;};
 
 

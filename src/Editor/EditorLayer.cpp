@@ -50,8 +50,12 @@ void EditorLayer::ImGui_Init(VulkanRHI& VulkanAPI, void* window)
     VkFormat swapimageformat_p = VulkanAPI.GetVulkanSwapchain().GetSwapChainImageFormat();
     pipelineRenderingInfo.pColorAttachmentFormats = &swapimageformat_p;
 
-        init_info.PipelineInfoMain.PipelineRenderingCreateInfo = pipelineRenderingInfo;
+ 
+    pipelineRenderingInfo.depthAttachmentFormat = VK_FORMAT_D32_SFLOAT;
+    pipelineRenderingInfo.stencilAttachmentFormat = VK_FORMAT_UNDEFINED;
 
+init_info.PipelineInfoMain.PipelineRenderingCreateInfo =
+    pipelineRenderingInfo;
     // Opcional pero muy útil para debug
     // init_info.CheckVkResultFn = check_vk_result_function;
 

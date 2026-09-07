@@ -113,7 +113,6 @@ void VulkanRHI::UploadMesh(CpuModel mesh){
         commandpool.GetHandle(),
         device.GetGraphicsQueue(),
     commandBuffers.GetCommandBuffer(0));;
-    std::cout<<"De locos"<<std::endl;
 
 };
 
@@ -133,7 +132,7 @@ void VulkanRHI::DestroyVulkan(){
 
 };
 
-void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& UIVis){
+void VulkanRHI::DrawFrame( CameraView& camera, bool& UIVis){
     const uint32_t frame = currentFrame;
     
     //0. Inicializar recursos
@@ -179,7 +178,7 @@ void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& U
     VkSemaphore renderFinished = fences.GetrenderFinishedSemaphore(imageIndex);
 
 
-    uniformBuffer.updateUniformBuffer(frame, mesh, camera,swapchain.GetSwapchainExtent());
+    uniformBuffer.updateUniformBuffer(frame, camera,swapchain.GetSwapchainExtent());
     
     // 3. Resetear fence
     vkResetFences(vkDevice, 1, &fence);
@@ -189,7 +188,7 @@ void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& U
 
 
 //Aqui empieza el grabado de comandos a la gráfica
-    recordCommandBuffer(frame,imageIndex, mesh, UIVis);
+    recordCommandBuffer(frame,imageIndex, UIVis);
 
 
     // 5. Submit
@@ -249,7 +248,7 @@ void VulkanRHI::DrawFrame( CameraView& camera,std::vector<CpuMesh> mesh, bool& U
 };
 
 
-void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, std::vector<CpuMesh> mesh, bool& UIVisibility)
+void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, bool& UIVisibility)
 {
     VkCommandBuffer cmd = commandBuffers.GetCommandBuffer(frame);
 
@@ -345,12 +344,12 @@ vkCmdSetStencilTestEnable(cmd, VK_FALSE);
 vkCmdSetDepthBoundsTestEnable(cmd, VK_FALSE);
 vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
 
-    // Viewport y Scissor (dynamic state)
+    // Viewport
     VkViewport viewport{};
     viewport.x        = 0.0f;
     viewport.y        = 0.0f;
-    viewport.width    = static_cast<float>(1280);//window.width
-    viewport.height   = static_cast<float>(720);//window.height
+    viewport.width    = static_cast<float>(swapchain.GetSwapchainExtent().width);
+    viewport.height   = static_cast<float>(swapchain.GetSwapchainExtent().height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     vkCmdSetViewport(cmd, 0, 1, &viewport);

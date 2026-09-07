@@ -41,14 +41,11 @@ public:
     void InitRenderer();
     void UploadMesh(CpuModel mesh);
     void DestroyVulkan();
-    void DrawFrame(CameraView& camera,std::vector<CpuMesh> mesh, bool& UIVis);
-    void recordCommandBuffer(uint32_t frame, uint32_t imageIndex, std::vector<CpuMesh> mesh, bool& UIVisibility);
+    void DrawFrame(CameraView& camera, bool& UIVis);
+    void recordCommandBuffer(uint32_t frame, uint32_t imageIndex, bool& UIVisibility);
 
 
-    //VulkanWindow&          GetVulkanWindow()          { return window; }
     VulkanInstance&        GetVulkanInstance()        { return instance; }
-    //VulkanValidation&      GetVulkanValidation()      { return validacionlayers; }
-    //VulkanSurface&         GetVulkanSurface()         { return surface; }
     VulkanPhysicalDevice&  GetVulkanPhysicalDevice()  { return physicaldevice; }
     VulkanLogicalDevice&   GetVulkanLogicalDevice()   { return device; }
     VulkanPipeline&        GetVulkanPipelineGraph()   { return pipeline; }

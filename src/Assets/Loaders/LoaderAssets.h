@@ -31,7 +31,7 @@ static std::vector<std::string> LoadTexturesFolder()
 
     for (const auto& entry : fs::directory_iterator("../resources/Textures/spoonza/"))
     {
-        if (entry.path().extension() == ".tga")
+        if (entry.path().extension() == ".png")
             textures.push_back(entry.path().string());
     }
 
