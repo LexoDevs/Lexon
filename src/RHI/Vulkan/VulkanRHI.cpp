@@ -10,9 +10,6 @@
 VulkanRHI::VulkanRHI()
     : context()
     // Primero creamos el contexto
-    , texture(context)
-
-
 {
 }
 
@@ -87,8 +84,9 @@ void VulkanRHI::InitVulkan(Window& window)
 
   
     descriptorSet.createDescriptorSets(device.GetHandle(),descriptorpool.GetDescriptorPool(),uniformBuffer.GetUniformBuffer());
-/* 
-    texture.createTextureImage();
+
+    texture.createTextureImage(device.GetHandle(),physicaldevice.GetPhysicalDevice(),commandpool.GetHandle(), commandBuffers.GetCommandBuffer(1),device.GetGraphicsQueue());
+    /* 
     texture.createTextureImageView();
     texture.createTextureSampler();
 */
@@ -124,8 +122,8 @@ void VulkanRHI::DestroyVulkan(){
 
 
 
-    texture.destroyImageTexture();
-    texture.destroyImageTextureView();
+    //texture.destroyImageTexture();
+    //texture.destroyImageTextureView();
 
 
 

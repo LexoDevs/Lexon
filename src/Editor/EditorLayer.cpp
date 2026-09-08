@@ -192,10 +192,10 @@ void EditorLayer::MuestreoImagenes(VulkanRHI& VulkanAPI){
     }
 
 
-    //ImGui::Text("pointer = %p", VulkanAPI.GetVulkanContext().textureImageView);
+    ImGui::Text("pointer = %p", VulkanAPI.GetDescriptorSet().GetTextureImageView());
     //ImGui::Text("size = %d x %d", VulkanAPI.GetVulkanContext().texWidth[seleccionado], VulkanAPI.GetVulkanContext().texHeight[seleccionado]);
 
-    //ImGui::Image(VulkanAPI.GetVulkanContext().descriptorSets[seleccionado], ImVec2(VulkanAPI.GetVulkanContext().texWidth[seleccionado]/5, VulkanAPI.GetVulkanContext().texHeight[seleccionado]/5));
+    //ImGui::Image(VulkanAPI.GetDescriptorSet().GetDescriptorSet(seleccionado), ImVec2(100, 100)); //VulkanAPI.GetVulkanContext().texWidth[seleccionado]/5, VulkanAPI.GetVulkanContext().texHeight[seleccionado]/5));
 
    ImGui::End();
 };

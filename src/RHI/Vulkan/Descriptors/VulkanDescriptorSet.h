@@ -15,6 +15,8 @@ void DestroyDescriptorSetLayout();
         void CreateDescriptorSetLayout(VkDevice device);
         VkDescriptorSetLayout GetDescriptorSetLayout(){return descriptorSetLayout;};
         VkDescriptorSet GetDescriptorSet(int frame){return descriptorSets[frame];};
+    VkImageView GetTextureImageView() {return textureImageView;};
+
 
     private:
     VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];

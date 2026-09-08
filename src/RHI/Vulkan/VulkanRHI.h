@@ -60,7 +60,7 @@ public:
 
     VulkanTexture& GetVulkanTexture() {return texture;};
     VulkanFence&           GetVulkanFence()           { return fences;};
-
+    VulkanDescriptorSet& GetDescriptorSet() {return descriptorSet;};
         uint32_t GetCurrentFrame() {return currentFrame;};
 
     VertexBuffer&  GetVertexBuffer()  { return vertexBuffer;};
