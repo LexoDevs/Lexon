@@ -16,6 +16,9 @@ void DestroyDescriptorSetLayout();
         VkDescriptorSetLayout GetDescriptorSetLayout(){return descriptorSetLayout;};
         VkDescriptorSet GetDescriptorSet(int frame){return descriptorSets[frame];};
     VkImageView GetTextureImageView() {return textureImageView;};
+    VkSampler GetTextureSampler() {return textureSampler;};
+void destroyImageTextureView();
+
 
 
     private:

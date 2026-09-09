@@ -4,6 +4,7 @@
 #include "Input/InputSystem.h"
 #include "../Editor/EditorLayer.h"
 #include "../Assets/Importer/AssimpImporter.h"
+#include "../Assets/Textures/TextureImporter.h"
 #include <GLFWWindow.h>
 
 class Engine {
@@ -25,6 +26,8 @@ private:
 	CameraView camera;
 	EditorLayer layersUI;
 
+
+	TextureImporter textureimport;
 
 	CpuModel model;
 };

@@ -5,6 +5,7 @@ VulkanDescriptorSet::VulkanDescriptorSet(){};
 
 VulkanDescriptorSet::~VulkanDescriptorSet(){
 DestroyDescriptorSetLayout();
+destroyImageTextureView();
 };
 
 void VulkanDescriptorSet::DestroyDescriptorSetLayout() {
@@ -111,3 +112,13 @@ void VulkanDescriptorSet::CreateDescriptorSetLayout(VkDevice device){
         }
 
 }
+
+void VulkanDescriptorSet::destroyImageTextureView(){
+
+            for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
+
+    vkDestroySampler(cp_device, textureSampler, nullptr);
+
+    vkDestroyImageView(cp_device, textureImageView, nullptr);
+        }
+};

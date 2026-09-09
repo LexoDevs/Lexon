@@ -85,11 +85,10 @@ void VulkanRHI::InitVulkan(Window& window)
   
     descriptorSet.createDescriptorSets(device.GetHandle(),descriptorpool.GetDescriptorPool(),uniformBuffer.GetUniformBuffer());
 
-    texture.createTextureImage(device.GetHandle(),physicaldevice.GetPhysicalDevice(),commandpool.GetHandle(), commandBuffers.GetCommandBuffer(1),device.GetGraphicsQueue());
-    /* 
-    texture.createTextureImageView();
-    texture.createTextureSampler();
-*/
+    texture.createTextureImage(device.GetHandle(),physicaldevice.GetPhysicalDevice(),commandpool.GetHandle(), commandBuffers.GetCommandBuffer(0),device.GetGraphicsQueue());
+    //texture.createTextureImageView(descriptorSet.GetTextureImageView());
+    //texture.createTextureSampler(physicaldevice.GetPhysicalDevice(), descriptorSet.GetTextureSampler());
+
     };
 
 void VulkanRHI::UploadMesh(CpuModel mesh){
@@ -118,14 +117,6 @@ void VulkanRHI::UploadMesh(CpuModel mesh){
 
 
 void VulkanRHI::DestroyVulkan(){ 
-
-
-
-
-    //texture.destroyImageTexture();
-    //texture.destroyImageTextureView();
-
-
 
 
 };

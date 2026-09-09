@@ -4,6 +4,7 @@
 #include "../Core/VulkanContext.h"
 #include "../../../Assets/Loaders/LoaderAssets.h"
 
+#include "../../../Renderer/TextureManager.cpp"
 #include "VulkanTexture.h"
 
 VulkanTexture::VulkanTexture(){};
@@ -25,7 +26,7 @@ void VulkanTexture::destroyBuffer(){
 
 }
 
-void VulkanTexture::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkPhysicalDevice physicalDevice,VkCommandPool commandPool, VkDevice device, VkCommandBuffer commandBuffernew,VkQueue graphicsQueue) {
+void VulkanTexture::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkPhysicalDevice physicalDevice) {
         // Check if image format supports linear blitting
         VkFormatProperties formatProperties;
         vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
@@ -34,8 +35,8 @@ void VulkanTexture::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t
             throw std::runtime_error("texture image format does not support linear blitting!");
         }
 
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool,device,commandBuffernew);
-
+        VkCommandBuffer commandBuffer = beginSingleTimeCommands(cp_commandPool,cp_device,cp_commandBuffer);
+        std::cout<<"Comand buffer"<<cp_commandBuffer<<std::endl;
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         barrier.image = image;
@@ -109,19 +110,20 @@ void VulkanTexture::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t
             0, nullptr,
             1, &barrier);
 
-        endSingleTimeCommands(commandPool,device,commandBuffer,graphicsQueue);
+        endSingleTimeCommands(cp_commandPool,cp_device,commandBuffer,cp_graphicsQueue);
     }
 
 
 
 void VulkanTexture::createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice,VkCommandPool commandPool,
-     VkCommandBuffer commandBuffer, VkQueue graphicsQueue){
+     VkCommandBuffer& commandBuffer, VkQueue graphicsQueue){
 
 cp_device = device;
 cp_commandPool = commandPool;
 cp_commandBuffer = commandBuffer;
 cp_graphicsQueue = graphicsQueue;
 
+std::cout<<"Guardado comand buffer"<<cp_commandBuffer<<std::endl;
 
 textureImages.resize(TEXTURE_PATHS.size());
 textureImageMemories.resize(TEXTURE_PATHS.size());
@@ -132,13 +134,14 @@ mipLevels.resize(TEXTURE_PATHS.size());
 
 for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
 
+
+    
     std::cout<<"imagen:   "<<TEXTURE_PATHS[i].c_str()<<std::endl;
 
     stbi_uc* pixels = stbi_load(TEXTURE_PATHS[i].c_str(), &texWidth[i], &texHeight[i], &texChannels[i], STBI_rgb_alpha);
     
 
     mipLevels[i] = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth[i], texHeight[i])))) + 1;
-    std::cout<<"Error: "<<std::endl;
 
     VkDeviceSize imageSize = texWidth[i] * texHeight[i] * 4; //esto es porque se usan 4 bytes por pixel
 
@@ -166,14 +169,26 @@ for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
     stbi_image_free(pixels);
 
     // Se crea la imagen como tal en la GPU
-    createImage(texWidth[i], texHeight[i], VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImages[i], textureImageMemories[i],  mipLevels[i],physicalDevice);
+    createImage(texWidth[i], texHeight[i], 
+    VK_FORMAT_R8G8B8A8_SRGB,
+     VK_IMAGE_TILING_OPTIMAL,
+     VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+        VK_IMAGE_USAGE_SAMPLED_BIT,
+      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+       textureImages[i],
+       textureImageMemories[i],
+         mipLevels[i],
+         physicalDevice);
 
     // se cambia el layout a VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL para copiar datos
     transitionImageLayout(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels[i]);
-    
+std::cout<<"Error: "<<std::endl;
+
     //Copia el contenido del buffer temporal a la imagen de la GPU
     copyBufferToImage(stagingBuffer, textureImages[i], static_cast<uint32_t>(texWidth[i]), static_cast<uint32_t>(texHeight[i]));
-    
+std::cout<<"Error: "<<std::endl;
+
     //se cambia el layout final a SHADER_READ_ONLY_OPTIMAL para leer textura desde los shaders
     transitionImageLayout(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels[i]);
 
@@ -181,7 +196,7 @@ for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);
 
-    generateMipmaps(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB, texWidth[i], texHeight[i], mipLevels[i],physicalDevice,commandPool, device,  commandBuffer, graphicsQueue);
+    generateMipmaps(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB, texWidth[i], texHeight[i], mipLevels[i],physicalDevice);
 
     }
 }
@@ -266,7 +281,7 @@ void VulkanTexture::transitionImageLayout(VkImage &image, VkFormat format, VkIma
             1, &barrier
         );
 
-        endSingleTimeCommands(cp_commandPool, cp_device, cp_commandBuffer, cp_graphicsQueue);
+        endSingleTimeCommands(cp_commandPool, cp_device, commandBuffer, cp_graphicsQueue);
 }
 
 
@@ -289,17 +304,21 @@ void VulkanTexture::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t w
             height,
             1
         };
+        std::cout<<"Errorin: "<<std::endl;
 
         vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+        std::cout<<"Errorin: "<<std::endl;
 
-        endSingleTimeCommands(cp_commandPool, cp_device, cp_commandBuffer, cp_graphicsQueue);
+        endSingleTimeCommands(cp_commandPool, cp_device, commandBuffer, cp_graphicsQueue);
+                std::cout<<"Errorin: "<<std::endl;
+
 }
 
-    /*
 
 
 
-void VulkanTexture::createTextureImageView(){
+
+void VulkanTexture::createTextureImageView(VkImageView textureImageView){
 
         for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
 
@@ -307,17 +326,9 @@ void VulkanTexture::createTextureImageView(){
         }
 };
 
-void VulkanTexture::destroyImageTextureView(){
 
-            for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
 
-    vkDestroySampler(device, textureSampler, nullptr);
-
-    vkDestroyImageView(device, textureImageView, nullptr);
-        }
-};
-
-VkImageView BufferI::createImageView(VkImage image, VkFormat format,  VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
+VkImageView VulkanTexture::createImageView(VkImage image, VkFormat format,  VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image = image;
@@ -330,7 +341,7 @@ VkImageView BufferI::createImageView(VkImage image, VkFormat format,  VkImageAsp
         viewInfo.subresourceRange.layerCount = 1;
 
         VkImageView imageView;
-        if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+        if (vkCreateImageView(cp_device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
             throw std::runtime_error("failed to create image view!");
         }
 
@@ -338,7 +349,7 @@ VkImageView BufferI::createImageView(VkImage image, VkFormat format,  VkImageAsp
     }
 
 
-void VulkanTexture::createImageViews(VkImageAspectFlags aspectflags){
+void VulkanTexture::createImageViews(VkImageAspectFlags aspectflags, std::vector<VkImageView> swapChainImageViews,std::vector<VkImage> swapchainImages,VkFormat swapChainImageFormat){
         swapChainImageViews.resize(swapchainImages.size());
 
     for (uint32_t i = 0; i < swapchainImages.size(); i++) {
@@ -346,7 +357,7 @@ void VulkanTexture::createImageViews(VkImageAspectFlags aspectflags){
     }
 };
 
-void VulkanTexture::createTextureSampler(){
+void VulkanTexture::createTextureSampler(VkPhysicalDevice physicalDevice,VkSampler textureSampler){
         VkPhysicalDeviceProperties properties{};
         vkGetPhysicalDeviceProperties(physicalDevice, &properties);
 
@@ -367,14 +378,13 @@ void VulkanTexture::createTextureSampler(){
         //samplerInfo.minLod = static_cast<float>(mipLevels / 2);
 
 
-        if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+        if (vkCreateSampler(cp_device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
             throw std::runtime_error("failed to create texture sampler!");
         }
 
 };
 
 
-*/
 
 
 

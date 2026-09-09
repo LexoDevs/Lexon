@@ -67,6 +67,9 @@ void Engine::InitEngine() {
 
     std::filesystem::path path = "../resources/models/sponza.obj";
     model = assimploader.Load(path);
+
+    TextureImportSettings settings;
+    textureimport.Load(TEXTURE_PATHS[0],settings);
     // mesh.AddObject(loader);
  /*           std::cout
                 << "Modelo cargado: "

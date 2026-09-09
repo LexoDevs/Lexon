@@ -15,9 +15,9 @@ class VulkanTexture : public VertexBuffer {
           ~VulkanTexture();
 
 
-        void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkPhysicalDevice physicalDevice,VkCommandPool commandPool, VkDevice device, VkCommandBuffer commandBuffer,VkQueue graphicsQueue);
+        void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkPhysicalDevice physicalDevice);
         void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice,VkCommandPool commandPool,
-     VkCommandBuffer commandBuffer, VkQueue graphicsQueue);
+     VkCommandBuffer& commandBuffer, VkQueue graphicsQueue);
         
         void transitionImageLayout(VkImage &image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 
@@ -26,13 +26,17 @@ void createImage(uint32_t width, uint32_t height, VkFormat format,
      VkImage& image, VkDeviceMemory& imageMemory , uint32_t mipLevels, VkPhysicalDevice physicaldevice);
         
         void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-        void destroyBuffer();
+        void destroyBuffer() override;
 
-//        void createTextureImageView();
+       void createTextureImageView(VkImageView textureImageView);
 
-    //    void createImageViews(VkImageAspectFlags aspectflags);
+  void createImageViews(VkImageAspectFlags aspectflags, std::vector<VkImageView> swapChainImageViews,std::vector<VkImage> swapchainImages,VkFormat swapChainImageFormat);
+VkImageView createImageView(VkImage image, VkFormat format,  VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+ void createTextureSampler(VkPhysicalDevice physicalDevice,VkSampler textureSampler);
 
-      //  void createTextureSampler();
+int GetTextureWidth(int i) {return texWidth[i];};
+int GetTextureHeight(int i) {return texHeight[i];};
+
 
     private:
     std::vector<uint32_t> mipLevels;

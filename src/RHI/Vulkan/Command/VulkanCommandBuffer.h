@@ -10,7 +10,7 @@ class CommandBuffer{
     ~CommandBuffer();
 
     void createCommandBuffer(VkDevice device, VkCommandPool commandPool);
-    VkCommandBuffer GetCommandBuffer(uint32_t frame){return commandBuffer[frame];};
+    VkCommandBuffer& GetCommandBuffer(uint32_t frame){return commandBuffer[frame];};
     
     private:
     VkCommandBuffer commandBuffer[MAX_FRAMES_IN_FLIGHT]{};
