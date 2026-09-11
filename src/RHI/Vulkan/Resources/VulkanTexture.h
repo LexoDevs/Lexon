@@ -39,7 +39,10 @@ int GetTextureHeight(int i) {return texHeight[i];};
 
 
 
-    VkImageView GetTextureImageView() {return textureImageView;};
+    std::vector<VkImageView> GetTextureImageViewRef() {return textureImageView;};
+    //std::vector<VkSampler> GetTextureSamplerRef() {return textureSampler;};
+
+    VkImageView GetTextureImageView(int i) {return textureImageView[i];};
     VkSampler GetTextureSampler() {return textureSampler;};
 
     void destroyImageTextureView();
@@ -55,8 +58,8 @@ int GetTextureHeight(int i) {return texHeight[i];};
     std::vector<VkImage> textureImages;
     std::vector<VkDeviceMemory> textureImageMemories;
 
-    VkImageView textureImageView;
-    VkSampler textureSampler;
+    std::vector<VkImageView> textureImageView;
+    VkSampler textureSampler= VK_NULL_HANDLE;
 
     std::vector<int> texWidth, texHeight, texChannels;
 

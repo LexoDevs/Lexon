@@ -24,8 +24,11 @@ enum class TextureState
 struct TextureImportSettings
 {
     TextureColorSpace colorSpace = TextureColorSpace::SRGB;
-    bool generateMipmaps = false;
+    bool generateMipmaps = true;
 };
+
+
+
 
 struct CpuTextureData
 {
@@ -52,3 +55,4 @@ struct TextureAsset
 
     std::string error;
 };
+

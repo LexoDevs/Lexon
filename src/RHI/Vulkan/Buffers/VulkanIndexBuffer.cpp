@@ -42,6 +42,8 @@ for (const auto& submesh : mesh.meshes)
         range.vertexCount =
         static_cast<uint32_t>(submesh.vertices.size());
 
+        range.materialIndex = submesh.materialIndex;
+
         meshRanges.push_back(range);
 
         allindex.insert(

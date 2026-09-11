@@ -2,6 +2,7 @@ struct VSInput
 {
     float3 inPosition : POSITION;
     float3 inNormal   : NORMAL;
+    float2 inUv       : TEXCOORD0;
 };
 
 struct UniformBuffer
@@ -14,10 +15,14 @@ struct UniformBuffer
 [[vk::binding(0, 0)]]
 ConstantBuffer<UniformBuffer> ubo;
 
+[[vk::binding(1, 0)]]
+Sampler2D albedoTexture;
+
 struct VSOutput
 {
-    float4 pos : SV_Position;
-    float grayscale : COLOR0;
+    float4 position : SV_Position;
+    float2 uv       : TEXCOORD0;
+    float lighting  : TEXCOORD1;
 };
 
 [shader("vertex")]
@@ -25,7 +30,7 @@ VSOutput vertMain(VSInput input)
 {
     VSOutput output;
 
-    output.pos = mul(
+    output.position = mul(
         ubo.proj,
         mul(
             ubo.view,
@@ -33,22 +38,27 @@ VSOutput vertMain(VSInput input)
         )
     );
 
-    float3 normal = normalize(input.inNormal);
-    float3 lightDirection = normalize(float3(0.35, 0.75, 0.55));
+    const float3 normal = normalize(input.inNormal);
+    const float3 lightDirection =
+        normalize(float3(0.35, 0.75, 0.55));
 
-    output.grayscale =
-        0.15 + 0.85 * abs(dot(normal, lightDirection));
+    output.uv = input.inUv;
+    output.lighting =
+        0.15
+        + 0.85
+        * saturate(dot(normal, lightDirection));
 
     return output;
 }
 
 [shader("fragment")]
-float4 fragMain(VSOutput input) : SV_TARGET
+float4 fragMain(VSOutput input) : SV_Target
 {
+    const float4 albedo =
+        albedoTexture.Sample(input.uv);
+
     return float4(
-        input.grayscale,
-        input.grayscale,
-        input.grayscale,
-        1.0
+        albedo.rgb * input.lighting,
+        albedo.a
     );
 }

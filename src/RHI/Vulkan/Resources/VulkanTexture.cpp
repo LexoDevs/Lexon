@@ -26,10 +26,11 @@ void VulkanTexture::destroyBuffer(){
 
     for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
 
-        vkDestroySampler(cp_device, textureSampler, nullptr);
-        vkDestroyImageView(cp_device, textureImageView, nullptr);
+        vkDestroyImageView(cp_device, textureImageView[i], nullptr);
     
     }
+            vkDestroySampler(cp_device, textureSampler, nullptr);
+
 }
 
 void VulkanTexture::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkPhysicalDevice physicalDevice) {
@@ -155,7 +156,7 @@ for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
         throw std::runtime_error("failed to load texture image!");
     }
 
-    //std::cout<<"Imagen cargada en memoria correctamente"<<std::endl;
+    std::cout<<"Imagen cargada en memoria correctamente"<<std::endl;
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -192,15 +193,15 @@ for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
 
     //Copia el contenido del buffer temporal a la imagen de la GPU
     copyBufferToImage(stagingBuffer, textureImages[i], static_cast<uint32_t>(texWidth[i]), static_cast<uint32_t>(texHeight[i]));
+    generateMipmaps(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB, texWidth[i], texHeight[i], mipLevels[i],physicalDevice);
 
     //se cambia el layout final a SHADER_READ_ONLY_OPTIMAL para leer textura desde los shaders
-    transitionImageLayout(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels[i]);
+    //transitionImageLayout(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels[i]);
 
     //Destruye el buffer temporal y libera su memoria
     vkDestroyBuffer(device, stagingBuffer, nullptr);
     vkFreeMemory(device, stagingBufferMemory, nullptr);
 
-    generateMipmaps(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB, texWidth[i], texHeight[i], mipLevels[i],physicalDevice);
 
     }
 }
@@ -321,10 +322,25 @@ void VulkanTexture::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t w
 
 void VulkanTexture::createTextureImageView(){
 
-        for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
+    if (textureImages.size() != mipLevels.size())
+    {
+        throw std::runtime_error(
+            "El numero de imagenes y mip levels no coincide"
+        );
+    }
 
-        textureImageView = createImageView(textureImages[i], VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT,mipLevels[i]);
-        }
+    textureImageView.clear();
+    textureImageView.resize(textureImages.size());
+
+    for (size_t i = 0; i < textureImages.size(); ++i)
+    {
+        textureImageView[i] = createImageView(
+            textureImages[i],
+            VK_FORMAT_R8G8B8A8_SRGB,
+            VK_IMAGE_ASPECT_COLOR_BIT,
+            mipLevels[i]
+        );
+    }
 };
 
 
@@ -358,33 +374,52 @@ void VulkanTexture::createImageViews(VkImageAspectFlags aspectflags, std::vector
     }
 };
 
-void VulkanTexture::createTextureSampler(VkPhysicalDevice physicalDevice){
-        VkPhysicalDeviceProperties properties{};
-        vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+void VulkanTexture::createTextureSampler(
+    VkPhysicalDevice physicalDevice)
+{
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType =
+        VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 
-        VkSamplerCreateInfo samplerInfo{};
-        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_LINEAR;
-        samplerInfo.minFilter = VK_FILTER_LINEAR;
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.anisotropyEnable = VK_FALSE;
-        samplerInfo.maxAnisotropy = 1.0f;
-        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-        samplerInfo.unnormalizedCoordinates = VK_FALSE;
-        samplerInfo.compareEnable = VK_FALSE;
-        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        //samplerInfo.minLod = static_cast<float>(mipLevels / 2);
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
 
+    samplerInfo.addressModeU =
+        VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV =
+        VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW =
+        VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
-        if (vkCreateSampler(cp_device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create texture sampler!");
-        }
+    samplerInfo.anisotropyEnable = VK_FALSE;
+    samplerInfo.maxAnisotropy = 1.0f;
 
-};
+    samplerInfo.borderColor =
+        VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+    samplerInfo.mipmapMode =
+        VK_SAMPLER_MIPMAP_MODE_LINEAR;
+
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
+
+    if (vkCreateSampler(
+            cp_device,
+            &samplerInfo,
+            nullptr,
+            &textureSampler) != VK_SUCCESS)
+    {
+        throw std::runtime_error(
+            "failed to create texture sampler!"
+        );
+    }
+}
 
 
 
@@ -395,10 +430,10 @@ void VulkanTexture::createTextureSampler(VkPhysicalDevice physicalDevice){
 
 void VulkanTexture::destroyImageTextureView(){
 
-            for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
+    for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
 
-    vkDestroySampler(cp_device, textureSampler, nullptr);
+        vkDestroyImageView(cp_device, textureImageView[i], nullptr);
+    }
+            vkDestroySampler(cp_device, textureSampler, nullptr);
 
-    vkDestroyImageView(cp_device, textureImageView, nullptr);
-        }
 };

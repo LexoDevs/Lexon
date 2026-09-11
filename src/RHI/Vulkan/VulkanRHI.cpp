@@ -59,7 +59,7 @@ void VulkanRHI::InitVulkan(Window& window)
     commandBuffers.createCommandBuffer(
         device.GetHandle(),
         commandpool.GetHandle());
-        
+
     };
 
 
@@ -80,10 +80,14 @@ void VulkanRHI::InitVulkan(Window& window)
   
 
     texture.createTextureImage(device.GetHandle(),physicaldevice.GetPhysicalDevice(),commandpool.GetHandle(), commandBuffers.GetCommandBuffer(0),device.GetGraphicsQueue());
+        std::cout<<"Error"<<std::endl;
+
     texture.createTextureImageView();
+        std::cout<<"Error"<<std::endl;
+
     texture.createTextureSampler(physicaldevice.GetPhysicalDevice());
 
-    descriptorSet.createDescriptorSets(device.GetHandle(),descriptorpool.GetDescriptorPool(),uniformBuffer.GetUniformBuffer(),texture.GetTextureImageView(),
+    descriptorSet.createDescriptorSets(device.GetHandle(),descriptorpool.GetDescriptorPool(),uniformBuffer.GetUniformBuffer(),texture.GetTextureImageViewRef(),
 texture.GetTextureSampler());
 
     };
@@ -357,15 +361,15 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
     vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffers, offsets);
     vkCmdBindIndexBuffer(cmd, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-    const VkDescriptorSet descriptorsettemporal = descriptorSet.GetDescriptorSet(frame);
-    vkCmdBindDescriptorSets(cmd, 
+    //const VkDescriptorSet descriptorsettemporal = descriptorSet.GetDescriptorSet(frame);
+    /*vkCmdBindDescriptorSets(cmd, 
                         VK_PIPELINE_BIND_POINT_GRAPHICS, 
                         pipeline.GetPipelineLeyout(), 
                         0,
                         1, 
                         &descriptorsettemporal,   // Asumiendo que es un método de Texture
                         0,
-                         nullptr);
+                         nullptr);*/
 
 
     for (const GPUMeshRange& range : indexBuffer.GetGPURangues()){
@@ -373,6 +377,10 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
             {
                 continue;
             }
+
+
+
+            descriptorSet.bindDescriptorSet(currentFrame,&commandBuffers.GetCommandBuffer(range.materialIndex),pipeline.GetPipelineLeyout());
 
             vkCmdDrawIndexed(
                 cmd,

@@ -39,12 +39,20 @@ struct CpuNode
     std::vector<CpuNode> children;
 };
 
+struct CpuMaterial
+{
+    std::string name;
+    std::filesystem::path baseColorTexture;
+};
+
 struct CpuModel
 {
     std::filesystem::path sourcePath;
 
     std::vector<CpuMesh> meshes;
     std::vector<std::string> materialNames;
+
+    std::vector<CpuMaterial> materials;
 
     CpuNode rootNode;
 };

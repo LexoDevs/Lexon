@@ -21,6 +21,9 @@ void CommandBuffer::createCommandBuffer(VkDevice device, VkCommandPool commandPo
     if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate command buffers!");
     }
+
+        std::cout << "\033[1;36m[!] Creando Buffer de Comandos...\033[0m\n";
+
 }
 
 

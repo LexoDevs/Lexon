@@ -8,7 +8,7 @@ class VulkanDescriptorSet {
         VulkanDescriptorSet();
         ~VulkanDescriptorSet();
 
-        void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkBuffer uniformBuffers[],VkImageView textureImageView, VkSampler textureSampler);
+        void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkBuffer uniformBuffers[],std::vector<VkImageView> textureImageView,  VkSampler textureSampler);
         void destroyDescriptorSet();
         void bindDescriptorSet(uint32_t currentFrame,VkCommandBuffer commandBuffers[], VkPipelineLayout pipelineLayout);
 void DestroyDescriptorSetLayout();
