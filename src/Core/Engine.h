@@ -23,13 +23,14 @@ class Engine {
 		GLFWWindow window;
 		InputSystem inputSystem;
 
-		EditorLayer layersUI;
 
 		AssimpModelLoader assimploader;
 		TextureImporter textureimport;
 
 		LoaderAssets loader;
 		VulkanRHI VulkanAPI;
+		EditorLayer layersUI;
+
 		ObjectInstance mesh;
 		CameraView camera;
 

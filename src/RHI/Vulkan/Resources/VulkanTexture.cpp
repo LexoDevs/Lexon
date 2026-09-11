@@ -290,20 +290,13 @@ const VkDeviceSize imageSize =
     * 4;
 
 
-            if (pixels == nullptr)
-            {
-                throw std::runtime_error(
-                    "No se pudo cargar la textura "
-                    + texturePath.string()
-                    + " | stb_image: "
-                    + stbi_failure_reason()
-                );
+
             
 
     std::cout<<"Imagen cargada en memoria correctamente"<<std::endl;
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    VkBuffer stagingBuffer= VK_NULL_HANDLE;
+    VkDeviceMemory stagingBufferMemory= VK_NULL_HANDLE;
     createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, device, physicalDevice, stagingBuffer, stagingBufferMemory);  //VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
                                                                                                                               // indican que la CPU puede escribir directamente en este buffer
@@ -317,7 +310,11 @@ const VkDeviceSize imageSize =
     vkUnmapMemory(device, stagingBufferMemory);
 
     //se libera la memoria de stbi (ya se guardo)
-    stbi_image_free(pixels);
+if (loadedPixels != nullptr)
+{
+    stbi_image_free(loadedPixels);
+    loadedPixels = nullptr;
+}
 
     // Se crea la imagen como tal en la GPU
     createImage(texWidth[i], texHeight[i], 
@@ -348,7 +345,7 @@ const VkDeviceSize imageSize =
 
 
     }
-}}
+}
 
 void VulkanTexture::createImage(uint32_t width, uint32_t height, VkFormat format,
     VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory , uint32_t mipLevels, VkPhysicalDevice physicaldevice) {

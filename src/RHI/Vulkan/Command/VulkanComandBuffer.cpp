@@ -5,6 +5,7 @@ CommandBuffer::CommandBuffer(){
 };
 
 CommandBuffer::~CommandBuffer(){
+        //vkDestroyBuffer(cp_device, commandBuffer, nullptr);
     //destroyCommandBuffer();
 };
 
