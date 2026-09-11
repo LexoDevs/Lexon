@@ -1,4 +1,4 @@
-# Nombre del sistemaaaaaa
+# Nombre del sistema
 
 ## Objetivo
 
