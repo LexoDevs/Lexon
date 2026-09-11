@@ -14,7 +14,8 @@ public:
 
 	void CreateInstances();
 	void DestroyInstance();
-	VkInstance GetInstance() {return instance;};
+	
+	VkInstance& GetInstance() {return instance;};
 private: 
 
 	void GetInstanceVersions();

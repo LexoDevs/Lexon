@@ -8,28 +8,32 @@
 #include <GLFWWindow.h>
 
 class Engine {
-public:
-	void runEngine();
-	void CleanEngine();
-private:
-	void InitEngine();
-	void MainLoopEngine();
+	public:
 
-	void EventManager();
-	GLFWWindow window;
-	InputSystem inputSystem;
-	AssimpModelLoader assimploader;
+		void runEngine();
+		void CleanEngine();
 
-	LoaderAssets loader;
-	VulkanRHI VulkanAPI;
-	ObjectInstance mesh;
-	CameraView camera;
-	EditorLayer layersUI;
+	private:
 
+		void InitEngine();
+		void MainLoopEngine();
+		void EventManager();
+		void LoadUIPanels();
 
-	TextureImporter textureimport;
+		GLFWWindow window;
+		InputSystem inputSystem;
 
-	CpuModel model;
+		EditorLayer layersUI;
+
+		AssimpModelLoader assimploader;
+		TextureImporter textureimport;
+
+		LoaderAssets loader;
+		VulkanRHI VulkanAPI;
+		ObjectInstance mesh;
+		CameraView camera;
+
+		CpuModel model;
 };
 
 

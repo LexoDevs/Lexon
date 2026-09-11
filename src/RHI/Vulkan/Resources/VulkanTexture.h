@@ -28,20 +28,35 @@ void createImage(uint32_t width, uint32_t height, VkFormat format,
         void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
         void destroyBuffer() override;
 
-       void createTextureImageView(VkImageView textureImageView);
+       void createTextureImageView();
 
   void createImageViews(VkImageAspectFlags aspectflags, std::vector<VkImageView> swapChainImageViews,std::vector<VkImage> swapchainImages,VkFormat swapChainImageFormat);
 VkImageView createImageView(VkImage image, VkFormat format,  VkImageAspectFlags aspectFlags, uint32_t mipLevels);
- void createTextureSampler(VkPhysicalDevice physicalDevice,VkSampler textureSampler);
+ void createTextureSampler(VkPhysicalDevice physicalDevice);
 
 int GetTextureWidth(int i) {return texWidth[i];};
 int GetTextureHeight(int i) {return texHeight[i];};
+
+
+
+    VkImageView GetTextureImageView() {return textureImageView;};
+    VkSampler GetTextureSampler() {return textureSampler;};
+
+    void destroyImageTextureView();
+
+
+
+
+
 
 
     private:
     std::vector<uint32_t> mipLevels;
     std::vector<VkImage> textureImages;
     std::vector<VkDeviceMemory> textureImageMemories;
+
+    VkImageView textureImageView;
+    VkSampler textureSampler;
 
     std::vector<int> texWidth, texHeight, texChannels;
 

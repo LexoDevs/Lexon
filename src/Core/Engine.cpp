@@ -1,4 +1,5 @@
 #include "Engine.h"
+
 #include <iostream>
 #include <chrono> 
 #include <thread>
@@ -44,13 +45,10 @@ void Engine::EventManager(){
 void Engine::runEngine() {
 
 	InitEngine();
-    std::cout<<"BENCHMARK INICIO DEL ENGINE"<<std::endl;
 
 	MainLoopEngine();
-    std::cout<<"BENCHMARK FIN DEL LOOP DEL ENGINE"<<std::endl;
 
 	CleanEngine();
-    std::cout<<"BENCHMARK FIN DE LIMPIEZA Y CIERRE"<<std::endl;
 
 };
 
@@ -59,10 +57,7 @@ void Engine::InitEngine() {
     window.SetInputSystem(&inputSystem);
     window.InitWindow();
     window.SetKeyCallback();
-
-
     VulkanAPI.InitVulkan(window);
-
     VulkanAPI.InitRenderer();
 
     std::filesystem::path path = "../resources/models/sponza.obj";
@@ -70,30 +65,22 @@ void Engine::InitEngine() {
 
     TextureImportSettings settings;
     textureimport.Load(TEXTURE_PATHS[0],settings);
-    // mesh.AddObject(loader);
- /*           std::cout
-                << "Modelo cargado: "
-                << model.sourcePath
-                << '\n';
 
-            std::cout
-                << "Meshes: "
-                << model.meshes.size()
-                << '\n';
-
-            std::cout
-                << "Materiales: "
-                << model.materialNames.size()
-                << '\n';
-
-            assimploader.PrintNode(model.rootNode, model, 0);
-            */
     VulkanAPI.UploadMesh(model);
-
     layersUI.ImGui_Init(VulkanAPI, window.GetNativeWindow());  
-    std::cout<<"Error despues"<<std::endl;
+};
+
+
+void Engine::LoadUIPanels() {
+        ImGui::ShowDemoWindow();
+        layersUI.VentanaSuperior(VulkanAPI);
+        layersUI.MuestreoImagenes(VulkanAPI);
+        layersUI.ElementosEnEscena(model);
+
+        ImGui::Render();
 
 };
+
 
 void Engine::MainLoopEngine() {
 
@@ -104,17 +91,13 @@ void Engine::MainLoopEngine() {
     double fps = 0.0;
 
     while (!window.ShouldClose()){
+
         window.PollEvents();
         //EventManager();
 
         layersUI.ImGui_NewFrame();
         // Aquí dibujamos la interfaz
-        ImGui::ShowDemoWindow();
-        layersUI.VentanaSuperior(VulkanAPI);
-        layersUI.MuestreoImagenes(VulkanAPI);
-        layersUI.ElementosEnEscena(model);
-
-        ImGui::Render();
+        LoadUIPanels();
 
         VulkanAPI.DrawFrame(camera, window.GetHUDVisibility() );   // ← Dentro hacemos recordimgui
         layersUI.ImGui_EndFrame();   // Para viewports

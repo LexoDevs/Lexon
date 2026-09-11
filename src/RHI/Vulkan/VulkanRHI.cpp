@@ -7,10 +7,8 @@
 
 #include <iostream>
 
-VulkanRHI::VulkanRHI()
-    : context()
-    // Primero creamos el contexto
-{
+VulkanRHI::VulkanRHI(){
+    
 }
 
 void VulkanRHI::InitVulkan(Window& window)
@@ -57,14 +55,11 @@ void VulkanRHI::InitVulkan(Window& window)
     fences.createSyncObjects(
         device.GetHandle()
     );
-            std::cout<<device.GetHandle()<<std::endl;
 
     commandBuffers.createCommandBuffer(
         device.GetHandle(),
         commandpool.GetHandle());
-
-            std::cout<<device.GetHandle()<<std::endl;
-
+        
     };
 
 
@@ -83,15 +78,17 @@ void VulkanRHI::InitVulkan(Window& window)
     layerdescriptorpool.CreateImGuiDescriptorPool(device.GetHandle());
 
   
-    descriptorSet.createDescriptorSets(device.GetHandle(),descriptorpool.GetDescriptorPool(),uniformBuffer.GetUniformBuffer());
 
     texture.createTextureImage(device.GetHandle(),physicaldevice.GetPhysicalDevice(),commandpool.GetHandle(), commandBuffers.GetCommandBuffer(0),device.GetGraphicsQueue());
-    //texture.createTextureImageView(descriptorSet.GetTextureImageView());
-    //texture.createTextureSampler(physicaldevice.GetPhysicalDevice(), descriptorSet.GetTextureSampler());
+    texture.createTextureImageView();
+    texture.createTextureSampler(physicaldevice.GetPhysicalDevice());
+
+    descriptorSet.createDescriptorSets(device.GetHandle(),descriptorpool.GetDescriptorPool(),uniformBuffer.GetUniformBuffer(),texture.GetTextureImageView(),
+texture.GetTextureSampler());
 
     };
 
-void VulkanRHI::UploadMesh(CpuModel mesh){
+void VulkanRHI::UploadMesh(CpuModel& mesh){
     
 
     vertexBuffer.createVertexBuffer(

@@ -4,8 +4,8 @@ VulkanDescriptorSet::VulkanDescriptorSet(){};
 
 
 VulkanDescriptorSet::~VulkanDescriptorSet(){
-DestroyDescriptorSetLayout();
-destroyImageTextureView();
+    destroyDescriptorSet();
+    DestroyDescriptorSetLayout();
 };
 
 void VulkanDescriptorSet::DestroyDescriptorSetLayout() {
@@ -18,7 +18,8 @@ void VulkanDescriptorSet::bindDescriptorSet(uint32_t currentFrame, VkCommandBuff
     vkCmdBindDescriptorSets(commandBuffers[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 };
 
-void VulkanDescriptorSet::createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkBuffer uniformBuffers[]) {
+void VulkanDescriptorSet::createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkBuffer uniformBuffers[],
+    VkImageView textureImageView, VkSampler textureSampler) {
     cp_device = device;
         std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
         VkDescriptorSetAllocateInfo allocInfo{};
@@ -94,14 +95,14 @@ void VulkanDescriptorSet::CreateDescriptorSetLayout(VkDevice device){
         uboLayoutBinding.pImmutableSamplers = nullptr;
         uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        //VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-        //samplerLayoutBinding.binding = 1;
-        //samplerLayoutBinding.descriptorCount = 1;
-        //samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        //samplerLayoutBinding.pImmutableSamplers = nullptr;
-        //samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+        samplerLayoutBinding.binding = 1;
+        samplerLayoutBinding.descriptorCount = 1;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.pImmutableSamplers = nullptr;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        //std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
+        std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = 1;            //static_cast<uint32_t>(bindings.size());
@@ -113,12 +114,3 @@ void VulkanDescriptorSet::CreateDescriptorSetLayout(VkDevice device){
 
 }
 
-void VulkanDescriptorSet::destroyImageTextureView(){
-
-            for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
-
-    vkDestroySampler(cp_device, textureSampler, nullptr);
-
-    vkDestroyImageView(cp_device, textureImageView, nullptr);
-        }
-};

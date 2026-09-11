@@ -8,23 +8,20 @@ class VulkanDescriptorSet {
         VulkanDescriptorSet();
         ~VulkanDescriptorSet();
 
-        void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkBuffer uniformBuffers[]);
+        void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkBuffer uniformBuffers[],VkImageView textureImageView, VkSampler textureSampler);
         void destroyDescriptorSet();
         void bindDescriptorSet(uint32_t currentFrame,VkCommandBuffer commandBuffers[], VkPipelineLayout pipelineLayout);
 void DestroyDescriptorSetLayout();
         void CreateDescriptorSetLayout(VkDevice device);
         VkDescriptorSetLayout GetDescriptorSetLayout(){return descriptorSetLayout;};
         VkDescriptorSet GetDescriptorSet(int frame){return descriptorSets[frame];};
-    VkImageView GetTextureImageView() {return textureImageView;};
-    VkSampler GetTextureSampler() {return textureSampler;};
-void destroyImageTextureView();
+
 
 
 
     private:
     VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
-    VkImageView textureImageView;
-    VkSampler textureSampler;
+
     VkDescriptorSetLayout descriptorSetLayout;
 VkDevice cp_device;
 };

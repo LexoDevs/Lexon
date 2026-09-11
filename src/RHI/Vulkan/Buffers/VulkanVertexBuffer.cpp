@@ -163,7 +163,7 @@ VkCommandBuffer VertexBuffer::beginSingleTimeCommands(VkCommandPool commandPool,
 }
 
 void VertexBuffer::endSingleTimeCommands(VkCommandPool commandPool, VkDevice device,VkCommandBuffer commandBuffer,VkQueue graphicsQueue) {
-    std::cout<<"error previo"<<std::endl;
+
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo{};

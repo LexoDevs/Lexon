@@ -1,9 +1,9 @@
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #include "TextureImporter.h"
 
 #include <stdexcept>
+#include <iostream>
 
 CpuTextureData TextureImporter::Load( const std::filesystem::path& path, const TextureImportSettings&)
 {
@@ -19,6 +19,8 @@ CpuTextureData TextureImporter::Load( const std::filesystem::path& path, const T
     }
 
     const std::size_t imageSize = static_cast<std::size_t>(width) * static_cast<std::size_t>(height) * 4;
+
+    std::cout<<"Tamano de imagen: "<< imageSize<<" "<<std::endl;
 
     CpuTextureData result;
     result.width = static_cast<std::uint32_t>(width);
