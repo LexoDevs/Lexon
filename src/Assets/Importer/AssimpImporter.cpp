@@ -175,34 +175,74 @@ CpuModel AssimpModelLoader::Load(std::filesystem::path path) {
             ReadMesh(*scene->mMeshes[i])
         );
     }
-        result.materialNames.reserve(scene->mNumMaterials);
 
-    for (unsigned int i = 0; i < scene->mNumMaterials; ++i)
+
+    result.materials.clear();
+    result.materialNames.reserve(scene->mNumMaterials);
+
+    for (unsigned int materialIndex  = 0; materialIndex  < scene->mNumMaterials; ++materialIndex )
+    {
+
+        const aiMaterial* sourceMaterial =
+        scene->mMaterials[materialIndex ];
+
+        CpuMaterial material{};
+        material.name ="Material_" + std::to_string(materialIndex );
+
+    if (sourceMaterial != nullptr)
     {
         aiString materialName;
 
-        if (scene->mMaterials[i] != nullptr &&
-            scene->mMaterials[i]->Get(
+        if (sourceMaterial->Get(
                 AI_MATKEY_NAME,
                 materialName) == AI_SUCCESS)
         {
-            result.materialNames.emplace_back(
-                materialName.C_Str()
-            );
+            material.name = materialName.C_Str();
         }
-        else
-        {
-            result.materialNames.emplace_back(
-                "Material_" + std::to_string(i)
+
+        aiString texturePath;
+
+        aiReturn textureResult =
+            sourceMaterial->GetTexture(
+                aiTextureType_BASE_COLOR,
+                0,
+                &texturePath
             );
+
+        // Importante para OBJ/MTL.
+        if (textureResult != AI_SUCCESS)
+        {
+            textureResult =
+                sourceMaterial->GetTexture(
+                    aiTextureType_DIFFUSE,
+                    0,
+                    &texturePath
+                );
+        }
+
+        if (textureResult == AI_SUCCESS)
+        {
+            std::string normalizedPath =
+                texturePath.C_Str();
+
+            std::replace(
+                normalizedPath.begin(),
+                normalizedPath.end(),
+                '\\',
+                '/'
+            );
+
+            material.baseColorTexture =
+                std::filesystem::path(normalizedPath);
         }
     }
 
-    result.rootNode = ReadNode(*scene->mRootNode);
+
+    result.materials.push_back(std::move(material));
 
     // A partir de aquí result ya no depende de Assimp.
     // El importer puede destruirse con seguridad.
-
+}
     return result; 
 };
 

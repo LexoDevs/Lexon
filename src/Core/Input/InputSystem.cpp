@@ -15,24 +15,28 @@ bool InputSystem::IsKeyPressed(KeyCode key) const
         return m_Keys[index];
     }
 
-void InputSystem::Selector(KeyCode &keysactives){
-
+KeyCode InputSystem::Selector(){
+    
     if (IsKeyPressed(KeyCode::Escape))
     {
-        keysactives = KeyCode::Escape;
+        return KeyCode::Escape;
         std::cout<<"Se ha pulsado escape"<<std::endl;
     }
     
     if (IsKeyPressed(KeyCode::W))
     {
-        keysactives = KeyCode::W;
+        return  KeyCode::W;
         std::cout<<"Se ha pulsado w"<<std::endl;
     }
     
     if (IsKeyPressed(KeyCode::E))
     {
-        keysactives = KeyCode::E;
+        return  KeyCode::E;
         std::cout<<"Se ha pulsado e"<<std::endl;
+    }
+    else
+    {
+        return  KeyCode::Unknown;
     }
 
 

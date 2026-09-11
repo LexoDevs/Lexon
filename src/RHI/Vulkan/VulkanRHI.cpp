@@ -74,8 +74,6 @@ void VulkanRHI::InitVulkan(Window& window)
 
     uniformBuffer.createUniformBuffer(device.GetHandle(),physicaldevice.GetPhysicalDevice());
 
-    descriptorpool.createDescriptorPool(device.GetHandle());
-    layerdescriptorpool.CreateImGuiDescriptorPool(device.GetHandle());
 
   
 
@@ -84,11 +82,21 @@ void VulkanRHI::InitVulkan(Window& window)
 
     texture.createTextureImageView();
         std::cout<<"Error"<<std::endl;
-
     texture.createTextureSampler(physicaldevice.GetPhysicalDevice());
+
+
+    const uint32_t materialCount = static_cast<uint32_t>(
+        texture.GetTextureImageViewRef().size()
+    );
+
+    descriptorpool.createDescriptorPool(device.GetHandle(),materialCount);
+    layerdescriptorpool.CreateImGuiDescriptorPool(device.GetHandle());
+
+        std::cout<<"Error"<<std::endl;
 
     descriptorSet.createDescriptorSets(device.GetHandle(),descriptorpool.GetDescriptorPool(),uniformBuffer.GetUniformBuffer(),texture.GetTextureImageViewRef(),
 texture.GetTextureSampler());
+        std::cout<<"Error"<<std::endl;
 
     };
 
@@ -380,7 +388,11 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
 
 
 
-            descriptorSet.bindDescriptorSet(currentFrame,&commandBuffers.GetCommandBuffer(range.materialIndex),pipeline.GetPipelineLeyout());
+            descriptorSet.bindDescriptorSet(
+                currentFrame,
+                range.materialIndex,
+                cmd,
+                pipeline.GetPipelineLeyout());
 
             vkCmdDrawIndexed(
                 cmd,

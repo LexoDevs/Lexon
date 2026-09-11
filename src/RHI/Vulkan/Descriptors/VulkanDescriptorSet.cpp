@@ -13,70 +13,100 @@ void VulkanDescriptorSet::DestroyDescriptorSetLayout() {
 
 }
 
-void VulkanDescriptorSet::bindDescriptorSet(uint32_t currentFrame, VkCommandBuffer commandBuffers[], VkPipelineLayout pipelineLayout){
+void VulkanDescriptorSet::bindDescriptorSet(
+    uint32_t frame,
+    uint32_t materialIndex,
+    VkCommandBuffer commandBuffer,
+    VkPipelineLayout pipelineLayout
+){
+    const size_t descriptorIndex = GetDescriptorIndex(frame, materialIndex);
+    const VkDescriptorSet selectedDescriptorSet = descriptorSets[descriptorIndex];
+    
+    vkCmdBindDescriptorSets(
+        commandBuffer,
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        pipelineLayout,
+        0,
+        1,
+        &selectedDescriptorSet,
+        0,
+        nullptr
+    );};
 
-    vkCmdBindDescriptorSets(commandBuffers[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
-};
-
-void VulkanDescriptorSet::createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkBuffer uniformBuffers[],
-    std::vector<VkImageView> textureImageView, VkSampler textureSampler) {
+void VulkanDescriptorSet::createDescriptorSets(
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    VkBuffer uniformBuffers[],
+    const std::vector<VkImageView>& materialImageViews,
+    VkSampler textureSampler) {
     
         cp_device = device;
 
+        materialCount = static_cast<uint32_t>(materialImageViews.size());
+        const uint32_t descriptorCount = materialCount * MAX_FRAMES_IN_FLIGHT;
 
-        std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+        descriptorSets.resize(descriptorCount);
+std::cout<<"la puta"<<std::endl;
+
+
+        std::vector<VkDescriptorSetLayout> layouts(descriptorCount, descriptorSetLayout);
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = descriptorPool;
-        allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        allocInfo.descriptorSetCount = descriptorCount;
         allocInfo.pSetLayouts = layouts.data();
 
-        if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets) != VK_SUCCESS) {
+        if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
+std::cout<<"la puta"<<std::endl;
 
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT*TEXTURE_PATHS.size(); i++) {
+    for (uint32_t materialIndex = 0; materialIndex < materialCount; ++materialIndex) {
+        
+        for (uint32_t frame = 0; frame < MAX_FRAMES_IN_FLIGHT; ++frame){
+    
+            const size_t descriptorIndex = GetDescriptorIndex(frame, materialIndex);
 
-    // === 1. Uniform Buffer (binding 0) ===
-    VkDescriptorBufferInfo bufferInfo{};
-    bufferInfo.buffer = uniformBuffers[i];
-    bufferInfo.offset = 0;
-    bufferInfo.range = sizeof(UniformBufferObject);
+            // === 1. Uniform Buffer (binding 0) ===
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = uniformBuffers[frame];
+            bufferInfo.offset = 0;
+            bufferInfo.range = sizeof(UniformBufferObject);
 
-    VkWriteDescriptorSet uboWrite{};
-    uboWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    uboWrite.dstSet = descriptorSets[i];
-    uboWrite.dstBinding = 0;
-    uboWrite.dstArrayElement = 0;
-    uboWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboWrite.descriptorCount = 1;
-    uboWrite.pBufferInfo = &bufferInfo;
+            // === 2. Combined Image Sampler (binding 1) ===
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = materialImageViews[materialIndex]; //corregir
+            imageInfo.sampler = textureSampler;
+
+            VkWriteDescriptorSet uboWrite{};
+            uboWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            uboWrite.dstSet = descriptorSets[descriptorIndex];
+            uboWrite.dstBinding = 0;
+            //uboWrite.dstArrayElement = 0;
+            uboWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            uboWrite.descriptorCount = 1;
+            uboWrite.pBufferInfo = &bufferInfo;
 
 
-    // === 2. Combined Image Sampler (binding 1) ===
-    VkDescriptorImageInfo imageInfo{};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = textureImageView[i]; //corregir
-    imageInfo.sampler = textureSampler;
+std::cout<<"la puta"<<std::endl;
 
-    VkWriteDescriptorSet samplerWrite{};
-    samplerWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    samplerWrite.dstSet = descriptorSets[i];
-    samplerWrite.dstBinding = 1;                    // ← importante
-    samplerWrite.dstArrayElement = 0;
-    samplerWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    samplerWrite.descriptorCount = 1;
-    samplerWrite.pImageInfo = &imageInfo;
+            VkWriteDescriptorSet textureWrite{};
+            textureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            textureWrite.dstSet = descriptorSets[descriptorIndex];
+            textureWrite.dstBinding = 1;                    // ← importante
+            //textureWrite.dstArrayElement = 0;
+            textureWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            textureWrite.descriptorCount = 1;
+            textureWrite.pImageInfo = &imageInfo;
 
-     //Actualizar ambos de una vez
-    std::array<VkWriteDescriptorSet, 2> descriptorWrites = {uboWrite, samplerWrite};
-    //VkWriteDescriptorSet descriptorWrite= uboWrite;
+            //Actualizar ambos de una vez
+            std::array<VkWriteDescriptorSet, 2> writes = {uboWrite, textureWrite};
 
-    vkUpdateDescriptorSets(device,
-                           2,
-                           descriptorWrites.data(),
-                           0, nullptr);
+            vkUpdateDescriptorSets(device,2,writes.data(),0, nullptr);
         }
+    }
+    std::cout<<"DescriptorSetCreado"<<std::endl;
 }
 
 
@@ -135,3 +165,11 @@ void VulkanDescriptorSet::CreateDescriptorSetLayout(VkDevice device)
     }
 }
 
+size_t VulkanDescriptorSet::GetDescriptorIndex(
+    uint32_t frame,
+    uint32_t materialIndex) const
+{
+    return static_cast<size_t>(materialIndex)
+        * MAX_FRAMES_IN_FLIGHT
+        + frame;
+}

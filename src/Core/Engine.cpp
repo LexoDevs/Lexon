@@ -6,10 +6,11 @@
 
 void Engine::EventManager(){
 
-    KeyCode keyselected;
-    inputSystem.Selector(keyselected);
+    KeyCode keyselected =inputSystem.Selector();
+
 
     switch(keyselected){
+
         case KeyCode::Escape:
 
             window.CloseWindow();
@@ -28,8 +29,6 @@ void Engine::EventManager(){
 
             }
             //std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-
         break;
 
         //case KeyCode::E:
@@ -93,7 +92,7 @@ void Engine::MainLoopEngine() {
     while (!window.ShouldClose()){
 
         window.PollEvents();
-        //EventManager();
+        EventManager();
 
         layersUI.ImGui_NewFrame();
         // Aquí dibujamos la interfaz

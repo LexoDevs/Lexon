@@ -17,7 +17,7 @@ public:
 
     bool IsKeyPressed( KeyCode key ) const;
 
-    void Selector(KeyCode &keysactives);
+    KeyCode Selector();
 private:
 
     std::array<bool,static_cast<size_t>(KeyCode::Count)> m_Keys{};

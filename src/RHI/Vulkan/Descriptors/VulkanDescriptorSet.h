@@ -8,19 +8,37 @@ class VulkanDescriptorSet {
         VulkanDescriptorSet();
         ~VulkanDescriptorSet();
 
-        void createDescriptorSets(VkDevice device, VkDescriptorPool descriptorPool, VkBuffer uniformBuffers[],std::vector<VkImageView> textureImageView,  VkSampler textureSampler);
+        void createDescriptorSets(
+    VkDevice device,
+    VkDescriptorPool descriptorPool,
+    VkBuffer uniformBuffers[],
+    const std::vector<VkImageView>& materialImageViews,
+    VkSampler textureSampler);
+
+size_t GetDescriptorIndex( uint32_t frame, uint32_t materialIndex) const;
+
+
         void destroyDescriptorSet();
-        void bindDescriptorSet(uint32_t currentFrame,VkCommandBuffer commandBuffers[], VkPipelineLayout pipelineLayout);
+        
+void bindDescriptorSet(
+    uint32_t frame,
+    uint32_t materialIndex,
+    VkCommandBuffer commandBuffer,
+    VkPipelineLayout pipelineLayout
+);
+
 void DestroyDescriptorSetLayout();
         void CreateDescriptorSetLayout(VkDevice device);
         VkDescriptorSetLayout GetDescriptorSetLayout(){return descriptorSetLayout;};
         VkDescriptorSet GetDescriptorSet(int frame){return descriptorSets[frame];};
+    uint32_t GetMaterialCount(){return materialCount;};
 
 
 
 
     private:
-    VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
+    std::vector<VkDescriptorSet> descriptorSets;
+    uint32_t materialCount = 0;
 
     VkDescriptorSetLayout descriptorSetLayout;
 VkDevice cp_device;

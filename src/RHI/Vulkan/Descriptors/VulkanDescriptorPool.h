@@ -11,7 +11,7 @@ public:
     VulkanDescriptorPool(){};
     ~VulkanDescriptorPool();
 
-    void createDescriptorPool(VkDevice device);
+    void createDescriptorPool(VkDevice device,uint32_t materialCount);
     void destroyDescriptorPool();
 
     void CreateImGuiDescriptorPool(VkDevice device);
