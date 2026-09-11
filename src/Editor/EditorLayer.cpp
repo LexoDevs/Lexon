@@ -215,7 +215,7 @@ void EditorLayer::ElementosEnEscena(const CpuModel& model)
     ImGui::Text(
         "%zu meshes | %zu materials",
         model.meshes.size(),
-        model.materialNames.size()
+        model.materials.size()
     );
 
     ImGui::Separator();
@@ -342,11 +342,15 @@ void EditorLayer::DrawNode(
 
             ImGui::TableSetColumnIndex(2);
 
-            if (mesh.materialIndex < model.materialNames.size())
+            if (mesh.materialIndex < model.materials.size())
             {
+                const CpuMaterial& material =
+                    model.materials[mesh.materialIndex];
+
                 ImGui::Text(
-                    "Mesh | %s",
-                    model.materialNames[mesh.materialIndex].c_str()
+                    "Material %u | %s",
+                    mesh.materialIndex,
+                    material.name.c_str()
                 );
             }
             else

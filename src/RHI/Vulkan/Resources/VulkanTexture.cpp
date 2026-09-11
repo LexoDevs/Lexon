@@ -2,9 +2,7 @@
 #include <stb_image.h>
 
 #include "../Core/VulkanContext.h"
-#include "../../../Assets/Loaders/LoaderAssets.h"
 
-#include "../../../Renderer/TextureManager.cpp"
 #include "VulkanTexture.h"
 
 VulkanTexture::VulkanTexture(){};
@@ -14,23 +12,65 @@ VulkanTexture::~VulkanTexture(){
     destroyBuffer();
 };
 
-void VulkanTexture::destroyBuffer(){
+void VulkanTexture::destroyBuffer()
+{
+    for (VkImageView& imageView : textureImageView)
+    {
+        if (imageView != VK_NULL_HANDLE)
+        {
+            vkDestroyImageView(
+                cp_device,
+                imageView,
+                nullptr
+            );
 
-    std::cout<<"Index Buffer destruido"<<std::endl;
-    for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
-
-        vkDestroyImage(cp_device, textureImages[i], nullptr);
-        vkFreeMemory(cp_device, textureImageMemories[i], nullptr);
-        
+            imageView = VK_NULL_HANDLE;
+        }
     }
 
-    for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
+    if (textureSampler != VK_NULL_HANDLE)
+    {
+        vkDestroySampler(
+            cp_device,
+            textureSampler,
+            nullptr
+        );
 
-        vkDestroyImageView(cp_device, textureImageView[i], nullptr);
-    
+        textureSampler = VK_NULL_HANDLE;
     }
-            vkDestroySampler(cp_device, textureSampler, nullptr);
 
+    for (VkImage& image : textureImages)
+    {
+        if (image != VK_NULL_HANDLE)
+        {
+            vkDestroyImage(
+                cp_device,
+                image,
+                nullptr
+            );
+
+            image = VK_NULL_HANDLE;
+        }
+    }
+
+    for (VkDeviceMemory& memory :
+         textureImageMemories)
+    {
+        if (memory != VK_NULL_HANDLE)
+        {
+            vkFreeMemory(
+                cp_device,
+                memory,
+                nullptr
+            );
+
+            memory = VK_NULL_HANDLE;
+        }
+    }
+
+    textureImageView.clear();
+    textureImages.clear();
+    textureImageMemories.clear();
 }
 
 void VulkanTexture::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkPhysicalDevice physicalDevice) {
@@ -122,39 +162,143 @@ void VulkanTexture::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t
 
 
 
-void VulkanTexture::createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice,VkCommandPool commandPool,
-     VkCommandBuffer& commandBuffer, VkQueue graphicsQueue){
+void VulkanTexture::createTextureImage(
+    VkDevice device,
+    VkPhysicalDevice physicalDevice,
+    VkCommandPool commandPool,
+    VkCommandBuffer& commandBuffer,
+    VkQueue graphicsQueue,
+    const CpuModel& model){
 
 cp_device = device;
 cp_commandPool = commandPool;
 cp_commandBuffer = commandBuffer;
 cp_graphicsQueue = graphicsQueue;
-
+cp_materials = model.materials;
 std::cout<<"Guardado comand buffer"<<cp_commandBuffer<<std::endl;
 
-textureImages.resize(TEXTURE_PATHS.size());
-textureImageMemories.resize(TEXTURE_PATHS.size());
-texWidth.resize(TEXTURE_PATHS.size());
-texHeight.resize(TEXTURE_PATHS.size());
-texChannels.resize(TEXTURE_PATHS.size());
-mipLevels.resize(TEXTURE_PATHS.size());
+const size_t materialCount =
+    model.materials.size();
 
-for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
+if (materialCount == 0)
+{
+    throw std::runtime_error(
+        "El modelo no contiene materiales"
+    );
+}
+
+textureImages.resize(
+    materialCount,
+    VK_NULL_HANDLE
+);
+
+textureImageMemories.resize(
+    materialCount,
+    VK_NULL_HANDLE
+);
+
+texWidth.resize(materialCount);
+texHeight.resize(materialCount);
+texChannels.resize(materialCount);
+mipLevels.resize(materialCount);
+
+for (size_t i = 0; i < materialCount; ++i){
 
 
-    
-    //std::cout<<"imagen:   "<<TEXTURE_PATHS[i].c_str()<<std::endl;
+const CpuMaterial& material =
+    model.materials[i];
 
-    stbi_uc* pixels = stbi_load(TEXTURE_PATHS[i].c_str(), &texWidth[i], &texHeight[i], &texChannels[i], STBI_rgb_alpha);
-    
+const std::filesystem::path& texturePath =
+    material.baseColorTexture;
 
-    mipLevels[i] = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth[i], texHeight[i])))) + 1;
+std::cout
+    << "Material[" << i << "] "
+    << material.name
+    << " -> "
+    << texturePath.string()
+    << '\n';
 
-    VkDeviceSize imageSize = texWidth[i] * texHeight[i] * 4; //esto es porque se usan 4 bytes por pixel
+// Píxel blanco utilizado cuando el material no tiene albedo.
+std::array<stbi_uc, 4> fallbackPixels{
+    255,
+    255,
+    255,
+    255
+};
 
-    if (!pixels) {
-        throw std::runtime_error("failed to load texture image!");
+stbi_uc* loadedPixels = nullptr;
+stbi_uc* pixels = nullptr;
+
+const bool hasValidTexturePath =
+    !texturePath.empty() &&
+    std::filesystem::exists(texturePath);
+
+if (hasValidTexturePath)
+{
+    loadedPixels = stbi_load(
+        texturePath.string().c_str(),
+        &texWidth[i],
+        &texHeight[i],
+        &texChannels[i],
+        STBI_rgb_alpha
+    );
+}
+
+if (loadedPixels != nullptr)
+{
+    // La imagen procede de stb_image.
+    pixels = loadedPixels;
+
+    mipLevels[i] =
+        static_cast<uint32_t>(
+            std::floor(
+                std::log2(
+                    std::max(
+                        texWidth[i],
+                        texHeight[i]
+                    )
+                )
+            )
+        ) + 1;
+}
+else
+{
+    // El material no tiene textura o stb no pudo cargarla.
+    pixels = fallbackPixels.data();
+
+    texWidth[i] = 1;
+    texHeight[i] = 1;
+    texChannels[i] = 4;
+    mipLevels[i] = 1;
+
+    std::cout
+        << "  -> Usando textura blanca fallback"
+        << '\n';
+
+    if (hasValidTexturePath)
+    {
+        std::cout
+            << "  -> stb_image: "
+            << stbi_failure_reason()
+            << '\n';
     }
+}
+
+const VkDeviceSize imageSize =
+    static_cast<VkDeviceSize>(texWidth[i])
+    * static_cast<VkDeviceSize>(texHeight[i])
+    * 4;
+
+
+            if (pixels == nullptr)
+            {
+                throw std::runtime_error(
+                    "No se pudo cargar la textura "
+                    + texturePath.string()
+                    + " | stb_image: "
+                    + stbi_failure_reason()
+                );
+            
 
     std::cout<<"Imagen cargada en memoria correctamente"<<std::endl;
 
@@ -204,7 +348,7 @@ for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
 
 
     }
-}
+}}
 
 void VulkanTexture::createImage(uint32_t width, uint32_t height, VkFormat format,
     VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory , uint32_t mipLevels, VkPhysicalDevice physicaldevice) {
@@ -430,7 +574,7 @@ void VulkanTexture::createTextureSampler(
 
 void VulkanTexture::destroyImageTextureView(){
 
-    for (size_t i = 0; i < TEXTURE_PATHS.size(); i++){
+    for (size_t i = 0; i < cp_materials.size(); i++){
 
         vkDestroyImageView(cp_device, textureImageView[i], nullptr);
     }

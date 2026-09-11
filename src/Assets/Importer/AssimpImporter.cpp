@@ -7,7 +7,7 @@
 
 #include <stdexcept>
 #include <string>
-
+#include <algorithm>
 #include <iostream>
 
 CpuVertex AssimpModelLoader::ReadVertex(const aiMesh& mesh, unsigned int vertexIndex)
@@ -178,7 +178,7 @@ CpuModel AssimpModelLoader::Load(std::filesystem::path path) {
 
 
     result.materials.clear();
-    result.materialNames.reserve(scene->mNumMaterials);
+    result.materials.reserve(scene->mNumMaterials);
 
     for (unsigned int materialIndex  = 0; materialIndex  < scene->mNumMaterials; ++materialIndex )
     {
@@ -232,17 +232,18 @@ CpuModel AssimpModelLoader::Load(std::filesystem::path path) {
                 '/'
             );
 
-            material.baseColorTexture =
-                std::filesystem::path(normalizedPath);
+            material.baseColorTexture = ResolveTexturePath(
+                result.sourcePath,
+                std::filesystem::path(normalizedPath)
+            );
         }
     }
 
+        result.materials.push_back(std::move(material));
 
-    result.materials.push_back(std::move(material));
+    }
+    result.rootNode = ReadNode(*scene->mRootNode);
 
-    // A partir de aquí result ya no depende de Assimp.
-    // El importer puede destruirse con seguridad.
-}
     return result; 
 };
 
@@ -356,3 +357,57 @@ glm::mat4 AssimpModelLoader::ConvertMatrix(const aiMatrix4x4& matrix)
 
         return result;
     }
+
+
+std::filesystem::path
+AssimpModelLoader::ResolveTexturePath(
+    const std::filesystem::path& modelPath,
+    const std::filesystem::path& importedPath) const
+{
+    if (importedPath.empty())
+    {
+        return {};
+    }
+
+    if (std::filesystem::exists(importedPath))
+    {
+        return std::filesystem::weakly_canonical(
+            importedPath
+        );
+    }
+
+    const std::filesystem::path relativeToModel =
+        modelPath.parent_path() / importedPath;
+
+    if (std::filesystem::exists(relativeToModel))
+    {
+        return std::filesystem::weakly_canonical(
+            relativeToModel
+        );
+    }
+
+    const std::filesystem::path textureFolder =
+        "../resources/Textures/spoonza";
+
+    const std::filesystem::path byFilename =
+        textureFolder / importedPath.filename();
+
+    if (std::filesystem::exists(byFilename))
+    {
+        return std::filesystem::weakly_canonical(
+            byFilename
+        );
+    }
+
+    const std::filesystem::path insideOthers =
+        textureFolder / "otras" / importedPath.filename();
+
+    if (std::filesystem::exists(insideOthers))
+    {
+        return std::filesystem::weakly_canonical(
+            insideOthers
+        );
+    }
+
+    return {};
+}

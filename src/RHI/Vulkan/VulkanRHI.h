@@ -32,7 +32,7 @@ public:
     VulkanRHI();
 
     void InitVulkan(Window& window);
-    void InitRenderer();
+    void InitRenderer(const CpuModel& model);
     void UploadMesh(CpuModel& mesh);
     void DestroyVulkan();
     void DrawFrame(CameraView& camera, bool& UIVis);
@@ -91,4 +91,5 @@ private:
     DepthBuffer depthBuffer;
 
     uint32_t currentFrame = 0;
+    std::vector<CpuMaterial> materials;
 }; 

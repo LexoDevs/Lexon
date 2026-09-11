@@ -14,8 +14,18 @@ public:
     CpuModel Load(const std::filesystem::path path) ;
     CpuNode ReadNode(const aiNode& sourceNode);
     glm::mat4 ConvertMatrix(const aiMatrix4x4& matrix);
+
+
 void PrintNode(
     const CpuNode& node,
     const CpuModel& model,
     unsigned int depth = 0);
+
+    private:
+
+    private:
+    std::filesystem::path ResolveTexturePath(
+        const std::filesystem::path& modelPath,
+        const std::filesystem::path& importedPath
+    ) const;
 };

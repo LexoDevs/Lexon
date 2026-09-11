@@ -57,13 +57,11 @@ void Engine::InitEngine() {
     window.InitWindow();
     window.SetKeyCallback();
     VulkanAPI.InitVulkan(window);
-    VulkanAPI.InitRenderer();
 
     std::filesystem::path path = "../resources/models/sponza.obj";
     model = assimploader.Load(path);
 
-    TextureImportSettings settings;
-    textureimport.Load(TEXTURE_PATHS[0],settings);
+    VulkanAPI.InitRenderer(model);
 
     VulkanAPI.UploadMesh(model);
     layersUI.ImGui_Init(VulkanAPI, window.GetNativeWindow());  

@@ -63,7 +63,7 @@ void VulkanRHI::InitVulkan(Window& window)
     };
 
 
-    void VulkanRHI::InitRenderer(){
+    void VulkanRHI::InitRenderer(const CpuModel& model){
 
     depthBuffer.createDepthResources(device.GetHandle(),swapchain.GetSwapchainExtent(),physicaldevice.GetPhysicalDevice());
 
@@ -77,7 +77,14 @@ void VulkanRHI::InitVulkan(Window& window)
 
   
 
-    texture.createTextureImage(device.GetHandle(),physicaldevice.GetPhysicalDevice(),commandpool.GetHandle(), commandBuffers.GetCommandBuffer(0),device.GetGraphicsQueue());
+texture.createTextureImage(
+    device.GetHandle(),
+    physicaldevice.GetPhysicalDevice(),
+    commandpool.GetHandle(),
+    commandBuffers.GetCommandBuffer(0),
+    device.GetGraphicsQueue(),
+    model
+);
         std::cout<<"Error"<<std::endl;
 
     texture.createTextureImageView();
@@ -85,9 +92,18 @@ void VulkanRHI::InitVulkan(Window& window)
     texture.createTextureSampler(physicaldevice.GetPhysicalDevice());
 
 
-    const uint32_t materialCount = static_cast<uint32_t>(
-        texture.GetTextureImageViewRef().size()
+const uint32_t materialCount =
+    static_cast<uint32_t>(
+        model.materials.size()
     );
+
+    if (texture.GetTextureImageViewRef().size()
+    != model.materials.size())
+{
+    throw std::runtime_error(
+        "Debe existir una ImageView por material"
+    );
+}
 
     descriptorpool.createDescriptorPool(device.GetHandle(),materialCount);
     layerdescriptorpool.CreateImGuiDescriptorPool(device.GetHandle());
@@ -389,10 +405,11 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
 
 
             descriptorSet.bindDescriptorSet(
-                currentFrame,
+                frame,
                 range.materialIndex,
                 cmd,
-                pipeline.GetPipelineLeyout());
+                pipeline.GetPipelineLeyout()
+            );
 
             vkCmdDrawIndexed(
                 cmd,

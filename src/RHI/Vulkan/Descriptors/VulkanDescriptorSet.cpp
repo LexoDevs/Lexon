@@ -112,10 +112,8 @@ std::cout<<"la puta"<<std::endl;
 
 void VulkanDescriptorSet::destroyDescriptorSet(){
 
-    for (int i = 0; i<MAX_FRAMES_IN_FLIGHT;i++){
-    descriptorSets[i] = VK_NULL_HANDLE;
-
-    }
+    descriptorSets.clear();
+    materialCount = 0;
 };
 
 

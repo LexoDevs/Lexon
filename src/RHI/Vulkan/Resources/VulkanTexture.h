@@ -2,7 +2,7 @@
 #include "../Buffers/VulkanVertexBuffer.h"
 #include "../Helpers/VulkanConstants.h"
 #include "../Core/VulkanContext.h"
-
+#include "../../../Assets/Importer/CPUModel.h"
 #include "../../../Renderer/Camera.h"
 #include <iostream>
 #include <chrono>
@@ -16,8 +16,14 @@ class VulkanTexture : public VertexBuffer {
 
 
         void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkPhysicalDevice physicalDevice);
-        void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice,VkCommandPool commandPool,
-     VkCommandBuffer& commandBuffer, VkQueue graphicsQueue);
+    void createTextureImage(
+    VkDevice device,
+    VkPhysicalDevice physicalDevice,
+    VkCommandPool commandPool,
+    VkCommandBuffer& commandBuffer,
+    VkQueue graphicsQueue,
+    const CpuModel& model);    
+     
         
         void transitionImageLayout(VkImage &image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 
@@ -39,8 +45,12 @@ int GetTextureHeight(int i) {return texHeight[i];};
 
 
 
-    std::vector<VkImageView> GetTextureImageViewRef() {return textureImageView;};
-    //std::vector<VkSampler> GetTextureSamplerRef() {return textureSampler;};
+        const std::vector<VkImageView>&
+        GetTextureImageViewRef() const
+        {
+            return textureImageView;
+        } 
+           //std::vector<VkSampler> GetTextureSamplerRef() {return textureSampler;};
 
     VkImageView GetTextureImageView(int i) {return textureImageView[i];};
     VkSampler GetTextureSampler() {return textureSampler;};
@@ -64,5 +74,7 @@ int GetTextureHeight(int i) {return texHeight[i];};
     std::vector<int> texWidth, texHeight, texChannels;
 
     VkCommandBuffer cp_commandBuffer;
+  
     VkQueue cp_graphicsQueue;
+    std::vector<CpuMaterial> cp_materials;
 };
