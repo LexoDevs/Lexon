@@ -12,29 +12,76 @@ void Engine::EventManager(){
     switch(keyselected){
 
         case KeyCode::Escape:
+            {
+                window.CloseWindow();
+                break;
 
-            window.CloseWindow();
-        break;
+        }
 
-        case KeyCode::W:
+        case KeyCode::H:
+        {            
             if (window.GetHUDVisibility()==true)
-            {
-                window.SetHUDVisibility(false);
-                std::cout<<"Visibilidad de HUD:"<<window.GetHUDVisibility()<<std::endl;
-            }
-            else
-            {
-                window.SetHUDVisibility(true);
-                std::cout<<"Visibilidad de HUD:"<<window.GetHUDVisibility()<<std::endl;
+                {
+                    window.SetHUDVisibility(false);
+                    std::cout<<"Visibilidad de HUD:"<<window.GetHUDVisibility()<<std::endl;
+                }
+                else
+                {
+                    window.SetHUDVisibility(true);
+                    std::cout<<"Visibilidad de HUD:"<<window.GetHUDVisibility()<<std::endl;
 
-            }
-            //std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        break;
+                }
+                break;
+        }
+        
+        case KeyCode::W:
+        {
+            glm::vec3 dir1 = glm::vec3(-1.0f, 0.0f, 0.0f);
+            camera.alante(dir1);
+            break;
+        }
 
-        //case KeyCode::E:
-        //    glm::vec3 in = glm::vec3(0.0f, 0.0f, 0.0f);
-        //    camera.alante();
-        //break;
+        case KeyCode::D:
+        {
+            glm::vec3 dir2 = glm::vec3(0.0f, 0.0f, -1.0f);
+            camera.alante(dir2);
+            break;
+        }
+
+        case KeyCode::S:
+        {
+            glm::vec3 dir1 = glm::vec3(1.0f, 0.0f, 0.0f);
+            camera.alante(dir1);
+            break;
+        }
+
+        case KeyCode::A:
+        {
+            glm::vec3 dir2 = glm::vec3(0.0f, 0.0f, 1.0f);
+            camera.alante(dir2);
+            break;
+        }
+
+        case KeyCode::Q:
+        {
+            glm::vec3 dir2 = glm::vec3(0.0f, -1.0f, 0.0f);
+            camera.alante(dir2);
+            break;
+        }
+
+        case KeyCode::E:
+        {
+            glm::vec3 dir2 = glm::vec3(0.0f, 1.0f, 0.0f);
+            camera.alante(dir2);
+            break;
+        }
+
+
+        case KeyCode::Unknown:
+        {        
+            break;
+        }
+
     }
 
 

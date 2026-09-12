@@ -20,20 +20,40 @@ KeyCode InputSystem::Selector(){
     if (IsKeyPressed(KeyCode::Escape))
     {
         return KeyCode::Escape;
-        std::cout<<"Se ha pulsado escape"<<std::endl;
     }
     
     if (IsKeyPressed(KeyCode::W))
     {
         return  KeyCode::W;
-        std::cout<<"Se ha pulsado w"<<std::endl;
     }
     
+    if (IsKeyPressed(KeyCode::H))
+    {
+        return  KeyCode::H;
+    }
+    if (IsKeyPressed(KeyCode::D))
+    {
+        return  KeyCode::D;
+    }
+    if (IsKeyPressed(KeyCode::S))
+    {
+        return  KeyCode::S;
+    }
+    if (IsKeyPressed(KeyCode::A))
+    {
+        return  KeyCode::A;
+    }
+
+    if (IsKeyPressed(KeyCode::Q))
+    {
+        return  KeyCode::Q;
+    }
     if (IsKeyPressed(KeyCode::E))
     {
         return  KeyCode::E;
-        std::cout<<"Se ha pulsado e"<<std::endl;
     }
+
+
     else
     {
         return  KeyCode::Unknown;

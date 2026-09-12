@@ -43,6 +43,10 @@ KeyCode GLFWKeyToKeyCode(int key)
 
         case GLFW_KEY_DOWN:
             return KeyCode::Down;
+
+        case GLFW_KEY_H:
+            return KeyCode::H;
+
     }
 
     return KeyCode::Unknown;

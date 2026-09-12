@@ -12,6 +12,7 @@ glm::vec3 up       = glm::vec3(0.0f, 1.0f, 0.0f);   // Y es arriba/ Y es arriba
     
     void SetCameraView(UniformBufferObject& ubo, float aspectratio) const;
 glm::vec3& GerPos() {return position;};
-void alante() {position = position + glm::vec3(1.0f, 0.0f, 0.0f);};
+void alante(glm::vec3 dir) {position = position + dir;};
+void derecha(glm::vec3 dir) {position = position - dir;};// glm::vec3(0.0f, 0.0f, 1.0f);};
 
 };

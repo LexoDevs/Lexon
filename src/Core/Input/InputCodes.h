@@ -14,6 +14,8 @@ enum class KeyCode
     Q,
     E,
 
+    H,
+
     Escape,
 
     Left,
