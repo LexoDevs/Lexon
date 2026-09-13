@@ -146,7 +146,8 @@ void VulkanRHI::DestroyVulkan(){
 
 };
 
-void VulkanRHI::DrawFrame( CameraView& camera, bool& UIVis){
+void VulkanRHI::DrawFrame( CameraView& camera,    const std::vector<RenderObject>& objects,
+ bool& UIVis){
     const uint32_t frame = currentFrame;
     
     //0. Inicializar recursos
@@ -202,7 +203,7 @@ void VulkanRHI::DrawFrame( CameraView& camera, bool& UIVis){
 
 
 //Aqui empieza el grabado de comandos a la gráfica
-    recordCommandBuffer(frame,imageIndex, UIVis);
+    recordCommandBuffer(frame,imageIndex,objects, UIVis);
 
 
     // 5. Submit
@@ -262,7 +263,8 @@ void VulkanRHI::DrawFrame( CameraView& camera, bool& UIVis){
 };
 
 
-void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex, bool& UIVisibility)
+void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex,     const std::vector<RenderObject>& objects,
+bool& UIVisibility)
 {
     VkCommandBuffer cmd = commandBuffers.GetCommandBuffer(frame);
 
@@ -395,30 +397,66 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
                         0,
                          nullptr);*/
 
+const std::vector<GPUMeshRange>& ranges = indexBuffer.GetGPURangues();
 
-    for (const GPUMeshRange& range : indexBuffer.GetGPURangues()){
-            if (range.indexCount == 0)
-            {
-                continue;
-            }
-
-
-
-            descriptorSet.bindDescriptorSet(
-                frame,
-                range.materialIndex,
-                cmd,
-                pipeline.GetPipelineLeyout()
-            );
-
-            vkCmdDrawIndexed(
-                cmd,
-                range.indexCount,
-                1,
-                range.firstIndex,
-                static_cast<int32_t>(range.firstVertex),
-                0);
+    for (const RenderObject& object : objects)
+{
+    if (!object.visible)
+    {
+        continue;
     }
+
+    if (object.meshRangeIndex >= ranges.size())
+    {
+        continue;
+    }
+
+    const GPUMeshRange& range =
+        ranges[object.meshRangeIndex];
+
+    if (range.indexCount == 0)
+    {
+        continue;
+    }
+
+    const glm::mat4 worldMatrix =
+        object.CalculateWorldMatrix();
+
+    ObjectPushConstants pushConstants{};
+    pushConstants.model = worldMatrix;
+
+    pushConstants.normalMatrix =
+        glm::transpose(
+            glm::inverse(worldMatrix)
+        );
+
+    vkCmdPushConstants(
+        cmd,
+        pipeline.GetPipelineLeyout(),
+        VK_SHADER_STAGE_VERTEX_BIT,
+        0,
+        sizeof(ObjectPushConstants),
+        &pushConstants
+    );
+
+    descriptorSet.bindDescriptorSet(
+        frame,
+        object.materialIndex,
+        cmd,
+        pipeline.GetPipelineLeyout()
+    );
+
+    vkCmdDrawIndexed(
+        cmd,
+        range.indexCount,
+        1,
+        range.firstIndex,
+        static_cast<int32_t>(
+            range.firstVertex
+        ),
+        0
+    );
+}
 
 if ( UIVisibility == true){
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);

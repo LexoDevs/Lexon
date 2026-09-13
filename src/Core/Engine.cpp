@@ -61,7 +61,7 @@ void Engine::EventManager(float deltaTime){
             camera.MoverArriba(-movementAmount);
         }
 
-    const bool leftMouseHeld = inputSystem.IsMouseButtonPressed(MouseButton::Left);
+    const bool leftMouseHeld = inputSystem.IsMouseButtonPressed(MouseButton::Right);
 
     if (leftMouseHeld){
         const float deltaX = static_cast<float>(inputSystem.GetMouseDeltaX());
@@ -104,7 +104,9 @@ void Engine::InitEngine() {
 
     std::filesystem::path path = "../resources/models/sponza.obj";
     model = assimploader.Load(path);
-
+    renderObjects = BuildRenderObjects(model);
+std::cout
+    << "Render objects: "<< renderObjects.size() << '\n';
     VulkanAPI.InitRenderer(model);
 
     VulkanAPI.UploadMesh(model);
@@ -117,7 +119,7 @@ void Engine::LoadUIPanels() {
         ImGui::ShowDemoWindow();
         layersUI.VentanaSuperior(VulkanAPI);
         layersUI.MuestreoImagenes(VulkanAPI);
-        layersUI.ElementosEnEscena(model);
+        layersUI.ElementosEnEscena(model,renderObjects);
         ImPlot::ShowDemoWindow();
 
 };
@@ -152,7 +154,7 @@ void Engine::MainLoopEngine() {
         EditorInputCapture capture = layersUI.GetInputCapture();
 
         EventManager(deltaTime);
-        VulkanAPI.DrawFrame(camera, window.GetHUDVisibility() );   // ← Dentro hacemos recordimgui
+        VulkanAPI.DrawFrame(camera,renderObjects,window.GetHUDVisibility());   // ← Dentro hacemos recordimgui
         layersUI.ImGui_EndFrame();   // Para viewports
 
         frameCount++;

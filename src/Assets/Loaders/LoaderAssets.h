@@ -65,9 +65,8 @@ struct Vertex {
 
 struct UniformBufferObject
 {
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
+    glm::mat4 view{1.0f};
+    glm::mat4 proj{1.0f};
 };
 
 namespace std {
@@ -87,24 +86,4 @@ class LoaderAssets {
 
 };
 
-
-class ObjectInstance {
-    public:
-        void AddObject(LoaderAssets loader);
-        void SetMatrixModel(UniformBufferObject& ubo);
-        static void TranslateModel(glm::vec3 directionMov);
-        static void RotateModel(float angulo, char eje);
-
-        std::vector<Vertex>& getVertices() {return vertices;};
-        std::vector<uint32_t>& getIndices() {return indices;};
-
-    private:
-        std::vector<Vertex> vertices;
-        std::vector<uint32_t> indices;
-        static glm::vec3 position;
-        static glm::vec3 rotation;
-
-        static float yaw;
-        static float pitch;
-};
 

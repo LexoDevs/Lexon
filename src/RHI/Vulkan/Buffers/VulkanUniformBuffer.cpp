@@ -1,6 +1,6 @@
 #include "VulkanUniformBuffer.h"
 #include <chrono>
-
+#include <cstring>
 
 UniformBuffer::UniformBuffer(){};
 UniformBuffer::~UniformBuffer(){
@@ -36,18 +36,21 @@ void UniformBuffer::destroyBuffer(){
 
 void UniformBuffer::updateUniformBuffer(uint32_t currentImage, CameraView camera,VkExtent2D swapChainExtent) {
     
-    static auto startTime = std::chrono::high_resolution_clock::now();
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+const float aspectRatio =
+        swapChainExtent.width /
+        static_cast<float>(
+            swapChainExtent.height
+        );
 
-    float aspectratio = swapChainExtent.width / (float) swapChainExtent.height;
+    camera.SetCameraView(
+        UBO,
+        aspectRatio
+    );
 
-ObjectInstance model{};
-
-    model.SetMatrixModel(UBO);
-    camera.SetCameraView(UBO, aspectratio);
-
-    memcpy(uniformBuffersMapped[currentImage], &UBO, sizeof(UBO));
-
+    std::memcpy(
+        uniformBuffersMapped[currentImage],
+        &UBO,
+        sizeof(UBO)
+    );
 }
 

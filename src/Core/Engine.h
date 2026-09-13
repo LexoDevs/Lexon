@@ -6,7 +6,7 @@
 #include "../Assets/Importer/AssimpImporter.h"
 #include "../Assets/Textures/TextureImporter.h"
 #include <GLFWWindow.h>
-
+#include "../Renderer/RenderObject.h"
 class Engine {
 	public:
 
@@ -31,10 +31,10 @@ class Engine {
 		VulkanRHI VulkanAPI;
 		EditorLayer layersUI;
 
-		ObjectInstance mesh;
+		CpuModel model;
+		std::vector<RenderObject> renderObjects;
 		CameraView camera;
 
-		CpuModel model;
 };
 
 

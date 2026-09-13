@@ -293,64 +293,102 @@ void EditorLayer::LogFPS(double fps,double time){
     ImGui::End();
 }
 
-void EditorLayer::ElementosEnEscena(const CpuModel& model)
+void EditorLayer::ElementosEnEscena(const CpuModel& model, std::vector<RenderObject>& objects)
 {
     ImGui::Begin("Hierarchy");
 
-    ImGui::Text(
-        "Model: %s",
-        model.sourcePath.filename().string().c_str()
+
+for (std::size_t i = 0; i < objects.size(); ++i)
+{
+    RenderObject& object = objects[i];
+
+    ImGui::PushID(
+        static_cast<int>(object.id)
     );
 
-    ImGui::Text(
-        "%zu meshes | %zu materials",
-        model.meshes.size(),
-        model.materials.size()
-    );
+    const bool selected =
+        selectedObjectIndex ==
+        static_cast<int32_t>(i);
 
-    ImGui::Separator();
-
-    constexpr ImGuiTableFlags tableFlags =
-        ImGuiTableFlags_BordersV |
-        ImGuiTableFlags_BordersOuterH |
-        ImGuiTableFlags_Resizable |
-        ImGuiTableFlags_RowBg |
-        ImGuiTableFlags_NoBordersInBody |
-        ImGuiTableFlags_ScrollY;
-
-    if (ImGui::BeginTable(
-            "SceneHierarchyTable",
-            3,
-            tableFlags,
-            ImVec2(0.0f, 0.0f)))
+    if (ImGui::Selectable(
+            object.name.c_str(),
+            selected,
+            ImGuiSelectableFlags_SpanAllColumns))
     {
-        ImGui::TableSetupColumn(
-            "Name",
-            ImGuiTableColumnFlags_NoHide |
-            ImGuiTableColumnFlags_WidthStretch
-        );
-
-        ImGui::TableSetupColumn(
-            "Size",
-            ImGuiTableColumnFlags_WidthFixed,
-            120.0f
-        );
-
-        ImGui::TableSetupColumn(
-            "Type / Material",
-            ImGuiTableColumnFlags_WidthFixed,
-            60.0f
-        );
-
-        ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableHeadersRow();
-
-        DrawNode(model.rootNode, model);
-
-        ImGui::EndTable();
+        selectedObjectIndex =
+            static_cast<int32_t>(i);
     }
 
+    ImGui::PopID();
+}
+
     ImGui::End();
+
+
+
+    ImGui::Begin("Inspector");
+
+if (selectedObjectIndex >= 0 &&
+    selectedObjectIndex <
+        static_cast<int32_t>(objects.size()))
+{
+    RenderObject& selectedObject =
+        objects[
+            static_cast<std::size_t>(
+                selectedObjectIndex
+            )
+        ];
+
+    ImGui::Text(
+        "Object: %s",
+        selectedObject.name.c_str()
+    );
+
+    ImGui::Text(
+        "ID: %u",
+        selectedObject.id
+    );
+
+    ImGui::Text(
+        "Mesh range: %u",
+        selectedObject.meshRangeIndex
+    );
+
+    ImGui::Checkbox(
+        "Visible",
+        &selectedObject.visible
+    );
+
+    ImGui::DragFloat3(
+        "Position",
+        &selectedObject.transform.position.x,
+        1.0f
+    );
+
+    ImGui::DragFloat3(
+        "Rotation",
+        &selectedObject.transform.rotation.x,
+        0.25f
+    );
+
+    ImGui::DragFloat3(
+        "Scale",
+        &selectedObject.transform.scale.x,
+        0.01f,
+        0.001f,
+        1000.0f
+    );
+}
+else
+{
+    ImGui::TextUnformatted(
+        "No object selected"
+    );
+}
+
+ImGui::End();
+
+
 }
 
 void EditorLayer::DrawNode(

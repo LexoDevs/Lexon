@@ -7,10 +7,18 @@ struct VSInput
 
 struct UniformBuffer
 {
-    float4x4 model;
     float4x4 view;
     float4x4 proj;
 };
+
+struct ObjectPushConstants
+{
+    float4x4 model;
+    float4x4 normalMatrix;
+};
+
+[[vk::push_constant]]
+ConstantBuffer<ObjectPushConstants> objectData;
 
 [[vk::binding(0, 0)]]
 ConstantBuffer<UniformBuffer> ubo;
@@ -29,16 +37,19 @@ struct VSOutput
 VSOutput vertMain(VSInput input)
 {
     VSOutput output;
-
+    const float4 worldPosition = mul( objectData.model, float4(input.inPosition, 1.0));
     output.position = mul(
         ubo.proj,
         mul(
             ubo.view,
-            mul(ubo.model, float4(input.inPosition, 1.0))
+            worldPosition
         )
     );
 
-    const float3 normal = normalize(input.inNormal);
+    const float3 normal = normalize(mul(
+            (float3x3)objectData.normalMatrix,
+            input.inNormal
+        ));
     const float3 lightDirection =
         normalize(float3(0.35, 0.75, 0.55));
 

@@ -21,7 +21,7 @@
 #include "Command/VulkanCommandBuffer.h"
 #include "Sync/VulkanFence.h"
 #include "Render/VulkanRender.h"
-
+#include "../../Renderer/RenderObject.h"
 #include <GLFWWindow.h>
 
 //#include "../../Core/WindowSystem"
@@ -35,8 +35,13 @@ public:
     void InitRenderer(const CpuModel& model);
     void UploadMesh(CpuModel& mesh);
     void DestroyVulkan();
-    void DrawFrame(CameraView& camera, bool& UIVis);
-    void recordCommandBuffer(uint32_t frame, uint32_t imageIndex, bool& UIVisibility);
+    void DrawFrame(CameraView& camera,
+        const std::vector<RenderObject>& objects,
+        bool& UIVis);
+    void recordCommandBuffer(uint32_t frame,
+         uint32_t imageIndex,
+             const std::vector<RenderObject>& objects,
+          bool& UIVisibility);
 
 
     VulkanInstance&        GetVulkanInstance()        { return instance; }

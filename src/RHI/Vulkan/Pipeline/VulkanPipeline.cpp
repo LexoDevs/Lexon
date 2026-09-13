@@ -1,4 +1,5 @@
 #include "VulkanPipeline.h"
+#include "../../../Renderer/RenderObject.h"
 
 #include <iostream>
 VulkanPipeline::VulkanPipeline(){
@@ -144,12 +145,19 @@ cp_descriptorsetlayout = descriptorsetlayout;
     depthStencil.minDepthBounds        = 0.0f;
     depthStencil.maxDepthBounds        = 1.0f;
 
+ 
+        
+VkPushConstantRange objectPushRange{};
+objectPushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+objectPushRange.offset = 0;
+objectPushRange.size = sizeof(ObjectPushConstants);
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1; // Optional
         pipelineLayoutInfo.pSetLayouts = &descriptorsetlayout; // Optional
-        pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
-        pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+        pipelineLayoutInfo.pushConstantRangeCount = 1; // Optional
+        pipelineLayoutInfo.pPushConstantRanges = &objectPushRange; // Optional
 
 
 
