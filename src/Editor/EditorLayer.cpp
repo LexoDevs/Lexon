@@ -11,6 +11,11 @@ EditorLayer::~EditorLayer(){
         ImGui::DestroyContext();
     }
 
+    if (ImPlot::GetCurrentContext() != nullptr)
+    {
+        ImPlot::DestroyContext();
+    }
+
 };
 
 
@@ -37,6 +42,8 @@ void EditorLayer::ImGui_Init(VulkanRHI& VulkanAPI, void* window)
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
+
     ImGuiIO& io = ImGui::GetIO(); 
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;    
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   
@@ -219,8 +226,72 @@ void EditorLayer::MuestreoImagenes(VulkanRHI& VulkanAPI){
    ImGui::End();
 };
 
+void EditorLayer::LogFPS(double fps,double time){
+     static std::vector<double> times;
+    static std::vector<double> fpsValues;
+    static double lastSampleTime = 0.0;
+    static float history = 10.0f;
 
+    // Guardar una muestra cada 20 ms.
+    if (time - lastSampleTime >= 0.02)
+    {
+        times.push_back(time);
+        fpsValues.push_back(fps);
 
+        lastSampleTime = time;
+
+         //Conservar como máximo 30 segundos.
+        while (!times.empty() &&
+               times.front() < time - 30.0)
+        {
+            times.erase(times.begin());
+            fpsValues.erase(fpsValues.begin());
+        }
+    }
+
+    ImGui::Begin("FPS Log");
+
+    ImGui::SliderFloat(
+        "History",
+        &history,
+        1.0f,
+        30.0f,
+        "%.1f s"
+    );
+
+    if (ImPlot::BeginPlot(
+            "##FPSGraph",
+            ImVec2(-1.0f, 250.0f)))
+    {
+        ImPlot::SetupAxes(
+            "Tiempo",
+            "FPS",
+            ImPlotAxisFlags_NoTickLabels,
+            ImPlotAxisFlags_AutoFit
+        );
+
+        ImPlot::SetupAxisLimits(
+            ImAxis_X1,
+            time - history,
+            time,
+            ImGuiCond_Always
+        );
+
+        if (!times.empty())
+        {
+            ImPlot::PlotLine(
+                "FPS",
+                times.data(),
+                fpsValues.data(),
+                static_cast<int>(times.size())
+            );
+        }
+
+        ImPlot::EndPlot();
+    }
+
+    ImGui::End();
+}
 
 void EditorLayer::ElementosEnEscena(const CpuModel& model)
 {
@@ -268,7 +339,7 @@ void EditorLayer::ElementosEnEscena(const CpuModel& model)
         ImGui::TableSetupColumn(
             "Type / Material",
             ImGuiTableColumnFlags_WidthFixed,
-            180.0f
+            60.0f
         );
 
         ImGui::TableSetupScrollFreeze(0, 1);

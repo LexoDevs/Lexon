@@ -42,26 +42,22 @@ void Engine::EventManager(float deltaTime){
 
         if(inputSystem.IsKeyPressed(KeyCode::S))
         {
-            glm::vec3 dir1 = glm::vec3(1.0f, 0.0f, 0.0f);
                         camera.MoverAdelante(-movementAmount);
 
         }
 
         if(inputSystem.IsKeyPressed(KeyCode::A))
         {
-            glm::vec3 dir2 = glm::vec3(0.0f, 0.0f, 1.0f);
             camera.MoverIzquierda(-movementAmount);
         }
 
         if(inputSystem.IsKeyPressed(KeyCode::Q))
         {
-            glm::vec3 dir2 = glm::vec3(0.0f, -1.0f, 0.0f);
             camera.MoverArriba(movementAmount);
         }
 
         if(inputSystem.IsKeyPressed(KeyCode::E))
         {
-            glm::vec3 dir2 = glm::vec3(0.0f, 1.0f, 0.0f);
             camera.MoverArriba(-movementAmount);
         }
 
@@ -116,13 +112,13 @@ void Engine::InitEngine() {
 };
 
 
+
 void Engine::LoadUIPanels() {
         ImGui::ShowDemoWindow();
         layersUI.VentanaSuperior(VulkanAPI);
         layersUI.MuestreoImagenes(VulkanAPI);
         layersUI.ElementosEnEscena(model);
-
-        ImGui::Render();
+        ImPlot::ShowDemoWindow();
 
 };
 
@@ -146,9 +142,12 @@ void Engine::MainLoopEngine() {
         window.PollEvents();
 
         layersUI.ImGui_NewFrame();
-
+        
+        fps = 1 / deltaTime;
         // Aquí dibujamos la interfaz
         LoadUIPanels();
+        layersUI.LogFPS(fps,window.GetTime());
+        ImGui::Render();
 
         EditorInputCapture capture = layersUI.GetInputCapture();
 

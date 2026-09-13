@@ -59,6 +59,7 @@ set(IMGUI_SOURCES
     # Backends
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp
+    # ImPlot
 )
 
 add_library(imgui STATIC ${IMGUI_SOURCES})
@@ -70,7 +71,31 @@ target_include_directories(imgui PUBLIC
 
 target_link_libraries(imgui PUBLIC glfw Vulkan::Vulkan)
 
+# ==================== ImPlot ====================
 
+FetchContent_Declare(
+    implot
+    GIT_REPOSITORY https://github.com/epezent/implot.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_MakeAvailable(implot)
+
+add_library(implot STATIC
+    ${implot_SOURCE_DIR}/implot.cpp
+    ${implot_SOURCE_DIR}/implot_items.cpp
+    ${implot_SOURCE_DIR}/implot_demo.cpp
+
+)
+
+target_include_directories(implot PUBLIC
+    ${implot_SOURCE_DIR}
+)
+
+target_link_libraries(implot PUBLIC
+    imgui
+)
 # ==================== Assimp ====================
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -134,6 +159,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${stb_image_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/third_party/tinyobjloader
+
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -151,6 +177,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     Vulkan::Vulkan
     glfw
     imgui
+    implot
     assimp::assimp
 
 )
