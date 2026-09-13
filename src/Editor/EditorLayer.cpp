@@ -13,6 +13,21 @@ EditorLayer::~EditorLayer(){
 
 };
 
+
+
+EditorInputCapture EditorLayer::GetInputCapture() const
+{
+    const ImGuiIO& io = ImGui::GetIO();
+
+    return {
+        io.WantCaptureMouse,
+        io.WantCaptureKeyboard,
+        io.WantTextInput
+    };
+}
+
+
+
 // Asumiendo que tienes acceso a tu VkInstance, VkDevice, etc.
 void EditorLayer::ImGui_Init(VulkanRHI& VulkanAPI, void* window)
 {

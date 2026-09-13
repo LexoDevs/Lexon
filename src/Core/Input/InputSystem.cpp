@@ -15,6 +15,38 @@ bool InputSystem::IsKeyPressed(KeyCode key) const
         return m_Keys[index];
     }
 
+void InputSystem::SetMouseButtonState( MouseButton button, bool pressed)
+    {
+        const size_t index = static_cast<size_t>(button);
+        m_MouseButtons[index] = pressed;
+    }
+
+bool InputSystem::IsMouseButtonPressed( MouseButton button) const
+    {
+        const size_t index = static_cast<size_t>(button);
+        return m_MouseButtons[index];
+    }
+
+void InputSystem::SetMousePosition( double xpos, double ypos)
+    {
+        if (m_FirstMouseEvent)
+        {
+            m_MouseX = xpos;
+            m_MouseY = ypos;
+            m_FirstMouseEvent = false;
+            return;
+        }
+
+        m_MouseDeltaX += xpos - m_MouseX;
+        m_MouseDeltaY += ypos - m_MouseY;
+
+        m_MouseX = xpos;
+        m_MouseY = ypos;
+
+        //std::cout<<"Posicion x raton: "<<m_MouseX<<std::endl;
+        //std::cout<<"Posicion y raton: "<<m_MouseY<<std::endl;
+    }
+
 KeyCode InputSystem::Selector(){
     
     if (IsKeyPressed(KeyCode::Escape))
@@ -61,6 +93,20 @@ KeyCode InputSystem::Selector(){
 
 
 
+}
+
+
+void InputSystem::BeginFrame()
+{
+    m_MouseDeltaX = 0.0;
+    m_MouseDeltaY = 0.0;
+}
+
+void InputSystem::ResetMouseDelta()
+{
+    m_MouseDeltaX = 0.0;
+    m_MouseDeltaY = 0.0;
+    m_FirstMouseEvent = true;
 }
 
 

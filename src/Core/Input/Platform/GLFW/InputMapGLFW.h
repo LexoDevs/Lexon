@@ -52,3 +52,21 @@ KeyCode GLFWKeyToKeyCode(int key)
     return KeyCode::Unknown;
 }
 
+MouseButton GLFWKeyToMouseCode(int key)
+{
+    switch (key)
+    {
+        case GLFW_KEY_W:
+            return MouseButton::Left;
+
+        case GLFW_KEY_A:
+            return MouseButton::Right;
+
+        case GLFW_KEY_S:
+            return MouseButton::Middle;
+
+
+    }
+
+    return MouseButton::Unknown;
+}

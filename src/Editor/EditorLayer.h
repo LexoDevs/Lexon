@@ -4,13 +4,19 @@
 #include "imgui_impl_vulkan.h"  
 #include "../RHI/Vulkan/VulkanRHI.h"
 
-
+struct EditorInputCapture
+{
+    bool mouse = false;
+    bool keyboard = false;
+    bool text = false;
+};
 
 class EditorLayer{
 
 public:
 
 ~EditorLayer();
+EditorInputCapture GetInputCapture() const;
 void ImGui_Init(VulkanRHI& VulkanAPI, void* window);
 void ImGui_NewFrame();
 void ImGui_Render(VkCommandBuffer cmd);

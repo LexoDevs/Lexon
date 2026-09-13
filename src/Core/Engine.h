@@ -17,7 +17,7 @@ class Engine {
 
 		void InitEngine();
 		void MainLoopEngine();
-		void EventManager();
+		void EventManager(float deltaTime);
 		void LoadUIPanels();
 
 		GLFWWindow window;

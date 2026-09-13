@@ -15,6 +15,8 @@ class Window {
 		virtual double GetTime() const = 0;
 		virtual void SetWindowTitle(std::string title) const = 0;
 		virtual void SetKeyCallback() const = 0;
+		virtual void SetMouseCallback() const =0;
+		virtual void SetMousePosition() const =0;
 		virtual void SetInputSystem(InputSystem* inputSystem) = 0;
 		virtual void OnKeyEvent(int key,int action) = 0;
 		virtual void WaitEvents() const = 0;

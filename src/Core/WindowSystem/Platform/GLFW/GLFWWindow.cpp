@@ -50,7 +50,8 @@ double GLFWWindow::GetTime() const { return glfwGetTime(); };
 void GLFWWindow::SetWindowTitle(std::string title) const { glfwSetWindowTitle(glfwwindow, title.c_str()); };
 
 void GLFWWindow::SetKeyCallback() const { glfwSetKeyCallback(glfwwindow, GLFW_KeyBoardCallback); };
-
+void GLFWWindow::SetMouseCallback() const { glfwSetMouseButtonCallback(glfwwindow, GLFW_MouseButtonCallback);};
+void GLFWWindow::SetMousePosition() const { glfwSetCursorPosCallback(glfwwindow, GLFW_CursorPositionCallback);};
 
 //FUNCIONES RELACIONADAS CON EL INPUT
 void GLFWWindow::WaitEvents() const { glfwWaitEvents();};
@@ -116,3 +117,69 @@ void GLFWWindow::framebufferResizeCallback(GLFWwindow* window, int width, int he
 
 }
 
+void GLFWWindow::OnMouseButtonEvent(int button, int action)
+{
+    if (!m_InputSystem)
+    {
+        return;
+    }
+
+    MouseButton engineButton;
+
+    switch (button)
+    {
+
+        case GLFW_MOUSE_BUTTON_LEFT:{
+            std::cout<<"Click izquierdo"<<std::endl;
+            engineButton = MouseButton::Left;
+            break;}
+
+
+        case GLFW_MOUSE_BUTTON_RIGHT:{
+            std::cout<<"Click derecho"<<std::endl;
+            engineButton = MouseButton::Right;
+            break;}
+
+
+        case GLFW_MOUSE_BUTTON_MIDDLE:{
+            std::cout<<"Click Central"<<std::endl;
+            engineButton = MouseButton::Middle;
+            break;}
+
+        default:
+            return;
+    }
+
+    if (action == GLFW_PRESS)
+    {
+                std::cout<<"presionado"<<std::endl;
+
+        m_InputSystem->SetMouseButtonState(
+            engineButton,
+            true
+        );
+    }
+    else if (action == GLFW_RELEASE)
+    {
+                        std::cout<<"soltado"<<std::endl;
+
+        m_InputSystem->SetMouseButtonState(
+            engineButton,
+            false
+        );
+    }
+
+
+}
+
+void GLFWWindow::OnCursorPositionEvent(
+    double xpos,
+    double ypos)
+{
+    if (!m_InputSystem)
+    {
+        return;
+    }
+
+    m_InputSystem->SetMousePosition(xpos, ypos);
+}
