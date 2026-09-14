@@ -14,6 +14,7 @@ class InputSystem
 public:
 
     void SetKeyState( KeyCode key, bool pressed );
+    bool IsKeyJustPressed(KeyCode key) const;
     bool IsKeyPressed( KeyCode key ) const;
 
     void SetMouseButtonState( MouseButton button, bool pressed);
@@ -33,8 +34,11 @@ public:
     KeyCode Selector();
 private:
 
-    std::array<bool,static_cast<size_t>(KeyCode::Count)> m_Keys{};
+    std::array<bool, static_cast<size_t>(KeyCode::Count)> m_Keys{};
     std::array<bool, static_cast<size_t>(MouseButton::Count)> m_MouseButtons{};
+    std::array<bool, static_cast<size_t>(KeyCode::Count)> m_KeysPressedThisFrame{};
+
+
 
     double m_MouseX = 0.0;
     double m_MouseY = 0.0;

@@ -63,11 +63,40 @@ struct Vertex {
     }
 };
 
-struct UniformBufferObject
+struct alignas(16) UniformBufferObject
 {
     glm::mat4 view{1.0f};
     glm::mat4 proj{1.0f};
+
+    // xyz = dirección de los rayos
+    // w   = intensidad
+    alignas(16)
+    glm::vec4 sunDirectionIntensity{
+        0.0f,
+        -1.0f,
+        1.0f,
+        1.0f
+    };
+
+    // rgb = color del sol
+    // w   = intensidad ambiente
+    alignas(16)
+    glm::vec4 sunColorAmbient{
+        1.0f,
+        0.55f,
+        0.20f,
+        0.15f
+    };
+    // x = RenderViewMode
+    alignas(16)
+    glm::uvec4 renderFlags{0u};
 };
+
+static_assert(
+    sizeof(UniformBufferObject) % 16 == 0,
+    "UniformBufferObject debe estar alineado a 16 bytes"
+);
+
 
 namespace std {
     template<> struct hash<Vertex> {

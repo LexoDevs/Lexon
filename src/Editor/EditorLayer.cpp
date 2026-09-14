@@ -1,7 +1,39 @@
 
 
 #include "EditorLayer.h"
+#include <cmath>
 
+    float SrgbToLinear(float value)
+    {
+        if (value <= 0.04045f)
+        {
+            return value / 12.92f;
+        }
+
+        return std::pow(
+            (value + 0.055f) / 1.055f,
+            2.4f
+        );
+    }
+
+    void ConvertImGuiStyleToLinear()
+    {
+        ImGuiStyle& style =
+            ImGui::GetStyle();
+
+        for (int i = 0;
+             i < ImGuiCol_COUNT;
+             ++i)
+        {
+            ImVec4& color = style.Colors[i];
+
+            color.x = SrgbToLinear(color.x);
+            color.y = SrgbToLinear(color.y);
+            color.z = SrgbToLinear(color.z);
+
+            // Alpha no se convierte.
+        }
+    }
 EditorLayer::~EditorLayer(){
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -50,7 +82,7 @@ void EditorLayer::ImGui_Init(VulkanRHI& VulkanAPI, void* window)
     io.ConfigFlags |= ImGuiWindowFlags_NoBackground;
 
     ImGui::StyleColorsDark();
-
+ConvertImGuiStyleToLinear();
     // Platform backend
     ImGui_ImplGlfw_InitForVulkan(cp_Window, true);
 

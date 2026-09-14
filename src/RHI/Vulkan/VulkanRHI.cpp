@@ -4,7 +4,7 @@
  #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h" 
-
+#include "../../Renderer/RenderSettings.h"
 #include <iostream>
 
 VulkanRHI::VulkanRHI(){
@@ -146,8 +146,13 @@ void VulkanRHI::DestroyVulkan(){
 
 };
 
-void VulkanRHI::DrawFrame( CameraView& camera,    const std::vector<RenderObject>& objects,
- bool& UIVis){
+void VulkanRHI::DrawFrame( 
+    CameraView& camera,
+    const std::vector<RenderObject>& objects,
+    const RenderSettings& renderSettings,
+    const DirectionalLight& sunLight,
+    bool& UIVis
+){
     const uint32_t frame = currentFrame;
     
     //0. Inicializar recursos
@@ -193,7 +198,7 @@ void VulkanRHI::DrawFrame( CameraView& camera,    const std::vector<RenderObject
     VkSemaphore renderFinished = fences.GetrenderFinishedSemaphore(imageIndex);
 
 
-    uniformBuffer.updateUniformBuffer(frame, camera,swapchain.GetSwapchainExtent());
+    uniformBuffer.updateUniformBuffer(frame, camera,swapchain.GetSwapchainExtent(),renderSettings,sunLight);
     
     // 3. Resetear fence
     vkResetFences(vkDevice, 1, &fence);

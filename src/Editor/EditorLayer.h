@@ -10,7 +10,6 @@
 #include <cstdint>
 #include <vector>
 
-
 struct EditorInputCapture
 {
     bool mouse = false;

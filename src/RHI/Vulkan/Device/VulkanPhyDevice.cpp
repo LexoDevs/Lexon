@@ -154,24 +154,82 @@ VkPresentModeKHR VulkanPhysicalDevice::GetSurfacePresentationsMode(VkSurfaceKHR 
     return {};
 }
 
-VkSurfaceFormatKHR VulkanPhysicalDevice::chooseSwapSurfaceFormat(VkSurfaceKHR Surface) {
-     uint32_t pSurfaceFormatCount = 0;
+VkSurfaceFormatKHR
+VulkanPhysicalDevice::chooseSwapSurfaceFormat(
+    VkSurfaceKHR surface)
+{
+    uint32_t surfaceFormatCount = 0;
 
-    std::vector<VkSurfaceFormatKHR>availableFormats = getSurfaceFormats(Surface, pSurfaceFormatCount);
+    const std::vector<VkSurfaceFormatKHR>
+        availableFormats =
+            getSurfaceFormats(
+                surface,
+                surfaceFormatCount
+            );
 
-    std::cout << "\t\033[1;33mSe detectaron un total de \033[0m\033[1;32m" << pSurfaceFormatCount << "\033[0m\033[1;33m formatos\033[0m\n";
-	
-    for (int i = 0; i < availableFormats.size()-1; i++) {
+    std::cout
+        << "\t\033[1;33mSe detectaron un total de "
+        << "\033[0m\033[1;32m"
+        << surfaceFormatCount
+        << "\033[0m\033[1;33m formatos"
+        << "\033[0m\n";
 
-        if (FormatToString(availableFormats[i].format) == "VK_FORMAT_B8G8R8A8_UNORM") {
+    if (availableFormats.empty())
+    {
+        throw std::runtime_error(
+            "La superficie no ofrece formatos compatibles"
+        );
+    }
 
-            std::cout << "\t\t\033[1;33mEl formato seleccionado es: \033[0m\033[1;32m" << FormatToString(availableFormats[i].format) << "\033[0m\n\n";
+    // Primera opción: BGRA con conversión sRGB.
+    for (const VkSurfaceFormatKHR& format :
+         availableFormats)
+    {
+        if (format.format ==
+                VK_FORMAT_B8G8R8A8_SRGB &&
+            format.colorSpace ==
+                VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        {
+            std::cout
+                << "\t\t\033[1;33mFormato seleccionado: "
+                << "\033[0m\033[1;32m"
+                << FormatToString(format.format)
+                << "\033[0m\n\n";
 
-            
-            return availableFormats[i];
+            return format;
         }
     }
-    return {};
+
+    // Segunda opción: RGBA sRGB.
+    for (const VkSurfaceFormatKHR& format :
+         availableFormats)
+    {
+        if (format.format ==
+                VK_FORMAT_R8G8B8A8_SRGB &&
+            format.colorSpace ==
+                VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        {
+            std::cout
+                << "\t\t\033[1;33mFormato seleccionado: "
+                << "\033[0m\033[1;32m"
+                << FormatToString(format.format)
+                << "\033[0m\n\n";
+
+            return format;
+        }
+    }
+
+    // Fallback: utilizar el primer formato admitido.
+    const VkSurfaceFormatKHR fallback =
+        availableFormats.front();
+
+    std::cout
+        << "\t\t\033[1;31mNo se encontró un formato sRGB. "
+        << "Se utilizará: \033[0m"
+        << FormatToString(fallback.format)
+        << "\n\n";
+
+    return fallback;
 }
 
 std::vector<VkSurfaceFormatKHR> VulkanPhysicalDevice::getSurfaceFormats(VkSurfaceKHR Surface, uint32_t &pSurfaceFormatCount) {

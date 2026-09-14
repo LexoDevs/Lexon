@@ -4,9 +4,20 @@
 void InputSystem::SetKeyState(KeyCode key,bool pressed)
     {
         const auto index = static_cast<size_t>(key);
+    if (pressed && !m_Keys[index])
+        {
+            m_KeysPressedThisFrame[index] = true;
 
+        }
         m_Keys[index] = pressed;
     }
+
+bool InputSystem::IsKeyJustPressed(KeyCode key) const
+{
+    const size_t index = static_cast<size_t>(key);
+
+    return m_KeysPressedThisFrame[index];
+}
 
 bool InputSystem::IsKeyPressed(KeyCode key) const
     {
@@ -98,6 +109,8 @@ KeyCode InputSystem::Selector(){
 
 void InputSystem::BeginFrame()
 {
+    m_KeysPressedThisFrame.fill(false);
+
     m_MouseDeltaX = 0.0;
     m_MouseDeltaY = 0.0;
 }

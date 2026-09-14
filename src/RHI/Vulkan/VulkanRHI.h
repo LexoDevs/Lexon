@@ -22,6 +22,7 @@
 #include "Sync/VulkanFence.h"
 #include "Render/VulkanRender.h"
 #include "../../Renderer/RenderObject.h"
+#include "../../Renderer/Lighting/DirectionalLight.h"
 #include <GLFWWindow.h>
 
 //#include "../../Core/WindowSystem"
@@ -35,9 +36,14 @@ public:
     void InitRenderer(const CpuModel& model);
     void UploadMesh(CpuModel& mesh);
     void DestroyVulkan();
-    void DrawFrame(CameraView& camera,
+    void DrawFrame(
+        CameraView& camera,
         const std::vector<RenderObject>& objects,
-        bool& UIVis);
+        const RenderSettings& renderSettings,
+            const DirectionalLight& sunLight,
+
+        bool& UIVis
+    );
     void recordCommandBuffer(uint32_t frame,
          uint32_t imageIndex,
              const std::vector<RenderObject>& objects,

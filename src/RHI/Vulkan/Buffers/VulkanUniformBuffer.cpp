@@ -34,7 +34,14 @@ void UniformBuffer::destroyBuffer(){
 
 }
 
-void UniformBuffer::updateUniformBuffer(uint32_t currentImage, CameraView camera,VkExtent2D swapChainExtent) {
+void UniformBuffer::updateUniformBuffer(
+                uint32_t currentImage,
+                CameraView camera,
+                VkExtent2D swapChainExtent,
+                const RenderSettings& renderSettings,
+            const DirectionalLight& sunLight
+
+            ){
     
 const float aspectRatio =
         swapChainExtent.width /
@@ -47,6 +54,12 @@ const float aspectRatio =
         aspectRatio
     );
 
+    UBO.renderFlags.x =
+    renderSettings.GetShaderValue();
+
+    UBO.renderFlags.y = 0;
+    UBO.renderFlags.z = 0;
+    UBO.renderFlags.w = 0;
     std::memcpy(
         uniformBuffersMapped[currentImage],
         &UBO,

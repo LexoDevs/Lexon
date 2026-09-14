@@ -14,7 +14,7 @@ void Engine::EventManager(float deltaTime){
             window.CloseWindow();
         }
 
-        if(inputSystem.IsKeyPressed(KeyCode::H))
+        if(inputSystem.IsKeyJustPressed(KeyCode::H))
         {            
             if (window.GetHUDVisibility()==true)
                 {
@@ -59,6 +59,27 @@ void Engine::EventManager(float deltaTime){
         if(inputSystem.IsKeyPressed(KeyCode::E))
         {
             camera.MoverArriba(-movementAmount);
+        }
+
+        if (inputSystem.IsKeyJustPressed(KeyCode::T))
+        {
+            renderSettings.CycleViewMode();
+
+            switch (renderSettings.viewMode)
+            {
+                case RenderViewMode::Textured:
+                    std::cout
+                        << "\nRender mode: Textured\n";
+                    break;
+
+                case RenderViewMode::White:
+                    std::cout
+                        << "\nRender mode: White\n";
+                    break;
+
+                case RenderViewMode::Count:
+                    break;
+            }
         }
 
     const bool leftMouseHeld = inputSystem.IsMouseButtonPressed(MouseButton::Right);
@@ -154,7 +175,7 @@ void Engine::MainLoopEngine() {
         EditorInputCapture capture = layersUI.GetInputCapture();
 
         EventManager(deltaTime);
-        VulkanAPI.DrawFrame(camera,renderObjects,window.GetHUDVisibility());   // ← Dentro hacemos recordimgui
+        VulkanAPI.DrawFrame(camera,renderObjects,renderSettings,sunLight,window.GetHUDVisibility());   // ← Dentro hacemos recordimgui
         layersUI.ImGui_EndFrame();   // Para viewports
 
         frameCount++;

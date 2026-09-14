@@ -47,6 +47,9 @@ KeyCode GLFWKeyToKeyCode(int key)
         case GLFW_KEY_H:
             return KeyCode::H;
 
+        case GLFW_KEY_T:
+            return KeyCode::T;
+
     }
 
     return KeyCode::Unknown;

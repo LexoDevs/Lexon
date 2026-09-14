@@ -7,6 +7,10 @@
 #include "../Assets/Textures/TextureImporter.h"
 #include <GLFWWindow.h>
 #include "../Renderer/RenderObject.h"
+#include "../Renderer/RenderSettings.h"
+#include "../Renderer/Lighting/DirectionalLight.h"
+
+
 class Engine {
 	public:
 
@@ -34,7 +38,8 @@ class Engine {
 		CpuModel model;
 		std::vector<RenderObject> renderObjects;
 		CameraView camera;
-
+		RenderSettings renderSettings;
+		DirectionalLight sunLight;
 };
 
 
