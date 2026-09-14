@@ -24,7 +24,7 @@
 #include "../../Renderer/RenderObject.h"
 #include "../../Renderer/Lighting/DirectionalLight.h"
 #include <GLFWWindow.h>
-
+#include <optional>
 //#include "../../Core/WindowSystem"
 
 class VulkanRHI 
@@ -41,13 +41,15 @@ public:
         const std::vector<RenderObject>& objects,
         const RenderSettings& renderSettings,
             const DirectionalLight& sunLight,
-
+const std::optional<uint32_t>& selectedObjectId,
         bool& UIVis
     );
-    void recordCommandBuffer(uint32_t frame,
-         uint32_t imageIndex,
-             const std::vector<RenderObject>& objects,
-          bool& UIVisibility);
+    void recordCommandBuffer(
+        uint32_t frame,
+        uint32_t imageIndex,
+        const std::vector<RenderObject>& objects,
+        const std::optional<uint32_t>& selectedObjectId,
+        bool& UIVisibility);
 
 
     VulkanInstance&        GetVulkanInstance()        { return instance; }

@@ -127,7 +127,7 @@ FetchContent_MakeAvailable(assimp)
 function (add_slang_shader_target TARGET)
   cmake_parse_arguments ("SHADER" "" "" "SOURCES" ${ARGN})
   set (SHADERS_DIR ${CMAKE_CURRENT_LIST_DIR}/shaders)
-  set (ENTRY_POINTS -entry vertMain -entry fragMain)
+  set (ENTRY_POINTS -entry vertMain -entry fragMain -entry outlineVertMain -entry outlineFragMain)
   add_custom_command (
           OUTPUT ${SHADERS_DIR}
           COMMAND ${CMAKE_COMMAND} -E make_directory ${SHADERS_DIR}

@@ -177,7 +177,7 @@ void Engine::MainLoopEngine() {
         HandleViewportSelection(capture);
 
         EventManager(deltaTime);
-        VulkanAPI.DrawFrame(camera,renderObjects,renderSettings,sunLight,window.GetHUDVisibility());   // ← Dentro hacemos recordimgui
+        VulkanAPI.DrawFrame(camera,renderObjects,renderSettings,sunLight,    editorSelection.selectedObjectId,window.GetHUDVisibility());   // ← Dentro hacemos recordimgui
         layersUI.ImGui_EndFrame();   // Para viewports
 
         frameCount++;
@@ -237,6 +237,7 @@ void Engine::HandleViewportSelection(
             window.GetWidth(),
             window.GetHeight(),
             camera,
+            model,
             renderObjects
         );
 

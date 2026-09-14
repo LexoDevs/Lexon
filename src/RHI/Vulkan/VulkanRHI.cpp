@@ -151,6 +151,7 @@ void VulkanRHI::DrawFrame(
     const std::vector<RenderObject>& objects,
     const RenderSettings& renderSettings,
     const DirectionalLight& sunLight,
+    const std::optional<uint32_t>& selectedObjectId,
     bool& UIVis
 ){
     const uint32_t frame = currentFrame;
@@ -208,7 +209,7 @@ void VulkanRHI::DrawFrame(
 
 
 //Aqui empieza el grabado de comandos a la gráfica
-    recordCommandBuffer(frame,imageIndex,objects, UIVis);
+    recordCommandBuffer(frame,imageIndex,objects,selectedObjectId, UIVis);
 
 
     // 5. Submit
@@ -268,8 +269,10 @@ void VulkanRHI::DrawFrame(
 };
 
 
-void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex,     const std::vector<RenderObject>& objects,
-bool& UIVisibility)
+void VulkanRHI::recordCommandBuffer(uint32_t frame, uint32_t imageIndex,
+    const std::vector<RenderObject>& objects,
+    const std::optional<uint32_t>& selectedObjectId,
+    bool& UIVisibility)
 {
     VkCommandBuffer cmd = commandBuffers.GetCommandBuffer(frame);
 
@@ -392,15 +395,6 @@ vkCmdSetDepthBounds(cmd, 0.0f, 1.0f);
     vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffers, offsets);
     vkCmdBindIndexBuffer(cmd, indexBuffer.GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-    //const VkDescriptorSet descriptorsettemporal = descriptorSet.GetDescriptorSet(frame);
-    /*vkCmdBindDescriptorSets(cmd, 
-                        VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                        pipeline.GetPipelineLeyout(), 
-                        0,
-                        1, 
-                        &descriptorsettemporal,   // Asumiendo que es un método de Texture
-                        0,
-                         nullptr);*/
 
 const std::vector<GPUMeshRange>& ranges = indexBuffer.GetGPURangues();
 
@@ -462,6 +456,89 @@ const std::vector<GPUMeshRange>& ranges = indexBuffer.GetGPURangues();
         0
     );
 }
+
+if (selectedObjectId.has_value())
+{
+    for (const RenderObject& object : objects)
+    {
+        if (object.id != selectedObjectId.value() ||
+            !object.visible ||
+            object.meshRangeIndex >= ranges.size())
+        {
+            continue;
+        }
+
+        const GPUMeshRange& range =
+            ranges[object.meshRangeIndex];
+
+        if (range.indexCount == 0)
+        {
+            break;
+        }
+
+        vkCmdBindPipeline(
+            cmd,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipeline.GetOutlinePipeline()
+        );
+
+        vkCmdSetDepthTestEnable(
+            cmd,
+            VK_TRUE
+        );
+
+        vkCmdSetDepthWriteEnable(
+            cmd,
+            VK_FALSE
+        );
+
+        vkCmdSetDepthCompareOp(
+            cmd,
+            VK_COMPARE_OP_LESS_OR_EQUAL
+        );
+
+        const glm::mat4 worldMatrix =
+            object.CalculateWorldMatrix();
+
+        ObjectPushConstants pushConstants{};
+        pushConstants.model = worldMatrix;
+
+        pushConstants.normalMatrix =
+            glm::transpose(
+                glm::inverse(worldMatrix)
+            );
+
+        vkCmdPushConstants(
+            cmd,
+            pipeline.GetPipelineLeyout(),
+            VK_SHADER_STAGE_VERTEX_BIT,
+            0,
+            sizeof(ObjectPushConstants),
+            &pushConstants
+        );
+
+        descriptorSet.bindDescriptorSet(
+            frame,
+            object.materialIndex,
+            cmd,
+            pipeline.GetPipelineLeyout()
+        );
+
+        vkCmdDrawIndexed(
+            cmd,
+            range.indexCount,
+            1,
+            range.firstIndex,
+            static_cast<int32_t>(
+                range.firstVertex
+            ),
+            0
+        );
+
+        break;
+    }
+}
+
 
 if ( UIVisibility == true){
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);

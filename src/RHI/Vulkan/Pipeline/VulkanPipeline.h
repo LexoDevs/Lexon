@@ -1,4 +1,4 @@
-#pragma onces
+#pragma once
 
 #include "../Core/VulkanContext.h"
 #include <vulkan/vulkan.h>
@@ -20,13 +20,17 @@ public:
 
     void recreateGraphicsPipeline();
 	VkPipeline GetPipeline() {return Pipeline;};
+	VkPipeline GetOutlinePipeline() const {return outlinePipeline;};
+
 	VkPipelineLayout GetPipelineLeyout() {return pipelineLayout;};
 
 
 private:
-	VkShaderModule shaderModule;
-	VkPipelineLayout pipelineLayout;
-	VkPipeline Pipeline;
+VkShaderModule shaderModule = VK_NULL_HANDLE;
+VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+
+VkPipeline Pipeline = VK_NULL_HANDLE;
+VkPipeline outlinePipeline = VK_NULL_HANDLE;
 
 VkDevice cp_device;
 VkExtent2D cp_swapChainExtent;

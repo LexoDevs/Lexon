@@ -26,14 +26,15 @@ public:
         const CameraView& camera
     );
 
-    static std::optional<uint32_t> PickObject(
-        double mouseX,
-        double mouseY,
-        uint32_t viewportWidth,
-        uint32_t viewportHeight,
-        const CameraView& camera,
-        const std::vector<RenderObject>& objects
-    );
+static std::optional<uint32_t> PickObject(
+    double mouseX,
+    double mouseY,
+    uint32_t viewportWidth,
+    uint32_t viewportHeight,
+    const CameraView& camera,
+    const CpuModel& model,
+    const std::vector<RenderObject>& objects
+);
 
 private:
     static bool IntersectsBoundingBox(
@@ -41,4 +42,12 @@ private:
         const BoundingBox& bounds,
         float& hitDistance
     );
+
+    static bool IntersectsTriangle(
+    const Ray& ray,
+    const glm::vec3& vertex0,
+    const glm::vec3& vertex1,
+    const glm::vec3& vertex2,
+    float& hitDistance
+);
 };

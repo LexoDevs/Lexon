@@ -17,7 +17,7 @@ cp_swapChainExtent =swapChainExtent;
 cp_swapChainSurfaceFormat  =swapChainSurfaceFormat;
 cp_descriptorsetlayout = descriptorsetlayout;
 
-    VkShaderModule shaderModule = createShaderModule(readFile("../shaders/generated/slang.spv"));
+    shaderModule = createShaderModule(readFile("../shaders/generated/slang.spv"));
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
     vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -205,7 +205,19 @@ std::cout << "Color format: "
             throw std::runtime_error("failed to create graphics pipeline!");
         }
         
+shaderStages[0].pName = "outlineVertMain";
+shaderStages[1].pName = "outlineFragMain";
 
+rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
+
+colorBlendAttachment.blendEnable = VK_FALSE;
+depthStencil.depthTestEnable = VK_TRUE;
+depthStencil.depthWriteEnable = VK_FALSE;
+depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+
+        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineCreateInfoChain, nullptr, &outlinePipeline) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create outline  pipeline!");
+        }
 };
 
 
@@ -241,17 +253,57 @@ std::vector<char> VulkanPipeline::readFile(const std::string& filename) {
 }
 
 
-void VulkanPipeline::DestroyPipelineGraphics() {
-    vkDestroyPipeline(cp_device, Pipeline, nullptr);
-    vkDestroyPipelineLayout(cp_device, pipelineLayout, nullptr);
-    vkDestroyShaderModule(cp_device, shaderModule, nullptr);
+void VulkanPipeline::DestroyPipelineGraphics()
+{
+    if (outlinePipeline != VK_NULL_HANDLE)
+    {
+        vkDestroyPipeline(
+            cp_device,
+            outlinePipeline,
+            nullptr
+        );
+
+        outlinePipeline = VK_NULL_HANDLE;
+    }
+
+    if (Pipeline != VK_NULL_HANDLE)
+    {
+        vkDestroyPipeline(
+            cp_device,
+            Pipeline,
+            nullptr
+        );
+
+        Pipeline = VK_NULL_HANDLE;
+    }
+
+    if (pipelineLayout != VK_NULL_HANDLE)
+    {
+        vkDestroyPipelineLayout(
+            cp_device,
+            pipelineLayout,
+            nullptr
+        );
+
+        pipelineLayout = VK_NULL_HANDLE;
+    }
+
+    if (shaderModule != VK_NULL_HANDLE)
+    {
+        vkDestroyShaderModule(
+            cp_device,
+            shaderModule,
+            nullptr
+        );
+
+        shaderModule = VK_NULL_HANDLE;
+    }
 }
 
 void VulkanPipeline::recreateGraphicsPipeline()
 {
-    vkDestroyPipeline(cp_device, Pipeline, nullptr);
-    vkDestroyPipelineLayout(cp_device, pipelineLayout, nullptr);
-    vkDestroyShaderModule(cp_device, shaderModule, nullptr);
+    DestroyPipelineGraphics();
+
 
     createGraphicsPipeline(cp_device,cp_swapChainExtent,cp_swapChainSurfaceFormat, cp_descriptorsetlayout);   // Recrear con nuevo formato
 }

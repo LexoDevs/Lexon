@@ -157,3 +157,51 @@ if (sampledColor.a < 0.60)
         alpha
     );
 }
+
+
+struct OutlineVSOutput
+{
+    float4 position : SV_Position;
+};
+
+[shader("vertex")]
+OutlineVSOutput outlineVertMain(VSInput input)
+{
+    OutlineVSOutput output;
+
+    const float outlineWidth = 2.0;
+
+    const float3 expandedPosition =
+        input.inPosition +
+        normalize(input.inNormal) * outlineWidth;
+
+    const float4 worldPosition =
+        mul(
+            objectData.model,
+            float4(expandedPosition, 1.0)
+        );
+
+    output.position =
+        mul(
+            ubo.proj,
+            mul(
+                ubo.view,
+                worldPosition
+            )
+        );
+
+    return output;
+}
+
+[shader("fragment")]
+float4 outlineFragMain(
+    OutlineVSOutput input
+) : SV_Target
+{
+    return float4(
+        1.0,
+        0.20,
+        0.02,
+        1.0
+    );
+}

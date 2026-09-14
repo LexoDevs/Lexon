@@ -1,5 +1,6 @@
-C:/VulkanSDK/1.4.341.1/Bin/slangc.exe shaderbase.slang -target spirv -profile spirv_1_4 -emit-spirv-directly -fvk-use-entrypoint-name -entry vertMain -entry fragMain -o generated/slang.spv
+echo Compilando shaders
 
+C:/VulkanSDK/1.4.341.1/Bin/slangc.exe shaderbase.slang -target spirv -profile spirv_1_4 -emit-spirv-directly -fvk-use-entrypoint-name -entry vertMain -entry fragMain -entry outlineVertMain -entry outlineFragMain -o generated/slang.spv
 @echo off
-echo Hola, el script ha terminado de ejecutarse.
+echo Shaders Compilados
 pause
