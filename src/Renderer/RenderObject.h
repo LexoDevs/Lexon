@@ -23,7 +23,11 @@ struct Transform
         const glm::vec3& pivot
     ) const;
 };
-
+struct BoundingBox
+{
+    glm::vec3 minimum{0.0f};
+    glm::vec3 maximum{0.0f};
+};
 struct RenderObject
 {
     uint32_t id = 0;
@@ -41,7 +45,7 @@ struct RenderObject
 
     // Centro local usado para rotar/escalar la malla.
     glm::vec3 localPivot{0.0f};
-
+BoundingBox localBounds;
     bool visible = true;
 
     [[nodiscard]]

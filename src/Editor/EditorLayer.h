@@ -6,7 +6,7 @@
 
 #include "../RHI/Vulkan/VulkanRHI.h"
 #include "../Renderer/RenderObject.h"
-
+#include "EditorSelection.h"
 #include <cstdint>
 #include <vector>
 
@@ -29,11 +29,13 @@ class EditorLayer{
         void ImGui_EndFrame();
         void VentanaSuperior(VulkanRHI& VulkanAPI);
         void MuestreoImagenes(VulkanRHI& VulkanAPI);
-        void ElementosEnEscena(const CpuModel& model, std::vector<RenderObject>& objects);
+        void ElementosEnEscena(
+            std::vector<RenderObject>& objects,
+            EditorSelection& selection
+        );
         void DrawNode(const CpuNode& node, const CpuModel& model);
         void LogFPS(double fps,double time);
     private:
-    int32_t selectedObjectIndex = -1;
 };
 
 

@@ -9,6 +9,8 @@
 #include "../Renderer/RenderObject.h"
 #include "../Renderer/RenderSettings.h"
 #include "../Renderer/Lighting/DirectionalLight.h"
+#include "../Editor/EditorSelection.h"
+#include "../Renderer/Picking/ViewportPicker.h"
 
 
 class Engine {
@@ -22,6 +24,10 @@ class Engine {
 		void InitEngine();
 		void MainLoopEngine();
 		void EventManager(float deltaTime);
+		void HandleViewportSelection(const EditorInputCapture& capture);
+
+
+
 		void LoadUIPanels();
 
 		GLFWWindow window;
@@ -34,6 +40,7 @@ class Engine {
 		LoaderAssets loader;
 		VulkanRHI VulkanAPI;
 		EditorLayer layersUI;
+		EditorSelection editorSelection;
 
 		CpuModel model;
 		std::vector<RenderObject> renderObjects;

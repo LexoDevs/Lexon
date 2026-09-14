@@ -9,10 +9,10 @@ void CameraView::SetCameraView(
 
     ubo.view = glm::lookAt(position, position + front, up);
 ubo.proj = glm::perspective(
-    glm::radians(60.0f),
+    glm::radians(fieldOfView),
     aspectRatio,
-    1.0f,
-    10000.0f
+    nearPlane,
+    farPlane
 );
 
     ubo.proj[1][1] *= -1;

@@ -140,7 +140,7 @@ void Engine::LoadUIPanels() {
         ImGui::ShowDemoWindow();
         layersUI.VentanaSuperior(VulkanAPI);
         layersUI.MuestreoImagenes(VulkanAPI);
-        layersUI.ElementosEnEscena(model,renderObjects);
+        layersUI.ElementosEnEscena(renderObjects,editorSelection);
         ImPlot::ShowDemoWindow();
 
 };
@@ -173,6 +173,8 @@ void Engine::MainLoopEngine() {
         ImGui::Render();
 
         EditorInputCapture capture = layersUI.GetInputCapture();
+        
+        HandleViewportSelection(capture);
 
         EventManager(deltaTime);
         VulkanAPI.DrawFrame(camera,renderObjects,renderSettings,sunLight,window.GetHUDVisibility());   // ← Dentro hacemos recordimgui
@@ -212,3 +214,40 @@ void Engine::CleanEngine() {
 };
 
 
+void Engine::HandleViewportSelection(
+    const EditorInputCapture& capture)
+{
+    if (!inputSystem.IsMouseButtonJustPressed(
+            MouseButton::Left))
+    {
+        return;
+    }
+
+    // Impide seleccionar objetos al pulsar sobre
+    // Hierarchy, Inspector u otra ventana ImGui.
+    if (capture.mouse)
+    {
+        return;
+    }
+
+    const std::optional<uint32_t> pickedObject =
+        ViewportPicker::PickObject(
+            inputSystem.GetMouseX(),
+            inputSystem.GetMouseY(),
+            window.GetWidth(),
+            window.GetHeight(),
+            camera,
+            renderObjects
+        );
+
+    if (pickedObject.has_value())
+    {
+        editorSelection.Select(
+            pickedObject.value()
+        );
+    }
+    else
+    {
+        editorSelection.Clear();
+    }
+}

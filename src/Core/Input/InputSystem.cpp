@@ -26,17 +26,37 @@ bool InputSystem::IsKeyPressed(KeyCode key) const
         return m_Keys[index];
     }
 
-void InputSystem::SetMouseButtonState( MouseButton button, bool pressed)
+void InputSystem::SetMouseButtonState(
+    MouseButton button,
+    bool pressed)
+{
+    const size_t index =
+        static_cast<size_t>(button);
+
+    if (pressed && !m_MouseButtons[index])
     {
-        const size_t index = static_cast<size_t>(button);
-        m_MouseButtons[index] = pressed;
+        m_MouseButtonsPressedThisFrame[index] = true;
     }
+
+    m_MouseButtons[index] = pressed;
+}
+
+
 
 bool InputSystem::IsMouseButtonPressed( MouseButton button) const
     {
         const size_t index = static_cast<size_t>(button);
         return m_MouseButtons[index];
     }
+
+    bool InputSystem::IsMouseButtonJustPressed(
+    MouseButton button) const
+{
+    const size_t index =
+        static_cast<size_t>(button);
+
+    return m_MouseButtonsPressedThisFrame[index];
+}
 
 void InputSystem::SetMousePosition( double xpos, double ypos)
     {
@@ -110,6 +130,7 @@ KeyCode InputSystem::Selector(){
 void InputSystem::BeginFrame()
 {
     m_KeysPressedThisFrame.fill(false);
+    m_MouseButtonsPressedThisFrame.fill(false);
 
     m_MouseDeltaX = 0.0;
     m_MouseDeltaY = 0.0;

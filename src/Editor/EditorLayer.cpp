@@ -325,102 +325,105 @@ void EditorLayer::LogFPS(double fps,double time){
     ImGui::End();
 }
 
-void EditorLayer::ElementosEnEscena(const CpuModel& model, std::vector<RenderObject>& objects)
+void EditorLayer::ElementosEnEscena(
+    std::vector<RenderObject>& objects,
+    EditorSelection& selection)
 {
     ImGui::Begin("Hierarchy");
 
-
-for (std::size_t i = 0; i < objects.size(); ++i)
-{
-    RenderObject& object = objects[i];
-
-    ImGui::PushID(
-        static_cast<int>(object.id)
-    );
-
-    const bool selected =
-        selectedObjectIndex ==
-        static_cast<int32_t>(i);
-
-    if (ImGui::Selectable(
-            object.name.c_str(),
-            selected,
-            ImGuiSelectableFlags_SpanAllColumns))
+    for (RenderObject& object : objects)
     {
-        selectedObjectIndex =
-            static_cast<int32_t>(i);
-    }
+        ImGui::PushID(
+            static_cast<int>(object.id)
+        );
 
-    ImGui::PopID();
-}
+        const bool selected =
+            selection.IsSelected(object.id);
+
+        if (ImGui::Selectable(
+                object.name.c_str(),
+                selected,
+                ImGuiSelectableFlags_SpanAllColumns))
+        {
+            selection.Select(object.id);
+        }
+
+        ImGui::PopID();
+    }
 
     ImGui::End();
 
-
-
     ImGui::Begin("Inspector");
 
-if (selectedObjectIndex >= 0 &&
-    selectedObjectIndex <
-        static_cast<int32_t>(objects.size()))
-{
-    RenderObject& selectedObject =
-        objects[
-            static_cast<std::size_t>(
-                selectedObjectIndex
-            )
-        ];
+    RenderObject* selectedObject = nullptr;
 
-    ImGui::Text(
-        "Object: %s",
-        selectedObject.name.c_str()
-    );
+    if (selection.HasSelection())
+    {
+        for (RenderObject& object : objects)
+        {
+            if (selection.IsSelected(object.id))
+            {
+                selectedObject = &object;
+                break;
+            }
+        }
+    }
 
-    ImGui::Text(
-        "ID: %u",
-        selectedObject.id
-    );
+    if (selectedObject != nullptr)
+    {
+        ImGui::Text(
+            "Object: %s",
+            selectedObject->name.c_str()
+        );
 
-    ImGui::Text(
-        "Mesh range: %u",
-        selectedObject.meshRangeIndex
-    );
+        ImGui::Text(
+            "ID: %u",
+            selectedObject->id
+        );
 
-    ImGui::Checkbox(
-        "Visible",
-        &selectedObject.visible
-    );
+        ImGui::Text(
+            "Mesh range: %u",
+            selectedObject->meshRangeIndex
+        );
 
-    ImGui::DragFloat3(
-        "Position",
-        &selectedObject.transform.position.x,
-        1.0f
-    );
+        ImGui::Checkbox(
+            "Visible",
+            &selectedObject->visible
+        );
 
-    ImGui::DragFloat3(
-        "Rotation",
-        &selectedObject.transform.rotation.x,
-        0.25f
-    );
+        ImGui::DragFloat3(
+            "Position",
+            &selectedObject->transform.position.x,
+            1.0f
+        );
 
-    ImGui::DragFloat3(
-        "Scale",
-        &selectedObject.transform.scale.x,
-        0.01f,
-        0.001f,
-        1000.0f
-    );
-}
-else
-{
-    ImGui::TextUnformatted(
-        "No object selected"
-    );
-}
+        ImGui::DragFloat3(
+            "Rotation",
+            &selectedObject->transform.rotation.x,
+            0.25f
+        );
 
-ImGui::End();
+        ImGui::DragFloat3(
+            "Scale",
+            &selectedObject->transform.scale.x,
+            0.01f,
+            0.001f,
+            1000.0f
+        );
+    }
+    else
+    {
+        if (selection.HasSelection())
+        {
+            selection.Clear();
+        }
 
+        ImGui::TextUnformatted(
+            "No object selected"
+        );
+    }
 
+    ImGui::End();
 }
 
 void EditorLayer::DrawNode(

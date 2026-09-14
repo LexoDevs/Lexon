@@ -14,6 +14,14 @@ glm::vec3 up       = glm::vec3(0.0f, 1.0f, 0.0f);   // Y es arriba/ Y es arriba
         float movementSpeed = 500.0f;
         float mouseSensitivity = 0.4f;
 
+
+
+
+float fieldOfView = 60.0f;
+float nearPlane = 1.0f;
+float farPlane = 10000.0f;
+
+
 void ProcessMouseMovement(float deltaX,float deltaY);
     void SetCameraView(UniformBufferObject& ubo, float aspectratio) const;
 glm::vec3& GerPos() {return position;};
@@ -28,6 +36,7 @@ void MoverArriba(float amount)
 {
     position += up * amount;
 }
+
 
 
 private:

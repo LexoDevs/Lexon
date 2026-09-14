@@ -18,6 +18,7 @@ public:
     bool IsKeyPressed( KeyCode key ) const;
 
     void SetMouseButtonState( MouseButton button, bool pressed);
+    bool IsMouseButtonJustPressed(MouseButton  button) const;
 
     bool IsMouseButtonPressed( MouseButton button) const;
 
@@ -28,8 +29,8 @@ public:
 
     double GetMouseDeltaX() {return m_MouseDeltaX;};
     double GetMouseDeltay() {return m_MouseDeltaY;};
-
-
+    double GetMouseX() const{ return m_MouseX;}
+    double GetMouseY() const{ return m_MouseY;}
 
     KeyCode Selector();
 private:
@@ -37,6 +38,7 @@ private:
     std::array<bool, static_cast<size_t>(KeyCode::Count)> m_Keys{};
     std::array<bool, static_cast<size_t>(MouseButton::Count)> m_MouseButtons{};
     std::array<bool, static_cast<size_t>(KeyCode::Count)> m_KeysPressedThisFrame{};
+std::array<bool, static_cast<size_t>(MouseButton::Count)>m_MouseButtonsPressedThisFrame{};
 
 
 

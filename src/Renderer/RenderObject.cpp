@@ -7,30 +7,38 @@
 #include <limits>
 
 
-glm::vec3 CalculateMeshPivot(
-    const CpuMesh& mesh
-)
+BoundingBox CalculateMeshBounds(
+    const CpuMesh& mesh)
 {
+    BoundingBox bounds{};
+
     if (mesh.vertices.empty())
     {
-        return glm::vec3(0.0f);
+        return bounds;
     }
 
-    glm::vec3 minimum{
+    bounds.minimum = glm::vec3(
         std::numeric_limits<float>::max()
-    };
+    );
 
-    glm::vec3 maximum{
+    bounds.maximum = glm::vec3(
         std::numeric_limits<float>::lowest()
-    };
+    );
 
     for (const CpuVertex& vertex : mesh.vertices)
     {
-        minimum = glm::min(minimum, vertex.position);
-        maximum = glm::max(maximum, vertex.position);
+        bounds.minimum = glm::min(
+            bounds.minimum,
+            vertex.position
+        );
+
+        bounds.maximum = glm::max(
+            bounds.maximum,
+            vertex.position
+        );
     }
 
-    return (minimum + maximum) * 0.5f;
+    return bounds;
 }
 
 
@@ -106,7 +114,10 @@ namespace
             object.meshRangeIndex = meshIndex;
             object.materialIndex = mesh.materialIndex;
             object.importedTransform = worldTransform;
-            object.localPivot = CalculateMeshPivot(mesh);
+            object.localBounds = CalculateMeshBounds(mesh);
+            object.localPivot =
+                (object.localBounds.minimum +
+                object.localBounds.maximum) * 0.5f;
 
             if (!mesh.name.empty())
             {
